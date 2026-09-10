@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ChevronDown } from "lucide-react";
 import { Globe, type GlobeHandle } from "@/components/globe/Globe";
@@ -72,8 +72,23 @@ function Home() {
     document.getElementById("atlas")?.scrollIntoView({ behavior: reduced ? "auto" : "smooth" });
   };
 
+  useEffect(() => {
+    const hero = document.getElementById("hero");
+    if (!hero) return;
+    const onWheel = (event: WheelEvent) => {
+      if (event.ctrlKey || event.metaKey) return;
+      if (event.deltaY === 0) return;
+      const atHero = window.scrollY < window.innerHeight * 0.92;
+      if (!atHero) return;
+      event.preventDefault();
+      window.scrollBy({ top: event.deltaY, behavior: "auto" });
+    };
+    hero.addEventListener("wheel", onWheel, { passive: false });
+    return () => hero.removeEventListener("wheel", onWheel);
+  }, []);
+
   return (
-    <div className="overflow-x-hidden bg-void text-fg">
+    <div className="bg-void text-fg">
       <a
         href="#search"
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-30 focus:rounded-md focus:bg-void-elevated focus:px-3 focus:py-2"
@@ -81,7 +96,7 @@ function Home() {
         {t(locale).skip}
       </a>
 
-      <section className="sticky top-0 h-dvh overflow-hidden">
+      <section id="hero" className="relative h-dvh overflow-hidden">
         <div
           className={`flex h-full flex-col transition-[opacity,filter,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
             leaving ? "translate-y-2 opacity-0 blur-sm" : "opacity-100"
@@ -141,7 +156,7 @@ function Home() {
         </div>
       </section>
 
-      <div id="atlas" className="relative z-20 bg-void">
+      <div id="atlas" className="relative bg-void">
         <Atlas published={published} />
         <SiteFooter />
       </div>

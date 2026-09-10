@@ -102,7 +102,7 @@ export function Globe({
     <div ref={frameRef} className="globe-stage absolute inset-0 cursor-pointer">
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 size-full cursor-pointer touch-none"
+        className="absolute inset-0 size-full cursor-pointer touch-pan-y"
         style={{ cursor: "pointer" }}
         aria-hidden="true"
       />
