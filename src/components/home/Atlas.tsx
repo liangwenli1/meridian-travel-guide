@@ -15,7 +15,7 @@ export function Atlas({ published }: { published: City[] }) {
 
   return (
     <>
-      <section id="guides" className="home-page flex flex-col justify-center px-6 py-10 md:px-10 lg:px-14">
+      <section id="guides" className="px-6 py-20 md:px-10 md:py-24 lg:px-14">
         <div className="scene-item">
           <p className="kicker text-accent">{strings.guidesKicker}</p>
           <h2 className="mt-3 max-w-3xl text-4xl font-medium tracking-tight md:text-5xl">{strings.guidesTitle}</h2>
@@ -58,7 +58,7 @@ export function Atlas({ published }: { published: City[] }) {
         </div>
       </section>
 
-      <section id="desk" className="home-page flex flex-col justify-center px-6 py-10 md:px-10 lg:px-14">
+      <section id="desk" className="px-6 py-20 md:px-10 md:py-24 lg:px-14">
         <div className="scene-item">
           <p className="kicker text-accent">{strings.dispatchKicker}</p>
           <h2 className="mt-3 text-4xl font-medium tracking-tight md:text-5xl">{strings.dispatchTitle}</h2>
@@ -80,7 +80,7 @@ export function Atlas({ published }: { published: City[] }) {
         </ol>
       </section>
 
-      <section id="hours" className="home-page flex flex-col justify-center px-6 py-10 md:px-10 lg:px-14">
+      <section id="hours" className="px-6 py-20 md:px-10 md:py-24 lg:px-14">
         <div className="scene-item">
           <p className="kicker text-accent">{strings.hoursKicker}</p>
           <h2 className="mt-3 max-w-3xl text-4xl font-medium tracking-tight md:text-5xl">{strings.hoursTitle}</h2>
@@ -97,7 +97,7 @@ export function Atlas({ published }: { published: City[] }) {
         </ol>
       </section>
 
-      <section id="method" className="home-page flex flex-col justify-center px-6 py-10 md:px-10 lg:px-14">
+      <section id="method" className="px-6 py-20 md:px-10 md:py-24 lg:px-14">
         <div className="scene-item">
           <p className="kicker text-accent">{strings.methodKicker}</p>
           <h2 className="mt-3 max-w-2xl text-4xl font-medium tracking-tight md:text-5xl">{strings.methodTitle}</h2>
@@ -113,8 +113,8 @@ export function Atlas({ published }: { published: City[] }) {
         </div>
       </section>
 
-      <section id="letter" className="home-page flex flex-col">
-        <div className="flex flex-1 flex-col justify-center px-6 py-10 md:px-10 lg:px-14">
+      <section id="letter" className="flex flex-col">
+        <div className="px-6 py-20 md:px-10 md:py-24 lg:px-14">
           <div className="scene-item grid items-end gap-8 md:grid-cols-[1.2fr_1fr]">
             <div>
               <p className="kicker text-accent">{strings.letterKicker}</p>
