@@ -64,27 +64,49 @@ function sampleLand(image: HTMLImageElement, step: number) {
   const positions: number[] = [];
   const colors: number[] = [];
 
-  for (let y = 0; y < height; y += step) {
-    for (let x = 0; x < width; x += step) {
-      const jx = Math.min(width - 1, x + ((y * 17) % Math.max(step - 1, 1)));
-      const jy = Math.min(height - 1, y + ((x * 13) % Math.max(step - 1, 1)));
-      const idx = (jy * width + jx) * 4;
-      const r = data[idx] ?? 0;
-      const g = data[idx + 1] ?? 0;
-      const b = data[idx + 2] ?? 0;
-      const brightness = (r + g + b) / 3;
-      if (brightness < 48) continue;
+  const landAt = (x: number, y: number) => {
+    const i = (y * width + x) * 4;
+    return ((data[i] ?? 0) + (data[i + 1] ?? 0) + (data[i + 2] ?? 0)) / 3 > 40;
+  };
 
-      const u = (jx + 0.5) / width;
-      const v = (jy + 0.5) / height;
+  const pushLight = (lat: number, lng: number, intensity: number) => {
+    const p = latLngToVector3(lat, lng, EARTH_RADIUS + 0.006);
+    positions.push(p.x, p.y, p.z);
+    const north = Math.max(0, Math.min(1, (lat + 35) / 80));
+    const cyan = 0.45 + north * 0.45;
+    const warm = 0.55 + (1 - north) * 0.4;
+    colors.push(
+      (0.55 + warm * 0.35) * intensity,
+      (0.78 + cyan * 0.18) * intensity,
+      (0.88 + cyan * 0.12) * intensity,
+    );
+  };
+
+  for (const city of cities) {
+    const count = 10 + Math.round((city.tourismPriority / 100) * (isMobile() ? 14 : 28));
+    const spread = 0.35 + (1 - city.tourismPriority / 100) * 1.4;
+    for (let i = 0; i < count; i += 1) {
+      const ang = Math.random() * Math.PI * 2;
+      const rad = Math.abs(randn()) * spread;
+      const lat = city.latitude + rad * Math.cos(ang);
+      const lng = city.longitude + (rad * Math.sin(ang)) / Math.max(0.35, Math.cos((city.latitude * Math.PI) / 180));
+      const u = Math.min(width - 1, Math.max(0, Math.floor(((lng + 180) / 360) * width)));
+      const v = Math.min(height - 1, Math.max(0, Math.floor(((90 - lat) / 180) * height)));
+      if (!landAt(u, v)) continue;
+      pushLight(lat, lng, 0.75 + Math.random() * 0.35);
+    }
+  }
+
+  const fillStep = isMobile() ? 22 : step;
+  for (let y = 0; y < height; y += fillStep) {
+    for (let x = 0; x < width; x += fillStep) {
+      if (!landAt(x, y)) continue;
+      if (Math.random() > 0.28) continue;
+      const u = (x + 0.5) / width;
+      const v = (y + 0.5) / height;
       const lat = (0.5 - v) * 180;
       const lng = (u - 0.5) * 360;
-      const lift = 0.004 + (brightness / 255) * 0.01;
-      const p = latLngToVector3(lat, lng, EARTH_RADIUS + lift);
-      positions.push(p.x, p.y, p.z);
-
-      const t = Math.min(1, brightness / 120);
-      colors.push(0.82 + t * 0.18, 0.8 + t * 0.16, 0.68 + t * 0.2);
+      pushLight(lat, lng, 0.35 + Math.random() * 0.35);
     }
   }
 
@@ -92,6 +114,49 @@ function sampleLand(image: HTMLImageElement, step: number) {
     positions: new Float32Array(positions),
     colors: new Float32Array(colors),
   };
+}
+
+function randn() {
+  const u = Math.max(1e-6, Math.random());
+  const v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(Math.PI * 2 * v);
+}
+
+function extractCoast(image: HTMLImageElement) {
+  const width = 720;
+  const height = 360;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) return new Float32Array(0);
+  ctx.drawImage(image, 0, 0, width, height);
+  const { data } = ctx.getImageData(0, 0, width, height);
+  const land = (x: number, y: number) => {
+    const xx = ((x % width) + width) % width;
+    const yy = Math.min(height - 1, Math.max(0, y));
+    const i = (yy * width + xx) * 4;
+    return ((data[i] ?? 0) + (data[i + 1] ?? 0) + (data[i + 2] ?? 0)) / 3 > 40;
+  };
+  const positions: number[] = [];
+  const addSeg = (x0: number, y0: number, x1: number, y1: number) => {
+    const to = (x: number, y: number) => {
+      const lat = (0.5 - (y + 0.5) / height) * 180;
+      const lng = ((x + 0.5) / width - 0.5) * 360;
+      return latLngToVector3(lat, lng, EARTH_RADIUS + 0.003);
+    };
+    const a = to(x0, y0);
+    const b = to(x1, y1);
+    positions.push(a.x, a.y, a.z, b.x, b.y, b.z);
+  };
+  for (let y = 0; y < height; y += 2) {
+    for (let x = 0; x < width; x += 2) {
+      if (!land(x, y)) continue;
+      if (!land(x + 1, y)) addSeg(x, y, x + 0.6, y);
+      if (!land(x, y + 1)) addSeg(x, y, x, y + 0.6);
+    }
+  }
+  return new Float32Array(positions);
 }
 
 function makePointMaterial(size: number, opacity: number) {
@@ -115,7 +180,7 @@ function makePointMaterial(size: number, opacity: number) {
         vColor = color;
         vec4 mv = modelViewMatrix * vec4(position, 1.0);
         float dist = max(0.55, -mv.z);
-        gl_PointSize = clamp(uSize * uPixelRatio * (2.4 / dist), 2.0, 28.0);
+        gl_PointSize = clamp(uSize * uPixelRatio * (1.8 / dist), 1.2, 9.0);
         gl_Position = projectionMatrix * mv;
       }
     `,
@@ -162,26 +227,20 @@ function makeEarthMaterial(texture: THREE.Texture) {
       void main() {
         vec3 tex = texture2D(uMap, vUv).rgb;
         float luma = dot(tex, vec3(0.299, 0.587, 0.114));
-        float land = smoothstep(0.08, 0.22, luma);
+        float land = smoothstep(0.06, 0.16, luma);
 
-        vec2 grid = vec2(vUv.x * 300.0, vUv.y * 150.0);
-        vec2 cell = fract(grid) - 0.5;
-        float d = length(cell);
-        float dotMask = 1.0 - smoothstep(0.14, 0.36, d);
-
-        vec3 ocean = vec3(0.02, 0.035, 0.06);
-        vec3 landCol = tex * vec3(1.08, 1.04, 0.9);
-        vec3 surface = mix(ocean, landCol, land * mix(0.55, 1.0, dotMask));
+        vec3 ocean = vec3(0.008, 0.01, 0.018);
+        vec3 landCol = vec3(0.035, 0.05, 0.062);
+        vec3 surface = mix(ocean, landCol, land);
 
         vec3 N = normalize(vNormalW);
         vec3 V = normalize(vViewDir);
         float ndv = clamp(dot(N, V), 0.0, 1.0);
-        float wrap = 0.42 + 0.58 * ndv;
-        float rim = pow(1.0 - ndv, 2.6);
+        float wrap = 0.55 + 0.45 * ndv;
+        float rim = pow(1.0 - ndv, 3.2);
 
         vec3 color = surface * wrap;
-        color += vec3(0.32, 0.46, 0.72) * rim * 0.38;
-        color += land * vec3(0.12, 0.11, 0.08) * (1.0 - wrap);
+        color += vec3(0.18, 0.32, 0.48) * rim * 0.22;
 
         gl_FragColor = vec4(color, 1.0);
       }
@@ -381,15 +440,66 @@ export class GlobeEngine {
     this.geometries.push(earth.geometry);
     this.materials.push(earthMat);
 
-    const land = sampleLand(image, isMobile() ? 4 : 2);
+    const land = sampleLand(image, isMobile() ? 22 : 16);
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute("position", new THREE.BufferAttribute(land.positions, 3));
     geometry.setAttribute("color", new THREE.BufferAttribute(land.colors, 3));
-    const material = makePointMaterial(isMobile() ? 10 : 7.5, 0.88);
+    const material = makePointMaterial(isMobile() ? 4.2 : 3.4, 0.92);
     const points = new THREE.Points(geometry, material);
     this.globe.add(points);
     this.geometries.push(geometry);
     this.materials.push(material);
+
+    const coast = extractCoast(image);
+    if (coast.length) {
+      const coastGeo = new THREE.BufferGeometry();
+      coastGeo.setAttribute("position", new THREE.BufferAttribute(coast, 3));
+      const coastMat = new THREE.LineBasicMaterial({
+        color: 0x8ec4d4,
+        transparent: true,
+        opacity: 0.28,
+        depthWrite: false,
+        toneMapped: false,
+      });
+      const coastLines = new THREE.LineSegments(coastGeo, coastMat);
+      this.globe.add(coastLines);
+      this.geometries.push(coastGeo);
+      this.materials.push(coastMat);
+    }
+
+    await this.addBorders();
+  }
+
+  private async addBorders() {
+    try {
+      const response = await fetch("/globe/borders.json");
+      if (!response.ok) return;
+      const data = (await response.json()) as { rings: number[][] };
+      const positions: number[] = [];
+      for (const ring of data.rings ?? []) {
+        if (ring.length < 6) continue;
+        for (let i = 0; i + 3 < ring.length; i += 2) {
+          const a = latLngToVector3(ring[i + 1] ?? 0, ring[i] ?? 0, EARTH_RADIUS + 0.004);
+          const b = latLngToVector3(ring[i + 3] ?? 0, ring[i + 2] ?? 0, EARTH_RADIUS + 0.004);
+          positions.push(a.x, a.y, a.z, b.x, b.y, b.z);
+        }
+      }
+      if (!positions.length || this.disposed) return;
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(positions), 3));
+      const mat = new THREE.LineBasicMaterial({
+        color: 0xb7d4de,
+        transparent: true,
+        opacity: 0.38,
+        depthWrite: false,
+        toneMapped: false,
+      });
+      this.globe.add(new THREE.LineSegments(geo, mat));
+      this.geometries.push(geo);
+      this.materials.push(mat);
+    } catch {
+      /* borders are optional */
+    }
   }
 
   private addAtmosphere() {
@@ -409,8 +519,8 @@ export class GlobeEngine {
       fragmentShader: `
         varying vec3 vNormal;
         void main() {
-          float intensity = pow(0.68 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.2);
-          gl_FragColor = vec4(0.42, 0.58, 0.92, 1.0) * intensity * 0.95;
+          float intensity = pow(0.72 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.8);
+          gl_FragColor = vec4(0.28, 0.48, 0.72, 1.0) * intensity * 0.55;
         }
       `,
     });
@@ -461,7 +571,7 @@ export class GlobeEngine {
       const vec = new THREE.Vector3(pos.x, pos.y, pos.z);
       this.cityPositions.set(city.id, vec);
       const material = new THREE.MeshBasicMaterial({
-        color: city.contentStatus === "published" ? 0xf4f0e6 : 0x8b93a0,
+        color: city.contentStatus === "published" ? 0xb8fff4 : 0x6a8890,
         transparent: true,
         opacity: 0.96,
         toneMapped: false,
@@ -481,7 +591,7 @@ export class GlobeEngine {
       const material = mesh.material as THREE.MeshBasicMaterial;
       const active = id === this.highlightId;
       mesh.scale.setScalar(active ? 2.4 : 1);
-      material.color.set(active ? 0xffffff : 0xf4f0e6);
+      material.color.set(active ? 0xffffff : 0xb8fff4);
     }
   }
 

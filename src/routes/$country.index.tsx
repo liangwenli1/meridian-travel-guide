@@ -1,4 +1,9 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { AmbientParticles } from "@/components/fx/AmbientParticles";
+import { SiteFooter } from "@/components/site/SiteFooter";
+import { Badge } from "@/components/ui/Badge";
+import { Card } from "@/components/ui/Card";
+import { Grid } from "@/components/ui/Grid";
 import { citiesInCountry } from "@/data/cities";
 import { countries } from "@/data/countries";
 import { SITE } from "@/lib/site";
@@ -26,37 +31,39 @@ export const Route = createFileRoute("/$country/")({
 function CountryPage() {
   const { countryName, list } = Route.useLoaderData();
   return (
-    <main className="min-h-dvh bg-paper text-ink">
+    <main className="page-enter relative min-h-dvh bg-void text-fg">
+      <AmbientParticles />
+      <div className="relative z-10">
       <header className="flex items-center justify-between px-4 py-5 md:px-8">
-        <Link to="/" className="text-sm text-ink-soft">
+        <Link to="/" className="text-sm text-muted hover:text-fg">
           Globe
         </Link>
-        <Link to="/" className="font-display text-lg italic">
+        <Link to="/" className="text-lg font-medium tracking-tight">
           {SITE.name}
         </Link>
       </header>
       <div className="mx-auto max-w-3xl px-4 py-12 md:px-8">
-        <p className="text-[11px] tracking-[0.2em] text-muted-paper uppercase">Country</p>
-        <h1 className="mt-2 font-display text-5xl italic">{countryName}</h1>
-        <ul className="mt-10 divide-y divide-line-paper">
+        <p className="kicker text-accent">Country</p>
+        <h1 className="mt-2 text-5xl font-medium tracking-tight">{countryName}</h1>
+        <Grid min="lg" className="mt-10">
           {list.map((city) => (
-            <li key={city.id}>
-              <Link
-                to="/$country/$city"
-                params={{ country: city.countrySlug, city: city.slug }}
-                className="flex items-baseline justify-between gap-4 py-4"
-              >
-                <span>
-                  <span className="block font-display text-2xl italic">{city.name}</span>
-                  <span className="block text-sm text-ink-soft">{city.shortDescription}</span>
-                </span>
-                <span className="text-xs tracking-[0.14em] text-muted-paper uppercase">
-                  {city.contentStatus === "published" ? "Guide" : "Soon"}
-                </span>
+            <Card key={city.id} asChild interactive>
+              <Link to="/$country/$city" params={{ country: city.countrySlug, city: city.slug }}>
+                <div className="flex items-start justify-between gap-4">
+                  <span>
+                    <span className="block text-2xl font-medium tracking-tight">{city.name}</span>
+                    <span className="mt-1 block text-sm text-muted">{city.shortDescription}</span>
+                  </span>
+                  <Badge variant={city.contentStatus === "published" ? "accent" : "muted"}>
+                    {city.contentStatus === "published" ? "Guide" : "Soon"}
+                  </Badge>
+                </div>
               </Link>
-            </li>
+            </Card>
           ))}
-        </ul>
+        </Grid>
+      </div>
+      <SiteFooter />
       </div>
     </main>
   );

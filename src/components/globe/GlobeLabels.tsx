@@ -30,28 +30,28 @@ export function GlobeLabels({ labels, onSelect }: GlobeLabelsProps) {
             }}
             disabled={!isCity}
           >
-            <span className="flex items-center gap-2">
+            <span className="flex items-center gap-2 rounded-md bg-void/75 px-2 py-1 backdrop-blur-sm">
               <span
                 className={
                   label.kind === "city"
-                    ? "size-1.5 rounded-full bg-warm/90 shadow-[0_0_10px_rgba(244,240,230,0.55)]"
-                    : "size-1 rounded-full bg-silver/50"
+                    ? "size-1.5 rounded-full bg-accent shadow-[0_0_10px_rgba(110,224,210,0.7)]"
+                    : "size-1 rounded-full bg-accent/50"
                 }
               />
               <span
                 className={
                   label.kind === "country"
-                    ? "font-sans text-[11px] tracking-[0.18em] text-muted uppercase"
-                    : "font-sans text-[12px] text-warm/90"
+                    ? "font-sans text-[11px] tracking-[0.16em] text-accent uppercase"
+                    : "font-sans text-[12px] text-fg"
                 }
               >
                 {label.name}
               </span>
             </span>
             {isCity && hovered ? (
-              <span className="mt-1 ml-3.5 block text-[11px] text-muted">
+              <span className="mt-1 ml-1 block rounded-md bg-void/80 px-2 py-1 text-[11px] text-muted">
                 {label.subtitle}
-                <span className="ml-2 tracking-[0.16em] text-silver uppercase">Explore</span>
+                <span className="ml-2 tracking-[0.16em] text-accent uppercase">Explore</span>
               </span>
             ) : null}
           </button>

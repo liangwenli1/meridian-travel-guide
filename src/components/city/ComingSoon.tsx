@@ -1,66 +1,61 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
+import { AmbientParticles } from "@/components/fx/AmbientParticles";
+import { SiteFooter } from "@/components/site/SiteFooter";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Grid, StatCell, StatGrid } from "@/components/ui/Grid";
 import { publishedCities } from "@/data/cities";
 import { SITE } from "@/lib/site";
 import type { City } from "@/types/catalog";
 
 export function ComingSoon({ city }: { city: City }) {
   return (
-    <main className="min-h-dvh bg-paper text-ink">
+    <main className="page-enter relative min-h-dvh bg-void text-fg">
+      <AmbientParticles />
+      <div className="relative z-10">
       <header className="flex items-center justify-between px-4 py-5 md:px-8">
-        <Link to="/" className="inline-flex items-center gap-2 text-sm text-ink-soft">
-          <ArrowLeft className="size-4" />
-          Globe
-        </Link>
-        <Link to="/" className="font-display text-lg italic">
+        <Button asChild variant="ghost" size="sm">
+          <Link to="/">
+            <ArrowLeft className="size-4" />
+            Globe
+          </Link>
+        </Button>
+        <Link to="/" className="text-lg font-medium tracking-tight">
           {SITE.name}
         </Link>
       </header>
       <div className="mx-auto max-w-2xl px-4 py-16 md:px-8">
-        <p className="text-[11px] tracking-[0.2em] text-muted-paper uppercase">
+        <p className="kicker text-accent">
           {city.country} · Coming soon
         </p>
-        <h1 className="mt-3 font-display text-5xl italic md:text-6xl">{city.name}</h1>
-        <p className="mt-4 text-lg leading-relaxed text-ink-soft">{city.shortDescription}</p>
-        <dl className="mt-8 grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <dt className="text-muted-paper">Coordinates</dt>
-            <dd className="tabular-nums">
-              {city.latitude.toFixed(2)}, {city.longitude.toFixed(2)}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-muted-paper">Timezone</dt>
-            <dd>{city.timezone}</dd>
-          </div>
-          <div>
-            <dt className="text-muted-paper">Currency</dt>
-            <dd>
-              {city.currency} ({city.currencyCode})
-            </dd>
-          </div>
-          <div>
-            <dt className="text-muted-paper">Airports</dt>
-            <dd>{city.airportCodes.join(", ") || "—"}</dd>
-          </div>
-        </dl>
-        <p className="mt-10 text-sm text-ink-soft">
+        <h1 className="mt-3 text-5xl font-medium tracking-tight md:text-6xl">{city.name}</h1>
+        <p className="mt-4 text-lg leading-relaxed text-muted">{city.shortDescription}</p>
+        <StatGrid className="mt-8">
+          <StatCell
+            label="Coordinates"
+            value={`${city.latitude.toFixed(2)}, ${city.longitude.toFixed(2)}`}
+          />
+          <StatCell label="Timezone" value={city.timezone} />
+          <StatCell label="Currency" value={`${city.currency} (${city.currencyCode})`} />
+          <StatCell label="Airports" value={city.airportCodes.join(", ") || "—"} />
+        </StatGrid>
+        <p className="mt-10 text-sm text-muted">
           This city is on the globe. The full editorial guide is still being written. Meanwhile, these
           guides are ready:
         </p>
-        <ul className="mt-4 flex flex-wrap gap-3">
+        <Grid min="sm" className="mt-4">
           {publishedCities.map((item) => (
-            <li key={item.id}>
-              <Link
-                to="/$country/$city"
-                params={{ country: item.countrySlug, city: item.slug }}
-                className="inline-flex rounded-full px-3 py-2 text-sm shadow-[var(--shadow-paper)]"
-              >
-                {item.name}
+            <Card key={item.id} asChild interactive padding="sm">
+              <Link to="/$country/$city" params={{ country: item.countrySlug, city: item.slug }}>
+                <span className="block text-lg font-medium tracking-tight">{item.name}</span>
+                <span className="mt-1 block text-sm text-muted">{item.country}</span>
               </Link>
-            </li>
+            </Card>
           ))}
-        </ul>
+        </Grid>
+      </div>
+      <SiteFooter />
       </div>
     </main>
   );

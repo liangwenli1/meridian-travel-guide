@@ -3,8 +3,17 @@ import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import type { City } from "@/types/catalog";
 import type { CityGuide } from "@/types/guide";
 import { SITE } from "@/lib/site";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card, CardDescription, CardHeader, CardMeta, CardTitle } from "@/components/ui/Card";
+import { Grid, StatCell, StatGrid } from "@/components/ui/Grid";
+import { Table, THead, Th, Tr, Td } from "@/components/ui/Table";
+import { AmbientParticles } from "@/components/fx/AmbientParticles";
+import { SiteFooter } from "@/components/site/SiteFooter";
+import { BudgetChart } from "./BudgetChart";
 import { Callout } from "./callouts";
 import { JsonLd } from "./JsonLd";
+import { PhotoStrip } from "./PhotoStrip";
 import { Section } from "./Section";
 import { StickyNav } from "./StickyNav";
 
@@ -14,6 +23,14 @@ const TIER_LABEL: Record<CityGuide["attractions"][number]["tier"], string> = {
   niche: "Niche but rewarding",
   conditional: "Only under certain conditions",
   overrated: "Often overrated",
+};
+
+const TIER_VARIANT: Record<CityGuide["attractions"][number]["tier"], "accent" | "muted" | "ok" | "warn"> = {
+  essential: "accent",
+  "extra-time": "ok",
+  niche: "muted",
+  conditional: "warn",
+  overrated: "warn",
 };
 
 export function CityGuideView({ city, guide }: { city: City; guide: CityGuide }) {
@@ -40,17 +57,18 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
   ] as const;
 
   return (
-    <div className="min-h-dvh bg-paper text-ink">
+    <div className="page-enter relative min-h-dvh bg-void text-fg">
+      <AmbientParticles />
       <JsonLd city={city} guide={guide} />
-      <header className="absolute top-0 right-0 left-0 z-20 flex items-center justify-between px-4 py-4 text-warm md:px-8">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 rounded-full bg-void/45 px-3 py-2 text-sm backdrop-blur-md"
-        >
-          <ArrowLeft className="size-4" strokeWidth={1.75} />
-          Globe
-        </Link>
-        <Link to="/" className="font-display text-lg text-warm italic">
+      <div className="relative z-10">
+      <header className="absolute top-0 right-0 left-0 z-20 flex items-center justify-between px-4 py-4 text-fg md:px-8">
+        <Button asChild variant="outline" size="sm">
+          <Link to="/">
+            <ArrowLeft className="size-4" strokeWidth={1.75} />
+            Globe
+          </Link>
+        </Button>
+        <Link to="/" className="text-lg font-medium tracking-tight text-fg">
           {SITE.name}
         </Link>
       </header>
@@ -59,17 +77,17 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
         <img
           src={guide.hero.url}
           alt={guide.hero.alt}
-          className="absolute inset-0 size-full object-cover outline outline-1 -outline-offset-1 outline-black/20"
+          className="content-img absolute inset-0 size-full object-cover"
         />
         <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(7,8,12,0.78),rgba(7,8,12,0.18)_55%,rgba(7,8,12,0.35))]" />
-        <div className="relative mx-auto flex min-h-[72vh] max-w-6xl flex-col justify-end px-4 pb-12 pt-28 md:px-8 md:pb-16">
-          <p className="text-[11px] tracking-[0.22em] text-silver uppercase">
+        <div className="relative mx-auto flex min-h-[72vh] max-w-6xl flex-col justify-end px-4 pt-28 pb-12 md:px-8 md:pb-16">
+          <p className="kicker text-silver">
             {city.country} · Travel guide
           </p>
-          <h1 className="mt-3 max-w-3xl font-display text-5xl leading-[0.95] text-warm italic md:text-7xl">
+          <h1 className="mt-3 max-w-3xl text-5xl leading-[0.95] font-medium tracking-tight text-fg md:text-7xl">
             {guide.title}
           </h1>
-          <p className="mt-4 max-w-xl text-base text-warm/80 md:text-lg">{guide.subtitle}</p>
+          <p className="mt-4 max-w-xl text-base text-fg/80 md:text-lg">{guide.subtitle}</p>
         </div>
       </section>
 
@@ -77,43 +95,42 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
 
       <section id="overview" className="scroll-mt-20 py-14 md:py-20">
         <div className="mx-auto max-w-6xl px-4 md:px-8">
-          <p className="text-[11px] tracking-[0.18em] text-muted-paper uppercase">City snapshot</p>
-          <h2 className="mt-2 font-display text-3xl text-ink italic md:text-4xl">Thirty seconds on {city.name}</h2>
-          <dl className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-[22px] bg-line-paper md:grid-cols-3 lg:grid-cols-4">
+          <p className="kicker text-muted">City snapshot</p>
+          <h2 className="mt-2 text-3xl font-medium tracking-tight text-fg md:text-4xl">Thirty seconds on {city.name}</h2>
+          <StatGrid className="mt-8">
             {snapshotEntries.map(([label, value]) => (
-              <div key={label} className="bg-paper-2 px-4 py-3">
-                <dt className="text-[11px] tracking-[0.14em] text-muted-paper uppercase">{label}</dt>
-                <dd className="mt-1 text-sm leading-snug text-ink">{value}</dd>
-              </div>
+              <StatCell key={label} label={label} value={value} />
             ))}
-          </dl>
+          </StatGrid>
 
-          <div className="mt-12 grid gap-8 md:grid-cols-2">
-            <div>
-              <h3 className="font-display text-2xl italic">Why go</h3>
-              <p className="mt-3 leading-relaxed text-ink-soft">{guide.whyGo}</p>
-            </div>
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-sm tracking-[0.14em] text-ink uppercase">Who will love it</h3>
-                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-ink-soft">
+          <PhotoStrip citySlug={city.slug} />
+
+          <div className="mt-12 grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardTitle>Why go</CardTitle>
+              <CardDescription>{guide.whyGo}</CardDescription>
+            </Card>
+            <div className="grid gap-4">
+              <Card>
+                <CardMeta>Who will love it</CardMeta>
+                <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted">
                   {guide.whoWillLoveIt.map((item) => (
                     <li key={item}>{item}</li>
                   ))}
                 </ul>
-              </div>
-              <div>
-                <h3 className="text-sm tracking-[0.14em] text-ink uppercase">Who may struggle</h3>
-                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-ink-soft">
+              </Card>
+              <Card>
+                <CardMeta>Who may struggle</CardMeta>
+                <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted">
                   {guide.whoMayStruggle.map((item) => (
                     <li key={item}>{item}</li>
                   ))}
                 </ul>
-              </div>
+              </Card>
             </div>
           </div>
 
-          <div className="mt-10 grid gap-4 md:grid-cols-2">
+          <Grid min="md" className="mt-10">
             <Callout kind="good-to-know" title="The short version">
               <ol className="list-decimal space-y-1 pl-4">
                 {guide.shortVersion.map((item) => (
@@ -128,109 +145,100 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
                 ))}
               </ul>
             </Callout>
-          </div>
+          </Grid>
 
-          <div className="mt-12 grid gap-5 md:grid-cols-2">
+          <Grid min="md" className="mt-12">
             {guide.beforeYouGo.map((item) => (
-              <article key={item.title} className="rounded-[22px] px-5 py-4 shadow-[var(--shadow-paper)]">
-                <h3 className="text-base font-medium">{item.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-ink-soft">{item.body}</p>
-              </article>
+              <Card key={item.title}>
+                <CardTitle className="text-base">{item.title}</CardTitle>
+                <CardDescription>{item.body}</CardDescription>
+              </Card>
             ))}
-          </div>
+          </Grid>
         </div>
       </section>
 
       <Section id="neighborhoods" eyebrow="Urban grain" title="Neighborhoods at a glance">
-        <div className="grid gap-4 md:grid-cols-2">
+        <Grid min="md">
           {guide.neighborhoods.map((area) => (
-            <article key={area.name} className="rounded-[22px] p-5 shadow-[var(--shadow-paper)]">
-              <div className="flex items-baseline justify-between gap-3">
-                <h3 className="font-display text-2xl italic">{area.name}</h3>
-                <p className="text-xs tracking-wide text-muted-paper uppercase">{area.price}</p>
+            <Card key={area.name}>
+              <CardHeader>
+                <CardTitle className="text-xl">{area.name}</CardTitle>
+                <Badge>{area.price}</Badge>
+              </CardHeader>
+              <CardDescription>{area.vibe}</CardDescription>
+              <p className="mt-3 text-xs text-muted">Best for {area.bestFor.join(", ")}</p>
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <div className="surface-inner">
+                  <p className="kicker text-muted">Noise</p>
+                  <p className="mt-1 text-sm">{area.noise}</p>
+                </div>
+                <div className="surface-inner">
+                  <p className="kicker text-muted">Safety</p>
+                  <p className="mt-1 text-sm">{area.safety}</p>
+                </div>
+                <div className="surface-inner">
+                  <p className="kicker text-muted">Transit</p>
+                  <p className="mt-1 text-sm">{area.transit}</p>
+                </div>
+                <div className="surface-inner">
+                  <p className="kicker text-muted">Stay</p>
+                  <p className="mt-1 text-sm">{area.stayNights}</p>
+                </div>
               </div>
-              <p className="mt-2 text-sm leading-relaxed text-ink-soft">{area.vibe}</p>
-              <p className="mt-3 text-xs text-muted-paper">Best for {area.bestFor.join(", ")}</p>
-              <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <dt className="text-muted-paper">Noise</dt>
-                  <dd>{area.noise}</dd>
-                </div>
-                <div>
-                  <dt className="text-muted-paper">Safety</dt>
-                  <dd>{area.safety}</dd>
-                </div>
-                <div>
-                  <dt className="text-muted-paper">Transit</dt>
-                  <dd>{area.transit}</dd>
-                </div>
-                <div>
-                  <dt className="text-muted-paper">Stay</dt>
-                  <dd>{area.stayNights}</dd>
-                </div>
-              </dl>
               <div className="mt-4 grid gap-3 text-sm md:grid-cols-2">
                 <div>
-                  <p className="text-[11px] tracking-[0.14em] text-ok uppercase">Pros</p>
-                  <ul className="mt-1 list-disc pl-4 text-ink-soft">
+                  <p className="kicker text-ok">Pros</p>
+                  <ul className="mt-1 list-disc pl-4 text-muted">
                     {area.pros.map((item) => (
                       <li key={item}>{item}</li>
                     ))}
                   </ul>
                 </div>
                 <div>
-                  <p className="text-[11px] tracking-[0.14em] text-warn uppercase">Tradeoffs</p>
-                  <ul className="mt-1 list-disc pl-4 text-ink-soft">
+                  <p className="kicker text-warn">Tradeoffs</p>
+                  <ul className="mt-1 list-disc pl-4 text-muted">
                     {area.cons.map((item) => (
                       <li key={item}>{item}</li>
                     ))}
                   </ul>
                 </div>
               </div>
-              <p className="mt-4 text-sm text-ink-soft">
-                Combine with {area.combineWith}
-              </p>
-            </article>
+              <p className="mt-4 text-sm text-muted">Combine with {area.combineWith}</p>
+            </Card>
           ))}
-        </div>
-        <div className="mt-8 overflow-x-auto rounded-[22px] shadow-[var(--shadow-paper)]">
-          <table className="min-w-full text-left text-sm">
-            <caption className="px-4 py-3 text-left text-[11px] tracking-[0.16em] text-muted-paper uppercase">
-              Best area for…
-            </caption>
-            <thead className="bg-paper-2 text-xs tracking-wide text-muted-paper uppercase">
-              <tr>
-                <th className="px-4 py-2 font-medium">If you are</th>
-                <th className="px-4 py-2 font-medium">Stay in</th>
-                <th className="px-4 py-2 font-medium">Why</th>
-              </tr>
-            </thead>
-            <tbody>
-              {guide.bestAreaFor.map((row) => (
-                <tr key={row.persona} className="border-t border-line-paper">
-                  <td className="px-4 py-3 font-medium">{row.persona}</td>
-                  <td className="px-4 py-3">{row.area}</td>
-                  <td className="px-4 py-3 text-ink-soft">{row.why}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        </Grid>
+        <Table className="mt-8" caption="Best area for…">
+          <THead>
+            <tr>
+              <Th>If you are</Th>
+              <Th>Stay in</Th>
+              <Th>Why</Th>
+            </tr>
+          </THead>
+          <tbody>
+            {guide.bestAreaFor.map((row) => (
+              <Tr key={row.persona}>
+                <Td className="font-medium">{row.persona}</Td>
+                <Td>{row.area}</Td>
+                <Td muted>{row.why}</Td>
+              </Tr>
+            ))}
+          </tbody>
+        </Table>
       </Section>
 
       <Section id="things-to-do" eyebrow="Time well spent" title="Attractions and things to do">
         <div className="space-y-4">
           {guide.attractions.map((place) => (
-            <article key={place.name} className="rounded-[22px] p-5 shadow-[var(--shadow-paper)]">
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h3 className="font-display text-2xl italic">{place.name}</h3>
-                <p className="text-[11px] tracking-[0.14em] text-muted-paper uppercase">
-                  {TIER_LABEL[place.tier]}
-                </p>
-              </div>
-              <p className="mt-2 text-sm leading-relaxed text-ink-soft">{place.summary}</p>
-              <p className="mt-2 text-sm text-ink">{place.whyItMatters}</p>
-              <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+            <Card key={place.name} padding="lg">
+              <CardHeader>
+                <CardTitle className="text-xl">{place.name}</CardTitle>
+                <Badge variant={TIER_VARIANT[place.tier]}>{TIER_LABEL[place.tier]}</Badge>
+              </CardHeader>
+              <CardDescription>{place.summary}</CardDescription>
+              <p className="mt-2 text-sm text-fg">{place.whyItMatters}</p>
+              <Grid min="sm" className="mt-4">
                 <Fact label="Duration" value={place.duration} />
                 <Fact label="Price" value={place.price} />
                 <Fact label="Hours" value={place.hours} />
@@ -239,8 +247,8 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
                 <Fact label="Crowds" value={place.crowd} />
                 <Fact label="Best time" value={place.bestTime} />
                 <Fact label="Transport" value={place.transport} />
-              </dl>
-              <div className="mt-4 grid gap-3 md:grid-cols-3">
+              </Grid>
+              <Grid min="md" className="mt-4">
                 <Callout kind="worth-it" title="Worth it?">
                   {place.worthIt}
                 </Callout>
@@ -250,45 +258,43 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
                 <Callout kind="watch-out" title="Common mistake">
                   {place.mistakes[0]}
                 </Callout>
-              </div>
-              <p className="mt-3 text-sm text-ink-soft">If it is crowded or closed: {place.alternative}</p>
-            </article>
+              </Grid>
+              <p className="mt-3 text-sm text-muted">If it is crowded or closed: {place.alternative}</p>
+            </Card>
           ))}
         </div>
-        <div className="mt-8 grid gap-4 md:grid-cols-2">
+        <Grid min="md" className="mt-8">
           {guide.thingsToDo.map((item) => (
-            <article key={item.title} className="rounded-[22px] p-5 shadow-[var(--shadow-paper)]">
-              <h3 className="text-lg font-medium">{item.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-ink-soft">{item.body}</p>
-              <p className="mt-3 text-xs text-muted-paper">
+            <Card key={item.title}>
+              <CardTitle>{item.title}</CardTitle>
+              <CardDescription>{item.body}</CardDescription>
+              <p className="mt-3 text-xs text-muted">
                 {item.duration} · {item.who}
               </p>
-            </article>
+            </Card>
           ))}
-        </div>
-        <div className="mt-8 grid gap-4 md:grid-cols-2">
+        </Grid>
+        <Grid min="md" className="mt-8">
           {guide.hiddenGems.map((item) => (
-            <article key={item.title} className="rounded-[22px] p-5 shadow-[var(--shadow-paper)]">
-              <h3 className="font-display text-xl italic">{item.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-ink-soft">{item.body}</p>
-              {item.watchOut ? (
-                <p className="mt-3 text-sm text-warn">{item.watchOut}</p>
-              ) : null}
-            </article>
+            <Card key={item.title}>
+              <CardTitle>{item.title}</CardTitle>
+              <CardDescription>{item.body}</CardDescription>
+              {item.watchOut ? <p className="mt-3 text-sm text-warn">{item.watchOut}</p> : null}
+            </Card>
           ))}
-        </div>
-        <div className="mt-8 grid gap-4 md:grid-cols-2">
+        </Grid>
+        <Grid min="md" className="mt-8">
           {guide.localExperiences.map((item) => (
-            <article key={item.title}>
-              <h3 className="text-base font-medium">{item.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-ink-soft">{item.body}</p>
-            </article>
+            <Card key={item.title} padding="sm">
+              <CardTitle className="text-base">{item.title}</CardTitle>
+              <CardDescription>{item.body}</CardDescription>
+            </Card>
           ))}
-        </div>
+        </Grid>
         <div className="mt-10 space-y-4">
           {guide.everydayLife.map((item) => (
-            <p key={item.title} className="text-sm leading-relaxed text-ink-soft">
-              <span className="font-medium text-ink">{item.title}. </span>
+            <p key={item.title} className="text-sm leading-relaxed text-muted">
+              <span className="font-medium text-fg">{item.title}. </span>
               {item.body}
             </p>
           ))}
@@ -296,82 +302,80 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
       </Section>
 
       <Section id="food" eyebrow="What to eat" title="Food and drinks" intro={guide.foodIntro}>
-        <div className="grid gap-4 md:grid-cols-2">
+        <Grid min="md">
           {guide.dishes.map((dish) => (
-            <article key={dish.name} className="rounded-[22px] p-5 shadow-[var(--shadow-paper)]">
-              <h3 className="font-display text-2xl italic">{dish.name}</h3>
-              {dish.localName ? <p className="text-xs text-muted-paper">{dish.localName}</p> : null}
-              <p className="mt-2 text-sm leading-relaxed text-ink-soft">{dish.what}</p>
-              <p className="mt-2 text-sm text-ink">{dish.taste}</p>
-              <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
+            <Card key={dish.name}>
+              <CardTitle className="text-xl">{dish.name}</CardTitle>
+              {dish.localName ? <p className="text-xs text-muted">{dish.localName}</p> : null}
+              <CardDescription>{dish.what}</CardDescription>
+              <p className="mt-2 text-sm text-fg">{dish.taste}</p>
+              <div className="mt-3 grid grid-cols-2 gap-2">
                 <Fact label="When" value={dish.when} />
                 <Fact label="Price" value={dish.price} />
                 <Fact label="Where" value={dish.where} />
                 <Fact label="How to order" value={dish.howToOrder} />
-              </dl>
-              {dish.note ? <p className="mt-3 text-sm text-ink-soft">{dish.note}</p> : null}
-            </article>
+              </div>
+              {dish.note ? <p className="mt-3 text-sm text-muted">{dish.note}</p> : null}
+            </Card>
           ))}
-        </div>
-        <div className="mt-8 space-y-5">
+        </Grid>
+        <div className="mt-8 space-y-4">
           {guide.foodThemes.map((theme) => (
-            <article key={theme.title}>
-              <h3 className="text-lg font-medium">{theme.title}</h3>
-              <p className="mt-2 max-w-3xl text-sm leading-relaxed text-ink-soft">{theme.body}</p>
-            </article>
+            <Card key={theme.title} padding="sm">
+              <CardTitle>{theme.title}</CardTitle>
+              <CardDescription className="max-w-3xl">{theme.body}</CardDescription>
+            </Card>
           ))}
         </div>
-        <div className="mt-8 overflow-x-auto rounded-[22px] shadow-[var(--shadow-paper)]">
-          <table className="min-w-full text-left text-sm">
-            <thead className="bg-paper-2 text-xs tracking-wide text-muted-paper uppercase">
-              <tr>
-                <th className="px-4 py-2 font-medium">Place</th>
-                <th className="px-4 py-2 font-medium">Type</th>
-                <th className="px-4 py-2 font-medium">Neighborhood</th>
-                <th className="px-4 py-2 font-medium">Price</th>
-              </tr>
-            </thead>
-            <tbody>
-              {guide.venues.map((venue) => (
-                <tr key={venue.name} className="border-t border-line-paper align-top">
-                  <td className="px-4 py-3">
-                    <p className="font-medium">{venue.name}</p>
-                    <p className="text-ink-soft">{venue.why}</p>
-                  </td>
-                  <td className="px-4 py-3">{venue.type}</td>
-                  <td className="px-4 py-3">{venue.neighborhood}</td>
-                  <td className="px-4 py-3">{venue.price}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="mt-8 grid gap-4 md:grid-cols-2">
+        <Table className="mt-8">
+          <THead>
+            <tr>
+              <Th>Place</Th>
+              <Th>Type</Th>
+              <Th>Neighborhood</Th>
+              <Th>Price</Th>
+            </tr>
+          </THead>
+          <tbody>
+            {guide.venues.map((venue) => (
+              <Tr key={venue.name}>
+                <Td>
+                  <p className="font-medium">{venue.name}</p>
+                  <p className="text-muted">{venue.why}</p>
+                </Td>
+                <Td>{venue.type}</Td>
+                <Td>{venue.neighborhood}</Td>
+                <Td>{venue.price}</Td>
+              </Tr>
+            ))}
+          </tbody>
+        </Table>
+        <Grid min="md" className="mt-8">
           {guide.shopping.map((item) => (
-            <article key={item.title} className="rounded-[22px] p-5 shadow-[var(--shadow-paper)]">
-              <h3 className="text-base font-medium">{item.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-ink-soft">{item.body}</p>
-            </article>
+            <Card key={item.title}>
+              <CardTitle className="text-base">{item.title}</CardTitle>
+              <CardDescription>{item.body}</CardDescription>
+            </Card>
           ))}
-        </div>
+        </Grid>
       </Section>
 
       <Section id="stay" eyebrow="Where to sleep" title="Where to stay" intro={guide.stayIntro}>
-        <div className="grid gap-4 md:grid-cols-2">
+        <Grid min="md">
           {guide.stayAreas.map((area) => (
-            <article key={area.name} className="rounded-[22px] p-5 shadow-[var(--shadow-paper)]">
-              <h3 className="font-display text-2xl italic">{area.name}</h3>
-              <p className="mt-1 text-xs text-muted-paper">Best for {area.bestFor.join(", ")}</p>
-              <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
+            <Card key={area.name}>
+              <CardTitle className="text-xl">{area.name}</CardTitle>
+              <p className="mt-1 text-xs text-muted">Best for {area.bestFor.join(", ")}</p>
+              <div className="mt-3 grid grid-cols-2 gap-2">
                 <Fact label="Commute" value={area.commute} />
                 <Fact label="Price" value={area.priceHint} />
                 <Fact label="Noise" value={area.noise} />
                 <Fact label="Safety" value={area.safety} />
-              </dl>
-            </article>
+              </div>
+            </Card>
           ))}
-        </div>
-        <ul className="mt-6 list-disc space-y-2 pl-5 text-sm text-ink-soft">
+        </Grid>
+        <ul className="mt-6 list-disc space-y-2 pl-5 text-sm text-muted">
           {guide.stayNotes.map((note) => (
             <li key={note}>{note}</li>
           ))}
@@ -379,90 +383,89 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
       </Section>
 
       <Section id="transport" eyebrow="Getting in and around" title="Transport">
-        <h3 className="mb-3 text-sm tracking-[0.14em] text-muted-paper uppercase">Airport and station arrival</h3>
-        <div className="overflow-x-auto rounded-[22px] shadow-[var(--shadow-paper)]">
-          <table className="min-w-full text-left text-sm">
-            <thead className="bg-paper-2 text-xs tracking-wide text-muted-paper uppercase">
-              <tr>
-                <th className="px-4 py-2 font-medium">Option</th>
-                <th className="px-4 py-2 font-medium">Time</th>
-                <th className="px-4 py-2 font-medium">Cost</th>
-                <th className="px-4 py-2 font-medium">Best for</th>
-              </tr>
-            </thead>
-            <tbody>
-              {guide.arrival.map((row) => (
-                <tr key={row.name} className="border-t border-line-paper align-top">
-                  <td className="px-4 py-3">
-                    <p className="font-medium">{row.name}</p>
-                    <p className="text-ink-soft">{row.how}</p>
-                    {row.watchOut ? <p className="mt-1 text-warn">{row.watchOut}</p> : null}
-                  </td>
-                  <td className="px-4 py-3">{row.time}</td>
-                  <td className="px-4 py-3">{row.cost}</td>
-                  <td className="px-4 py-3">{row.bestFor}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="mt-8 grid gap-4 md:grid-cols-2">
+        <h3 className="mb-3 kicker text-muted">Airport and station arrival</h3>
+        <Table>
+          <THead>
+            <tr>
+              <Th>Option</Th>
+              <Th>Time</Th>
+              <Th>Cost</Th>
+              <Th>Best for</Th>
+            </tr>
+          </THead>
+          <tbody>
+            {guide.arrival.map((row) => (
+              <Tr key={row.name}>
+                <Td>
+                  <p className="font-medium">{row.name}</p>
+                  <p className="text-muted">{row.how}</p>
+                  {row.watchOut ? <p className="mt-1 text-warn">{row.watchOut}</p> : null}
+                </Td>
+                <Td>{row.time}</Td>
+                <Td>{row.cost}</Td>
+                <Td>{row.bestFor}</Td>
+              </Tr>
+            ))}
+          </tbody>
+        </Table>
+        <Grid min="md" className="mt-8">
           {guide.gettingAround.map((item) => (
-            <article key={item.title} className="rounded-[22px] p-5 shadow-[var(--shadow-paper)]">
-              <h3 className="text-base font-medium">{item.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-ink-soft">{item.body}</p>
-            </article>
+            <Card key={item.title}>
+              <CardTitle className="text-base">{item.title}</CardTitle>
+              <CardDescription>{item.body}</CardDescription>
+            </Card>
           ))}
-        </div>
-        <h3 className="mt-10 mb-3 text-sm tracking-[0.14em] text-muted-paper uppercase">Day trips</h3>
-        <div className="grid gap-4 md:grid-cols-2">
+        </Grid>
+        <h3 className="mt-10 mb-3 kicker text-muted">Day trips</h3>
+        <Grid min="md">
           {guide.dayTrips.map((trip) => (
-            <article key={trip.name} className="rounded-[22px] p-5 shadow-[var(--shadow-paper)]">
-              <h3 className="font-display text-xl italic">{trip.name}</h3>
-              <p className="mt-1 text-xs text-muted-paper">{trip.time}</p>
-              <p className="mt-2 text-sm text-ink-soft">{trip.why}</p>
+            <Card key={trip.name}>
+              <CardTitle>{trip.name}</CardTitle>
+              <p className="mt-1 text-xs text-muted">{trip.time}</p>
+              <CardDescription>{trip.why}</CardDescription>
               <p className="mt-2 text-sm text-warn">Skip if {trip.skipIf}</p>
-            </article>
+            </Card>
           ))}
-        </div>
+        </Grid>
       </Section>
 
       <Section id="money" eyebrow="Costs" title="Budget and payments">
-        <p className="mb-4 text-sm text-muted-paper">
+        <p className="mb-4 text-sm text-muted">
           {guide.budget.currency} · {guide.budget.asOf}
         </p>
-        <div className="grid gap-4 md:grid-cols-3">
+        <Grid min="sm">
           {guide.budget.bands.map((band) => (
-            <article key={band.name} className="rounded-[22px] p-5 shadow-[var(--shadow-paper)]">
-              <h3 className="text-sm tracking-[0.14em] uppercase">{band.name}</h3>
-              <p className="mt-2 font-display text-3xl italic">{band.daily}</p>
-              <p className="mt-2 text-sm text-ink-soft">{band.includes}</p>
-            </article>
+            <Card key={band.name} variant="stat">
+              <CardMeta>{band.name}</CardMeta>
+              <p className="mt-2 text-2xl font-medium tracking-tight text-fg tabular-nums">{band.daily}</p>
+              <p className="mt-2 text-sm text-muted">{band.includes}</p>
+            </Card>
           ))}
+        </Grid>
+        <div className="mt-6">
+          <BudgetChart budget={guide.budget} />
         </div>
-        <div className="mt-6 overflow-x-auto rounded-[22px] shadow-[var(--shadow-paper)]">
-          <table className="min-w-full text-left text-sm">
-            <thead className="bg-paper-2 text-xs tracking-wide text-muted-paper uppercase">
-              <tr>
-                <th className="px-4 py-2 font-medium">Item</th>
-                <th className="px-4 py-2 font-medium">Budget</th>
-                <th className="px-4 py-2 font-medium">Mid-range</th>
-                <th className="px-4 py-2 font-medium">Luxury</th>
-              </tr>
-            </thead>
-            <tbody>
-              {guide.budget.breakdown.map((row) => (
-                <tr key={row.item} className="border-t border-line-paper">
-                  <td className="px-4 py-3">{row.item}</td>
-                  <td className="px-4 py-3">{row.budget}</td>
-                  <td className="px-4 py-3">{row.mid}</td>
-                  <td className="px-4 py-3">{row.luxury}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
+        <Table className="mt-6">
+          <THead>
+            <tr>
+              <Th>Item</Th>
+              <Th>Budget</Th>
+              <Th>Mid-range</Th>
+              <Th>Luxury</Th>
+            </tr>
+          </THead>
+          <tbody>
+            {guide.budget.breakdown.map((row) => (
+              <Tr key={row.item}>
+                <Td>{row.item}</Td>
+                <Td className="tabular-nums">{row.budget}</Td>
+                <Td className="tabular-nums">{row.mid}</Td>
+                <Td className="tabular-nums">{row.luxury}</Td>
+              </Tr>
+            ))}
+          </tbody>
+        </Table>
+        <Grid min="md" className="mt-6">
           <Callout kind="watch-out" title="Easy to miss">
             <ul className="list-disc pl-4">
               {guide.budget.hidden.map((item) => (
@@ -484,283 +487,284 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
               ))}
             </ul>
           </Callout>
-        </div>
-        <div className="mt-8 grid gap-4 md:grid-cols-2">
+        </Grid>
+        <Grid min="md" className="mt-8">
           {guide.payments.map((item) => (
-            <article key={item.title} className="rounded-[22px] p-5 shadow-[var(--shadow-paper)]">
-              <h3 className="text-base font-medium">{item.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-ink-soft">{item.body}</p>
-            </article>
+            <Card key={item.title}>
+              <CardTitle className="text-base">{item.title}</CardTitle>
+              <CardDescription>{item.body}</CardDescription>
+            </Card>
           ))}
-        </div>
+        </Grid>
       </Section>
 
       <Section id="connectivity" eyebrow="Before you fly" title="Visa, SIM, and weather">
         <Callout kind="watch-out" title="Visa and entry">
           {guide.visa.summary}
         </Callout>
-        <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-ink-soft">
+        <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-muted">
           {guide.visa.details.map((item) => (
             <li key={item}>{item}</li>
           ))}
         </ul>
         <a
           href={guide.visa.officialUrl}
-          className="mt-3 inline-flex items-center gap-1 text-sm text-ink"
+          className="mt-3 inline-flex items-center gap-1 text-sm text-fg"
           target="_blank"
           rel="noreferrer"
         >
           Official source <ArrowUpRight className="size-3.5" />
         </a>
-        <div className="mt-8 grid gap-4 md:grid-cols-2">
+        <Grid min="md" className="mt-8">
           {guide.connectivity.map((item) => (
-            <article key={item.title} className="rounded-[22px] p-5 shadow-[var(--shadow-paper)]">
-              <h3 className="text-base font-medium">{item.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-ink-soft">{item.body}</p>
-            </article>
+            <Card key={item.title}>
+              <CardTitle className="text-base">{item.title}</CardTitle>
+              <CardDescription>{item.body}</CardDescription>
+            </Card>
           ))}
-        </div>
-        <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        </Grid>
+        <Grid min="sm" className="mt-8">
           {guide.seasons.map((season) => (
-            <article key={season.name} className="rounded-[22px] p-5 shadow-[var(--shadow-paper)]">
-              <h3 className="font-display text-xl italic">{season.name}</h3>
-              <p className="mt-1 text-xs text-muted-paper">{season.forWhom}</p>
-              <p className="mt-2 text-sm text-ink-soft">{season.pros}</p>
+            <Card key={season.name}>
+              <CardTitle>{season.name}</CardTitle>
+              <p className="mt-1 text-xs text-muted">{season.forWhom}</p>
+              <p className="mt-2 text-sm text-muted">{season.pros}</p>
               <p className="mt-2 text-sm text-warn">{season.cons}</p>
               <p className="mt-2 text-sm">{season.pack}</p>
-            </article>
+            </Card>
           ))}
-        </div>
-        <div className="mt-6 grid gap-3 md:grid-cols-2">
+        </Grid>
+        <Grid min="md" className="mt-6">
           {guide.weatherTips.map((item) => (
             <Callout key={item.title} kind="good-to-know" title={item.title}>
               {item.body}
             </Callout>
           ))}
-        </div>
-        <ul className="mt-6 space-y-2 text-sm text-ink-soft">
+        </Grid>
+        <ul className="mt-6 space-y-2 text-sm text-muted">
           {guide.festivals.map((fest) => (
             <li key={fest.name}>
-              <span className="font-medium text-ink">{fest.name}</span> · {fest.when}. {fest.note}
+              <span className="font-medium text-fg">{fest.name}</span> · {fest.when}. {fest.note}
             </li>
           ))}
         </ul>
       </Section>
 
       <Section id="apps" eyebrow="Phone" title="Essential apps">
-        <div className="grid gap-3 md:grid-cols-2">
+        <Grid min="md">
           {guide.apps.map((app) => (
-            <article key={app.name} className="flex items-start justify-between gap-3 rounded-[22px] p-4 shadow-[var(--shadow-paper)]">
-              <div>
-                <h3 className="text-base font-medium">{app.name}</h3>
-                <p className="mt-1 text-sm text-ink-soft">{app.purpose}</p>
-                <p className="mt-2 text-xs text-muted-paper">
-                  {app.platforms}
-                  {app.needLocalNumber ? " · local number" : ""}
-                  {app.needLocalBank ? " · local bank" : ""}
-                  {app.offline ? " · works offline" : ""}
-                </p>
-                <p className="mt-2 text-sm text-ink-soft">{app.note}</p>
-              </div>
-              <p className="shrink-0 text-[10px] tracking-[0.14em] text-muted-paper uppercase">
-                {app.necessary === "before" ? "Install before" : app.necessary === "after" ? "After arrival" : "Skip unless"}
+            <Card key={app.name} padding="sm">
+              <CardHeader>
+                <div>
+                  <CardTitle className="text-base">{app.name}</CardTitle>
+                  <p className="mt-1 text-sm text-muted">{app.purpose}</p>
+                </div>
+                <Badge variant={app.necessary === "before" ? "accent" : "muted"}>
+                  {app.necessary === "before" ? "Install before" : app.necessary === "after" ? "After arrival" : "Skip unless"}
+                </Badge>
+              </CardHeader>
+              <p className="mt-2 text-xs text-muted">
+                {app.platforms}
+                {app.needLocalNumber ? " · local number" : ""}
+                {app.needLocalBank ? " · local bank" : ""}
+                {app.offline ? " · works offline" : ""}
               </p>
-            </article>
+              <p className="mt-2 text-sm text-muted">{app.note}</p>
+            </Card>
           ))}
-        </div>
+        </Grid>
       </Section>
 
       <Section id="culture" eyebrow="How the city behaves" title="Culture and etiquette">
         <div className="space-y-4">
           {guide.culture.map((item) => (
-            <article key={item.title}>
-              <h3 className="text-lg font-medium">{item.title}</h3>
-              <p className="mt-2 max-w-3xl text-sm leading-relaxed text-ink-soft">{item.body}</p>
-            </article>
+            <Card key={item.title} padding="sm">
+              <CardTitle>{item.title}</CardTitle>
+              <CardDescription className="max-w-3xl">{item.body}</CardDescription>
+            </Card>
           ))}
         </div>
-        <div className="mt-8 overflow-x-auto rounded-[22px] shadow-[var(--shadow-paper)]">
-          <table className="min-w-full text-left text-sm">
-            <thead className="bg-paper-2 text-xs tracking-wide text-muted-paper uppercase">
-              <tr>
-                <th className="px-4 py-2 font-medium">Do</th>
-                <th className="px-4 py-2 font-medium">Don't</th>
-                <th className="px-4 py-2 font-medium">Why</th>
-              </tr>
-            </thead>
-            <tbody>
-              {guide.etiquette.map((row) => (
-                <tr key={row.do} className="border-t border-line-paper align-top">
-                  <td className="px-4 py-3">{row.do}</td>
-                  <td className="px-4 py-3">{row.dont}</td>
-                  <td className="px-4 py-3 text-ink-soft">{row.why}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <ul className="mt-6 list-disc space-y-1 pl-5 text-sm text-ink-soft">
+        <Table className="mt-8">
+          <THead>
+            <tr>
+              <Th>Do</Th>
+              <Th>Don't</Th>
+              <Th>Why</Th>
+            </tr>
+          </THead>
+          <tbody>
+            {guide.etiquette.map((row) => (
+              <Tr key={row.do}>
+                <Td>{row.do}</Td>
+                <Td>{row.dont}</Td>
+                <Td muted>{row.why}</Td>
+              </Tr>
+            ))}
+          </tbody>
+        </Table>
+        <ul className="mt-6 list-disc space-y-1 pl-5 text-sm text-muted">
           {guide.taboos.map((item) => (
             <li key={item}>{item}</li>
           ))}
         </ul>
-        <div className="mt-8 grid gap-4 md:grid-cols-2">
+        <Grid min="md" className="mt-8">
           {guide.phrases.map((phrase) => (
-            <article key={phrase.original} className="rounded-[22px] p-4 shadow-[var(--shadow-paper)]">
-              <p className="font-display text-2xl italic">{phrase.original}</p>
-              <p className="text-sm text-muted-paper">{phrase.romanized}</p>
+            <Card key={phrase.original} padding="sm">
+              <p className="text-xl font-medium tracking-tight text-fg">{phrase.original}</p>
+              <p className="text-sm text-muted">{phrase.romanized}</p>
               <p className="mt-2 text-sm">{phrase.meaning}</p>
-              <p className="mt-2 text-sm text-ink-soft">Use: {phrase.use}</p>
+              <p className="mt-2 text-sm text-muted">Use: {phrase.use}</p>
               <p className="text-sm text-warn">Avoid: {phrase.avoid}</p>
-            </article>
+            </Card>
           ))}
-        </div>
+        </Grid>
         <div className="mt-8 space-y-3">
           {guide.localModules.map((item) => (
-            <article key={item.title}>
-              <h3 className="text-base font-medium">{item.title}</h3>
-              <p className="mt-1 text-sm leading-relaxed text-ink-soft">{item.body}</p>
-            </article>
+            <Card key={item.title} padding="sm">
+              <CardTitle className="text-base">{item.title}</CardTitle>
+              <CardDescription>{item.body}</CardDescription>
+            </Card>
           ))}
         </div>
       </Section>
 
       <Section id="safety" eyebrow="Keep it specific" title="Safety, scams, and access">
-        <div className="grid gap-4 md:grid-cols-2">
+        <Grid min="md">
           {guide.safety.map((item) => (
-            <article key={item.title} className="rounded-[22px] p-5 shadow-[var(--shadow-paper)]">
-              <h3 className="text-base font-medium">{item.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-ink-soft">{item.body}</p>
-            </article>
+            <Card key={item.title}>
+              <CardTitle className="text-base">{item.title}</CardTitle>
+              <CardDescription>{item.body}</CardDescription>
+            </Card>
           ))}
-        </div>
+        </Grid>
         <div className="mt-6 space-y-3">
           {guide.scams.map((scam) => (
-            <article key={scam.name} className="rounded-[22px] p-5 shadow-[var(--shadow-paper)]">
-              <h3 className="text-base font-medium">{scam.name}</h3>
-              <p className="mt-2 text-sm text-ink-soft">Look for: {scam.lookFor}</p>
-              <p className="text-sm text-ink-soft">Prevent: {scam.prevent}</p>
-              <p className="text-sm text-ink-soft">If it happens: {scam.ifItHappens}</p>
-            </article>
+            <Card key={scam.name}>
+              <CardTitle className="text-base">{scam.name}</CardTitle>
+              <p className="mt-2 text-sm text-muted">Look for: {scam.lookFor}</p>
+              <p className="text-sm text-muted">Prevent: {scam.prevent}</p>
+              <p className="text-sm text-muted">If it happens: {scam.ifItHappens}</p>
+            </Card>
           ))}
         </div>
-        <dl className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <StatGrid className="mt-6">
           {guide.emergency.map((item) => (
-            <div key={item.label} className="rounded-[18px] bg-paper-2 px-4 py-3">
-              <dt className="text-[11px] tracking-[0.14em] text-muted-paper uppercase">{item.label}</dt>
-              <dd className="mt-1 text-sm">{item.value}</dd>
-            </div>
+            <StatCell key={item.label} label={item.label} value={item.value} />
           ))}
-        </dl>
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
+        </StatGrid>
+        <Grid min="md" className="mt-6">
           {guide.accessibility.map((item) => (
-            <article key={item.title}>
-              <h3 className="text-base font-medium">{item.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-ink-soft">{item.body}</p>
-            </article>
+            <Card key={item.title} padding="sm">
+              <CardTitle className="text-base">{item.title}</CardTitle>
+              <CardDescription>{item.body}</CardDescription>
+            </Card>
           ))}
-        </div>
-        <div className="mt-8 grid gap-4 md:grid-cols-2">
+        </Grid>
+        <Grid min="md" className="mt-8">
           {guide.byTraveler.map((item) => (
-            <article key={item.persona} className="rounded-[22px] p-5 shadow-[var(--shadow-paper)]">
-              <h3 className="text-base font-medium">{item.persona}</h3>
-              <ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-ink-soft">
+            <Card key={item.persona}>
+              <CardTitle className="text-base">{item.persona}</CardTitle>
+              <ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-muted">
                 {item.tips.map((tip) => (
                   <li key={tip}>{tip}</li>
                 ))}
               </ul>
-            </article>
+            </Card>
           ))}
+        </Grid>
+        <div className="mt-6">
+          <Callout kind="watch-out" title="Things visitors often get wrong">
+            <ul className="list-disc pl-4">
+              {guide.touristsGetWrong.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </Callout>
         </div>
-        <Callout kind="watch-out" title="Things visitors often get wrong">
-          <ul className="list-disc pl-4">
-            {guide.touristsGetWrong.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </Callout>
       </Section>
 
       <Section id="itinerary" eyebrow="Time" title="Suggested itineraries">
-        <div className="mb-6 grid gap-3 md:grid-cols-2">
+        <Grid min="md" className="mb-6">
           {guide.timePlanning.map((item) => (
-            <article key={item.title}>
-              <h3 className="text-base font-medium">{item.title}</h3>
-              <p className="mt-1 text-sm leading-relaxed text-ink-soft">{item.body}</p>
-            </article>
+            <Card key={item.title} padding="sm">
+              <CardTitle className="text-base">{item.title}</CardTitle>
+              <CardDescription>{item.body}</CardDescription>
+            </Card>
           ))}
-        </div>
+        </Grid>
         <div className="space-y-8">
           {guide.itineraries.map((plan) => (
-            <article key={plan.title} className="rounded-[26px] p-5 shadow-[var(--shadow-paper)] md:p-6">
-              <p className="text-[11px] tracking-[0.16em] text-muted-paper uppercase">
+            <Card key={plan.title} padding="lg">
+              <CardMeta>
                 {plan.days} day · {plan.pace}
-              </p>
-              <h3 className="mt-1 font-display text-3xl italic">{plan.title}</h3>
-              <p className="mt-2 max-w-2xl text-sm text-ink-soft">{plan.summary}</p>
-              <div className="mt-5 space-y-5">
+              </CardMeta>
+              <CardTitle className="mt-1 text-2xl">{plan.title}</CardTitle>
+              <CardDescription className="max-w-2xl">{plan.summary}</CardDescription>
+              <div className="mt-5 space-y-4">
                 {plan.daysPlan.map((day) => (
-                  <div key={day.label}>
+                  <div key={day.label} className="surface-inner">
                     <h4 className="text-sm font-medium">
                       {day.label} — {day.theme}
                     </h4>
                     <ol className="mt-2 space-y-2">
                       {day.stops.map((stop) => (
                         <li key={`${day.label}-${stop.title}`} className="grid grid-cols-[4.5rem_1fr] gap-3 text-sm">
-                          <span className="tabular-nums text-muted-paper">{stop.time}</span>
+                          <span className="text-muted tabular-nums">{stop.time}</span>
                           <span>
                             <span className="font-medium">{stop.title}. </span>
-                            <span className="text-ink-soft">{stop.detail}</span>
+                            <span className="text-muted">{stop.detail}</span>
                           </span>
                         </li>
                       ))}
                     </ol>
-                    <p className="mt-2 text-sm text-ink-soft">If it rains: {day.rainPlan}</p>
+                    <p className="mt-2 text-sm text-muted">If it rains: {day.rainPlan}</p>
                   </div>
                 ))}
               </div>
-            </article>
+            </Card>
           ))}
         </div>
       </Section>
 
       <Section id="faq" eyebrow="Direct answers" title="FAQ">
-        <div className="divide-y divide-line-paper rounded-[22px] shadow-[var(--shadow-paper)]">
+        <Card padding="none" className="divide-y divide-line">
           {guide.faq.map((item) => (
             <details key={item.q} className="group px-5 py-4">
               <summary className="cursor-pointer list-none text-base font-medium marker:content-none">
                 {item.q}
               </summary>
-              <p className="mt-2 text-sm leading-relaxed text-ink-soft">{item.a}</p>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{item.a}</p>
             </details>
           ))}
-        </div>
-        <div className="mt-10 border-t border-line-paper pt-8">
-          <h3 className="text-sm tracking-[0.14em] text-muted-paper uppercase">Sources</h3>
+        </Card>
+        <div className="mt-10 border-t border-line pt-8">
+          <h3 className="kicker text-muted">Sources</h3>
           <ul className="mt-3 space-y-1 text-sm">
             {guide.sources.map((source) => (
               <li key={source.url}>
-                <a href={source.url} className="text-ink underline-offset-2 hover:underline" target="_blank" rel="noreferrer">
+                <a href={source.url} className="text-fg underline-offset-2 hover:underline" target="_blank" rel="noreferrer">
                   {source.name}
                 </a>
-                <span className="text-muted-paper"> — {source.usedFor}</span>
+                <span className="text-muted"> — {source.usedFor}</span>
               </li>
             ))}
           </ul>
-          <p className="mt-4 text-xs text-muted-paper">
+          <p className="mt-4 text-xs text-muted">
             Last updated: {guide.lastUpdated}. Hero photo: {guide.hero.author} / {guide.hero.license}.
           </p>
         </div>
       </Section>
+      <SiteFooter />
+      </div>
     </div>
   );
 }
 
 function Fact({ label, value }: { label: string; value: string }) {
   return (
-    <div>
-      <dt className="text-[11px] tracking-[0.12em] text-muted-paper uppercase">{label}</dt>
-      <dd className="mt-0.5 text-ink">{value}</dd>
+    <div className="surface-inner">
+      <dt className="kicker text-muted">{label}</dt>
+      <dd className="mt-0.5 text-sm text-fg">{value}</dd>
     </div>
   );
 }

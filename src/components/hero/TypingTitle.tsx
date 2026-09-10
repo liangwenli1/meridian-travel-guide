@@ -91,18 +91,18 @@ export function TypingTitle({ reducedMotion, ready }: TypingTitleProps) {
 
   return (
     <h1 className="max-w-[16ch] text-center leading-[0.95] tracking-[-0.04em] md:max-w-none">
-      <span className="font-display text-[18vw] text-warm italic sm:text-8xl md:text-[7.4rem]">
+      <span className="text-[18vw] font-medium tracking-tight text-accent sm:text-8xl md:text-[7.2rem]">
         Where
       </span>
-      <span className="mt-2 block font-sans text-[6.6vw] font-light text-muted sm:text-3xl md:mt-3 md:text-[2.35rem]">
+      <span className="mt-2 block text-[6.6vw] font-normal text-fg sm:text-3xl md:mt-3 md:text-[2.2rem]">
         {rest}
         {showMark ? (
-          <span className={markOpaque ? "text-muted" : "text-muted/15"}>?</span>
+          <span className={markOpaque ? "text-accent" : "text-accent/20"}>?</span>
         ) : null}
         {!reducedMotion ? (
           <span
             aria-hidden="true"
-            className={`ml-0.5 inline-block h-[0.9em] w-[2px] translate-y-[0.08em] bg-silver/80 ${
+            className={`ml-0.5 inline-block h-[0.9em] w-[2px] translate-y-[0.08em] bg-accent ${
               caret ? "opacity-100" : "opacity-0"
             }`}
           />

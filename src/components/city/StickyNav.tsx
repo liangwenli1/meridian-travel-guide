@@ -26,7 +26,7 @@ export function StickyNav() {
   return (
     <nav
       aria-label="On this page"
-      className="sticky top-0 z-20 border-b border-line-paper bg-paper/90 backdrop-blur-md"
+      className="sticky top-0 z-20 border-b border-line bg-void/90 backdrop-blur-md"
     >
       <div className="overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <ul className="mx-auto flex w-max min-w-full max-w-6xl flex-nowrap gap-1 px-4 py-2 md:px-8">
@@ -35,8 +35,8 @@ export function StickyNav() {
               <a
                 href={`#${item.id}`}
                 className={cn(
-                  "block whitespace-nowrap rounded-full px-3 py-2 text-sm transition-colors",
-                  active === item.id ? "bg-ink text-paper" : "text-ink-soft hover:text-ink",
+                  "block min-h-9 whitespace-nowrap rounded-full px-3 py-2 text-sm transition-colors duration-150",
+                  active === item.id ? "bg-accent text-void" : "text-muted hover:text-fg",
                 )}
               >
                 {item.label}

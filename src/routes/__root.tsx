@@ -29,7 +29,7 @@ export const Route = createRootRoute({
       },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Sora:wght@300;400;500;600&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap",
       },
     ],
   }),
@@ -40,8 +40,8 @@ export const Route = createRootRoute({
 function NotFound() {
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center bg-void px-6 text-center text-warm">
-      <p className="font-display text-4xl italic">That page is not on the map.</p>
-      <a href="/" className="mt-4 text-sm text-muted underline-offset-4 hover:underline">
+      <p className="text-4xl font-medium tracking-tight">That page is not on the map.</p>
+      <a href="/" className="mt-4 text-sm text-accent underline-offset-4 hover:underline">
         Back to the globe
       </a>
     </main>

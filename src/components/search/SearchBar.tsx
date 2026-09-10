@@ -90,7 +90,7 @@ export function SearchBar({ onSelect }: SearchBarProps) {
           aria-expanded={visible}
           aria-controls={listId}
           aria-activedescendant={visible && hits[active] ? `${listId}-${hits[active].city.id}` : undefined}
-          className="h-full min-w-0 flex-1 bg-transparent text-[15px] text-warm outline-none placeholder:text-muted/80 md:text-base"
+          className="h-full min-w-0 flex-1 bg-transparent text-[15px] text-fg outline-none placeholder:text-muted md:text-base"
           placeholder="Search a city or country"
           autoComplete="off"
           spellCheck={false}
@@ -130,7 +130,7 @@ export function SearchBar({ onSelect }: SearchBarProps) {
                   onClick={() => choose(hit)}
                 >
                   <span>
-                    <span className="block text-sm text-warm">{hit.city.name}</span>
+                    <span className="block text-sm text-fg">{hit.city.name}</span>
                     <span className="block text-xs text-muted">{hit.city.country}</span>
                   </span>
                   <span className="rounded-full px-2 py-0.5 font-sans text-[10px] tracking-[0.14em] text-silver uppercase shadow-[var(--shadow-border)]">
