@@ -5,7 +5,7 @@ import { GlobeLabels } from "./GlobeLabels";
 import { GlobeFallback } from "./GlobeFallback";
 
 /** Bump with the engine so HMR remounts WebGL. */
-const GLOBE_ENGINE_REV = 23;
+const GLOBE_ENGINE_REV = 25;
 
 export type GlobeHandle = {
   flyToCity: (city: City) => Promise<void>;
@@ -29,6 +29,7 @@ export function Globe({
   heroBand = true,
 }: GlobeProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<{
     flyToCity: (city: City) => Promise<void>;
     dispose: () => void;
@@ -48,6 +49,7 @@ export function Globe({
 
   useEffect(() => {
     const canvas = canvasRef.current;
+    const container = frameRef.current;
     if (!canvas || !cities.length) return;
     let cancelled = false;
     setReady(false);
@@ -72,6 +74,7 @@ export function Globe({
           if (!cancelled) setReady(true);
         },
         heroBand,
+        container,
       });
       engineRef.current = engine;
     })().catch(() => {
@@ -96,10 +99,11 @@ export function Globe({
   }
 
   return (
-    <div className="absolute -inset-y-[14%] -right-[10%] -left-[2%] cursor-pointer">
+    <div ref={frameRef} className="globe-stage absolute inset-0 cursor-pointer">
       <canvas
         ref={canvasRef}
         className="absolute inset-0 size-full cursor-pointer touch-none"
+        style={{ cursor: "pointer" }}
         aria-hidden="true"
       />
       <GlobeLabels labels={labels} onSelect={onCitySelect} />

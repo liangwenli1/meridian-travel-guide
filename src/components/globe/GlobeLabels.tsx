@@ -22,7 +22,7 @@ export function GlobeLabels({ labels, onSelect }: GlobeLabelsProps) {
           <button
             key={label.id}
             type="button"
-            className="pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 text-left"
+            className="pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer text-left disabled:cursor-pointer"
             style={{ left: label.x, top: label.y }}
             onMouseEnter={() => setHoverId(label.id)}
             onMouseLeave={() => setHoverId((id) => (id === label.id ? null : id))}

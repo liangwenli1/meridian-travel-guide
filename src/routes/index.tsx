@@ -109,7 +109,7 @@ function Home() {
             </nav>
           </div>
 
-          <div className="relative min-h-[46vh] min-w-0 flex-1 overflow-hidden">
+          <div className="globe-stage relative min-h-[46vh] min-w-0 flex-1 cursor-pointer overflow-hidden">
             <Globe
               reducedMotion={reduced}
               cities={cities}

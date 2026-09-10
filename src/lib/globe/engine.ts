@@ -5,7 +5,7 @@ import type { City, Country } from "@/types/catalog";
 import { latLngToVector3 } from "./latlng";
 
 /** Bump this when the engine visual contract changes so <Globe> remounts on HMR. */
-export const GLOBE_ENGINE_REV = 23;
+export const GLOBE_ENGINE_REV = 25;
 
 export type GlobeLabel = {
   id: string;
@@ -28,6 +28,7 @@ export type GlobeEngineOptions = {
   onCityClick: (city: City) => void;
   onReady?: () => void;
   heroBand?: boolean;
+  container?: HTMLElement | null;
 };
 
 type FlyState = {
@@ -186,6 +187,7 @@ export class GlobeEngine {
   private raycaster = new THREE.Raycaster();
   private pointer = new THREE.Vector2();
   private canvas: HTMLCanvasElement;
+  private frameEl: HTMLElement;
   private resizeObs: ResizeObserver;
   private cityGroup = new THREE.Group();
   private rim: THREE.LineLoop;
@@ -196,6 +198,7 @@ export class GlobeEngine {
 
   constructor(options: GlobeEngineOptions) {
     this.canvas = options.canvas;
+    this.frameEl = options.container ?? options.canvas.parentElement ?? options.canvas;
     this.reducedMotion = options.reducedMotion;
     this.cities = options.cities;
     this.countries = options.countries;
@@ -218,15 +221,15 @@ export class GlobeEngine {
 
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 80);
-    const start = latLngToVector3(12, -78, 2.48);
+    const start = latLngToVector3(12, -78, 3.18);
     this.camera.position.set(start.x, start.y, start.z);
 
     this.controls = new OrbitControls(this.camera, options.canvas);
     this.controls.enablePan = false;
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.075;
-    this.controls.minDistance = 1.62;
-    this.controls.maxDistance = 4.6;
+    this.controls.minDistance = 1.72;
+    this.controls.maxDistance = 5.2;
     this.controls.rotateSpeed = 0.42;
     this.controls.zoomSpeed = 0.75;
     this.controls.autoRotate = this.autoRotate;
@@ -235,6 +238,8 @@ export class GlobeEngine {
     this.controls.maxPolarAngle = Math.PI - 0.18;
     this.controls.target.set(0, 0, 0);
     this.controls.update();
+    this.canvas.style.cursor = "pointer";
+    this.frameEl.style.cursor = "pointer";
 
     this.scene.add(this.globe);
     this.globe.add(this.cityGroup);
@@ -255,7 +260,7 @@ export class GlobeEngine {
     this.resize();
 
     this.resizeObs = new ResizeObserver(() => this.resize());
-    this.resizeObs.observe(options.canvas.parentElement ?? options.canvas);
+    this.resizeObs.observe(this.frameEl);
 
     this.controls.addEventListener("start", this.handleUserStart);
     this.controls.addEventListener("end", this.handleUserEnd);
@@ -576,10 +581,9 @@ export class GlobeEngine {
   }
 
   private resize() {
-    const parent = this.canvas.parentElement ?? this.canvas;
-    const width = parent.clientWidth || window.innerWidth;
-    const height = parent.clientHeight || window.innerHeight;
-    this.camera.aspect = width / Math.max(height, 1);
+    const width = Math.max(1, this.frameEl.clientWidth || this.canvas.clientWidth || window.innerWidth);
+    const height = Math.max(1, this.frameEl.clientHeight || this.canvas.clientHeight || window.innerHeight);
+    this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height, false);
   }
