@@ -5,7 +5,7 @@ import type { City, Country } from "@/types/catalog";
 import { latLngToVector3 } from "./latlng";
 
 /** Bump this when the engine visual contract changes so <Globe> remounts on HMR. */
-export const GLOBE_ENGINE_REV = 16;
+export const GLOBE_ENGINE_REV = 17;
 
 export type GlobeLabel = {
   id: string;
@@ -79,12 +79,48 @@ function hash01(x: number, y: number) {
   return n - Math.floor(n);
 }
 
+function valueNoise(lat: number, lng: number, scale: number) {
+  const x = lng / scale;
+  const y = lat / scale;
+  const x0 = Math.floor(x);
+  const y0 = Math.floor(y);
+  const fx = x - x0;
+  const fy = y - y0;
+  const sx = fx * fx * (3 - 2 * fx);
+  const sy = fy * fy * (3 - 2 * fy);
+  const n00 = hash01(x0, y0);
+  const n10 = hash01(x0 + 1, y0);
+  const n01 = hash01(x0, y0 + 1);
+  const n11 = hash01(x0 + 1, y0 + 1);
+  return n00 * (1 - sx) * (1 - sy) + n10 * sx * (1 - sy) + n01 * (1 - sx) * sy + n11 * sx * sy;
+}
+
+function fbm(lat: number, lng: number) {
+  return valueNoise(lat, lng, 22) * 0.5 + valueNoise(lat, lng, 9) * 0.32 + valueNoise(lat, lng, 3.5) * 0.18;
+}
+
 function samplePixel(data: ImageData, w: number, h: number, lat: number, lng: number) {
   const wrapped = ((lng + 180) % 360 + 360) % 360;
   const x = Math.min(w - 1, Math.max(0, Math.floor((wrapped / 360) * w)));
   const y = Math.min(h - 1, Math.max(0, Math.floor(((90 - lat) / 180) * h)));
   const i = (y * w + x) * 4;
   return { r: data.data[i], g: data.data[i + 1], b: data.data[i + 2], i };
+}
+
+function coastness(data: ImageData, w: number, h: number, lat: number, lng: number) {
+  const probes: Array<[number, number]> = [
+    [2.4, 0],
+    [-2.4, 0],
+    [0, 2.4],
+    [0, -2.4],
+    [1.8, 1.8],
+    [-1.8, -1.8],
+  ];
+  let ocean = 0;
+  for (const [dlng, dlat] of probes) {
+    if (samplePixel(data, w, h, lat + dlat, lng + dlng).r < 88) ocean += 1;
+  }
+  return ocean / probes.length;
 }
 
 function makeLandMaterial(land: THREE.Texture) {
@@ -371,27 +407,46 @@ export class GlobeEngine {
     const w = 1024;
     const h = 512;
     const data = imageData(img, w, h);
-    const count = mobile ? 18000 : 36000;
-    const golden = Math.PI * (3 - Math.sqrt(5));
+    const attempts = mobile ? 70000 : 140000;
     const positions: number[] = [];
     const colors: number[] = [];
     const sizes: number[] = [];
-    const radius = EARTH_RADIUS * 1.0035;
 
-    for (let i = 0; i < count; i += 1) {
-      const y = 1 - (i / (count - 1)) * 2;
+    const push = (lat: number, lng: number, seed: number, sizeMul: number) => {
+      if (samplePixel(data, w, h, lat, lng).r < 78) return;
+      const radius = EARTH_RADIUS * (1.0018 + hash01(seed, 13) * 0.006);
+      const p = latLngToVector3(lat, lng, radius);
+      positions.push(p.x, p.y, p.z);
+      const shade = 0.38 + hash01(seed, 21) * 0.32;
+      colors.push(shade, shade * 0.96, shade * 0.74);
+      sizes.push((0.85 + hash01(seed, 5) * 1.35) * sizeMul);
+    };
+
+    for (let i = 0; i < attempts; i += 1) {
+      const y = 2 * hash01(i, 1.7) - 1;
+      const theta = hash01(i, 9.3) * Math.PI * 2;
       const ring = Math.sqrt(Math.max(0, 1 - y * y));
-      const theta = golden * i;
       const lat = (Math.asin(Math.min(1, Math.max(-1, y))) * 180) / Math.PI;
       const lng = (Math.atan2(Math.sin(theta) * ring, Math.cos(theta) * ring) * 180) / Math.PI;
       if (samplePixel(data, w, h, lat, lng).r < 88) continue;
-      const jlat = lat + (hash01(i, 3) - 0.5) * 0.55;
-      const jlng = lng + (hash01(i, 8) - 0.5) * 0.55;
-      const p = latLngToVector3(jlat, jlng, radius);
-      positions.push(p.x, p.y, p.z);
-      const shade = 0.46 + hash01(i, 21) * 0.2;
-      colors.push(shade, shade * 0.96, shade * 0.76);
-      sizes.push(1.35 + hash01(i, 5) * 0.5);
+
+      const noise = fbm(lat, lng);
+      const coast = coastness(data, w, h, lat, lng);
+      const keep = 0.08 + noise * 0.42 + coast * 0.3;
+      if (hash01(i, 4.2) > keep) continue;
+
+      const jlat = lat + (hash01(i, 11) - 0.5) * 2.2;
+      const jlng = lng + (hash01(i, 19) - 0.5) * 2.2;
+      push(jlat, jlng, i, 1);
+
+      if (hash01(i, 33) < 0.22 + coast * 0.18) {
+        push(
+          jlat + (hash01(i, 41) - 0.5) * 0.7,
+          jlng + (hash01(i, 47) - 0.5) * 0.7,
+          i + 0.37,
+          0.72,
+        );
+      }
     }
 
     this.pushPoints(positions, colors, sizes, false);
@@ -405,7 +460,6 @@ export class GlobeEngine {
     const positions: number[] = [];
     const colors: number[] = [];
     const sizes: number[] = [];
-    const radius = EARTH_RADIUS * 1.006;
 
     for (let y = 0; y < h; y += step) {
       for (let x = 0; x < w; x += step) {
@@ -416,10 +470,13 @@ export class GlobeEngine {
         const lum = Math.max(red, green, blue);
         if (lum < 58) continue;
         if (blue > red + 10 && blue > green + 6 && lum < 96) continue;
-        const keep = Math.pow((lum - 52) / 203, 1.45) * 0.72;
+        const keep =
+          Math.pow((lum - 52) / 203, 1.45) *
+          (0.42 + fbm(90 - (y / h) * 180, (x / w) * 360 - 180) * 0.5);
         if (hash01(x + 0.3, y + 0.7) > keep) continue;
-        const lat = 90 - ((y + 0.5) / h) * 180 + (hash01(x, y + 11) - 0.5) * 0.7;
-        const lng = ((x + 0.5) / w) * 360 - 180 + (hash01(x + 9, y) - 0.5) * 0.9;
+        const lat = 90 - ((y + 0.5) / h) * 180 + (hash01(x, y + 11) - 0.5) * 1.6;
+        const lng = ((x + 0.5) / w) * 360 - 180 + (hash01(x + 9, y) - 0.5) * 1.8;
+        const radius = EARTH_RADIUS * (1.004 + hash01(x, y + 3) * 0.005);
         const p = latLngToVector3(lat, lng, radius);
         positions.push(p.x, p.y, p.z);
         const boost = 0.9 + (lum / 255) * 0.85;
@@ -428,7 +485,7 @@ export class GlobeEngine {
           Math.min(1, (green / 255) * boost + 0.14),
           Math.min(1, (blue / 255) * boost * 0.55 + 0.05),
         );
-        sizes.push(1.7 + (lum / 255) * 2.1);
+        sizes.push(1.4 + (lum / 255) * 2.4 + hash01(x, y) * 0.8);
       }
     }
 
