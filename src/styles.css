@@ -178,6 +178,23 @@
   }
 }
 
+.home-snap {
+  height: 100dvh;
+  overflow-x: clip;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: y mandatory;
+}
+
+.home-page {
+  box-sizing: border-box;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
 @keyframes page-enter {
   from {
     opacity: 0;
@@ -230,6 +247,11 @@
 
   .page-enter {
     animation: none;
+  }
+
+  .home-snap {
+    scroll-behavior: auto;
+    scroll-snap-type: y proximity;
   }
 
   ::view-transition-old(root),

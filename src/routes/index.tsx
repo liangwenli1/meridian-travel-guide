@@ -6,7 +6,6 @@ import { Atlas } from "@/components/home/Atlas";
 import { TypingTitle } from "@/components/hero/TypingTitle";
 import { SearchBar } from "@/components/search/SearchBar";
 import { LanguageToggle } from "@/components/site/LanguageToggle";
-import { SiteFooter } from "@/components/site/SiteFooter";
 import { Button } from "@/components/ui/Button";
 import { t, useI18n } from "@/lib/i18n";
 import { usePrefersReducedMotion } from "@/lib/motion";
@@ -29,6 +28,7 @@ function Home() {
   const { cities, countries, published } = Route.useLoaderData();
   const navigate = useNavigate();
   const globeRef = useRef<GlobeHandle | null>(null);
+  const scrollerRef = useRef<HTMLDivElement>(null);
   const { reduced, ready } = usePrefersReducedMotion();
   const [leaving, setLeaving] = useState(false);
   const locale = useI18n((s) => s.locale);
@@ -68,27 +68,46 @@ function Home() {
     }
   };
 
-  const scrollAtlas = () => {
-    document.getElementById("atlas")?.scrollIntoView({ behavior: reduced ? "auto" : "smooth" });
+  const goPage = (dir: 1 | -1) => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    const pages = ["hero", "guides", "desk", "method", "letter"];
+    const h = scroller.clientHeight || window.innerHeight;
+    const current = Math.round(scroller.scrollTop / h);
+    const next = Math.max(0, Math.min(pages.length - 1, current + dir));
+    document.getElementById(pages[next])?.scrollIntoView({
+      behavior: reduced ? "auto" : "smooth",
+      block: "start",
+    });
   };
 
+  const scrollAtlas = () => goPage(1);
+
   useEffect(() => {
-    const hero = document.getElementById("hero");
-    if (!hero) return;
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    let locked = false;
+    let unlock = 0;
     const onWheel = (event: WheelEvent) => {
       if (event.ctrlKey || event.metaKey) return;
-      if (event.deltaY === 0) return;
-      const atHero = window.scrollY < window.innerHeight * 0.92;
-      if (!atHero) return;
+      if (Math.abs(event.deltaY) < 10) return;
       event.preventDefault();
-      window.scrollBy({ top: event.deltaY, behavior: "auto" });
+      if (locked) return;
+      locked = true;
+      goPage(event.deltaY > 0 ? 1 : -1);
+      unlock = window.setTimeout(() => {
+        locked = false;
+      }, reduced ? 80 : 780);
     };
-    hero.addEventListener("wheel", onWheel, { passive: false });
-    return () => hero.removeEventListener("wheel", onWheel);
-  }, []);
+    scroller.addEventListener("wheel", onWheel, { passive: false });
+    return () => {
+      scroller.removeEventListener("wheel", onWheel);
+      window.clearTimeout(unlock);
+    };
+  }, [reduced]);
 
   return (
-    <div className="bg-void text-fg">
+    <div ref={scrollerRef} className="home-snap bg-void text-fg">
       <a
         href="#search"
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-30 focus:rounded-md focus:bg-void-elevated focus:px-3 focus:py-2"
@@ -96,7 +115,7 @@ function Home() {
         {t(locale).skip}
       </a>
 
-      <section id="hero" className="relative h-dvh overflow-hidden">
+      <section id="hero" className="home-page relative overflow-hidden">
         <div
           className={`flex h-full flex-col transition-[opacity,filter,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
             leaving ? "translate-y-2 opacity-0 blur-sm" : "opacity-100"
@@ -156,10 +175,7 @@ function Home() {
         </div>
       </section>
 
-      <div id="atlas" className="relative bg-void">
-        <Atlas published={published} />
-        <SiteFooter />
-      </div>
+      <Atlas published={published} />
 
       <div
         className={`pointer-events-none fixed inset-0 z-30 bg-void transition-opacity duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
