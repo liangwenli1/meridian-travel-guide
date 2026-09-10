@@ -5,7 +5,7 @@ import type { City, Country } from "@/types/catalog";
 import { latLngToVector3 } from "./latlng";
 
 /** Bump this when the engine visual contract changes so <Globe> remounts on HMR. */
-export const GLOBE_ENGINE_REV = 14;
+export const GLOBE_ENGINE_REV = 16;
 
 export type GlobeLabel = {
   id: string;
@@ -79,6 +79,14 @@ function hash01(x: number, y: number) {
   return n - Math.floor(n);
 }
 
+function samplePixel(data: ImageData, w: number, h: number, lat: number, lng: number) {
+  const wrapped = ((lng + 180) % 360 + 360) % 360;
+  const x = Math.min(w - 1, Math.max(0, Math.floor((wrapped / 360) * w)));
+  const y = Math.min(h - 1, Math.max(0, Math.floor(((90 - lat) / 180) * h)));
+  const i = (y * w + x) * 4;
+  return { r: data.data[i], g: data.data[i + 1], b: data.data[i + 2], i };
+}
+
 function makeLandMaterial(land: THREE.Texture) {
   return new THREE.ShaderMaterial({
     uniforms: {
@@ -97,8 +105,8 @@ function makeLandMaterial(land: THREE.Texture) {
       void main() {
         float land = texture2D(uLand, vUv).r;
         vec3 ocean = vec3(0.0);
-        vec3 ground = vec3(0.055, 0.052, 0.036);
-        float mask = smoothstep(0.22, 0.68, land);
+        vec3 ground = vec3(0.07, 0.068, 0.048);
+        float mask = smoothstep(0.2, 0.72, land);
         gl_FragColor = vec4(mix(ocean, ground, mask), 1.0);
       }
     `,
@@ -108,6 +116,7 @@ function makeLandMaterial(land: THREE.Texture) {
 }
 
 function makePointMaterial(additive: boolean) {
+  const maxSize = additive ? "4.6" : "2.05";
   return new THREE.ShaderMaterial({
     vertexShader: /* glsl */ `
       attribute float aSize;
@@ -115,8 +124,8 @@ function makePointMaterial(additive: boolean) {
       void main() {
         vColor = color;
         vec4 mv = modelViewMatrix * vec4(position, 1.0);
-        float dist = max(-mv.z, 0.35);
-        gl_PointSize = clamp(aSize * (200.0 / dist), 1.15, 7.5);
+        float dist = max(-mv.z, 0.55);
+        gl_PointSize = clamp(aSize * (6.6 / dist), 0.85, ${maxSize});
         gl_Position = projectionMatrix * mv;
       }
     `,
@@ -198,20 +207,20 @@ export class GlobeEngine {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile() ? 1.35 : 2));
 
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(40, 1, 0.1, 60);
-    const start = latLngToVector3(6, 18, 2.28);
+    this.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 80);
+    const start = latLngToVector3(14, 12, 3.28);
     this.camera.position.set(start.x, start.y, start.z);
 
     this.controls = new OrbitControls(this.camera, options.canvas);
     this.controls.enablePan = false;
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.075;
-    this.controls.minDistance = 1.52;
-    this.controls.maxDistance = 4.2;
-    this.controls.rotateSpeed = 0.38;
-    this.controls.zoomSpeed = 0.7;
+    this.controls.minDistance = 1.78;
+    this.controls.maxDistance = 5.8;
+    this.controls.rotateSpeed = 0.42;
+    this.controls.zoomSpeed = 0.75;
     this.controls.autoRotate = this.autoRotate;
-    this.controls.autoRotateSpeed = 0.2;
+    this.controls.autoRotateSpeed = 0.22;
     this.controls.minPolarAngle = 0.18;
     this.controls.maxPolarAngle = Math.PI - 0.18;
     this.controls.target.set(0, 0, 0);
@@ -258,7 +267,7 @@ export class GlobeEngine {
   async flyToCity(city: City, duration = 1100) {
     const dest = latLngToVector3(city.latitude, city.longitude, 1);
     const from = new THREE.Spherical().setFromVector3(this.camera.position);
-    const toVec = new THREE.Vector3(dest.x, dest.y, dest.z).normalize().multiplyScalar(1.68);
+    const toVec = new THREE.Vector3(dest.x, dest.y, dest.z).normalize().multiplyScalar(2.05);
     const to = new THREE.Spherical().setFromVector3(toVec);
     this.autoRotate = false;
     this.controls.autoRotate = false;
@@ -359,69 +368,67 @@ export class GlobeEngine {
   }
 
   private addLandParticles(img: HTMLImageElement, mobile: boolean) {
-    const w = mobile ? 720 : 1100;
-    const h = mobile ? 360 : 550;
+    const w = 1024;
+    const h = 512;
     const data = imageData(img, w, h);
-    const step = mobile ? 3 : 2;
+    const count = mobile ? 18000 : 36000;
+    const golden = Math.PI * (3 - Math.sqrt(5));
     const positions: number[] = [];
     const colors: number[] = [];
     const sizes: number[] = [];
-    const r = EARTH_RADIUS * 1.004;
+    const radius = EARTH_RADIUS * 1.0035;
 
-    for (let y = 0; y < h; y += step) {
-      const lat = 90 - ((y + 0.5) / h) * 180;
-      const cosLat = Math.abs(Math.cos((lat * Math.PI) / 180));
-      const keep = Math.max(0.42, cosLat);
-      for (let x = 0; x < w; x += step) {
-        const i = (y * w + x) * 4;
-        if (data.data[i] < 80) continue;
-        if (hash01(x, y) > keep) continue;
-        const lng = ((x + 0.5) / w) * 360 - 180 + (hash01(x + 3, y) - 0.5) * 0.22;
-        const jitterLat = lat + (hash01(x, y + 9) - 0.5) * 0.18;
-        const p = latLngToVector3(jitterLat, lng, r);
-        positions.push(p.x, p.y, p.z);
-        const shade = 0.62 + hash01(y, x) * 0.16;
-        colors.push(shade, shade * 0.97, shade * 0.8);
-        sizes.push(1.35 + hash01(x * 0.7, y) * 0.45);
-      }
+    for (let i = 0; i < count; i += 1) {
+      const y = 1 - (i / (count - 1)) * 2;
+      const ring = Math.sqrt(Math.max(0, 1 - y * y));
+      const theta = golden * i;
+      const lat = (Math.asin(Math.min(1, Math.max(-1, y))) * 180) / Math.PI;
+      const lng = (Math.atan2(Math.sin(theta) * ring, Math.cos(theta) * ring) * 180) / Math.PI;
+      if (samplePixel(data, w, h, lat, lng).r < 88) continue;
+      const jlat = lat + (hash01(i, 3) - 0.5) * 0.55;
+      const jlng = lng + (hash01(i, 8) - 0.5) * 0.55;
+      const p = latLngToVector3(jlat, jlng, radius);
+      positions.push(p.x, p.y, p.z);
+      const shade = 0.46 + hash01(i, 21) * 0.2;
+      colors.push(shade, shade * 0.96, shade * 0.76);
+      sizes.push(1.35 + hash01(i, 5) * 0.5);
     }
 
     this.pushPoints(positions, colors, sizes, false);
   }
 
   private addLightParticles(img: HTMLImageElement, mobile: boolean) {
-    const w = mobile ? 960 : 1400;
-    const h = mobile ? 480 : 700;
+    const w = mobile ? 720 : 1024;
+    const h = w / 2;
     const data = imageData(img, w, h);
     const step = mobile ? 3 : 2;
     const positions: number[] = [];
     const colors: number[] = [];
     const sizes: number[] = [];
-    const r = EARTH_RADIUS * 1.007;
+    const radius = EARTH_RADIUS * 1.006;
 
     for (let y = 0; y < h; y += step) {
-      const lat = 90 - ((y + 0.5) / h) * 180;
-      const cosLat = Math.max(0.16, Math.abs(Math.cos((lat * Math.PI) / 180)));
       for (let x = 0; x < w; x += step) {
         const i = (y * w + x) * 4;
         const red = data.data[i];
         const green = data.data[i + 1];
         const blue = data.data[i + 2];
         const lum = Math.max(red, green, blue);
-        if (lum < 52) continue;
-        if (blue > red + 10 && blue > green + 6 && lum < 88) continue;
-        if (hash01(x + 11, y) > cosLat) continue;
-        const lng = ((x + 0.5) / w) * 360 - 180 + (hash01(x, y + 4) - 0.5) * 0.22;
-        const jitterLat = lat + (hash01(x + 5, y) - 0.5) * 0.18;
-        const p = latLngToVector3(jitterLat, lng, r);
+        if (lum < 58) continue;
+        if (blue > red + 10 && blue > green + 6 && lum < 96) continue;
+        const keep = Math.pow((lum - 52) / 203, 1.45) * 0.72;
+        if (hash01(x + 0.3, y + 0.7) > keep) continue;
+        const lat = 90 - ((y + 0.5) / h) * 180 + (hash01(x, y + 11) - 0.5) * 0.7;
+        const lng = ((x + 0.5) / w) * 360 - 180 + (hash01(x + 9, y) - 0.5) * 0.9;
+        const p = latLngToVector3(lat, lng, radius);
         positions.push(p.x, p.y, p.z);
-        const boost = 1.15 + (lum / 255) * 1.15;
+        const boost = 0.9 + (lum / 255) * 0.85;
         colors.push(
-          Math.min(1, (red / 255) * boost + 0.12),
-          Math.min(1, (green / 255) * boost + 0.1),
-          Math.min(1, (blue / 255) * boost * 0.7 + 0.04),
+          Math.min(1, (red / 255) * boost + 0.18),
+          Math.min(1, (green / 255) * boost + 0.14),
+          Math.min(1, (blue / 255) * boost * 0.55 + 0.05),
         );
-        sizes.push(1.5 + (lum / 255) * 2.4);
+        sizes.push(1.7 + (lum / 255) * 2.1);
       }
     }
 
@@ -458,7 +465,7 @@ export class GlobeEngine {
     const mat = new THREE.LineBasicMaterial({
       color: 0x9aa6b0,
       transparent: true,
-      opacity: 0.32,
+      opacity: 0.4,
       depthWrite: false,
       toneMapped: false,
     });
@@ -591,10 +598,10 @@ export class GlobeEngine {
 
   private lodThresholds() {
     const d = this.cameraDistance();
-    if (d > 3.2) return { countryMin: 78, cityMin: 92 };
-    if (d > 2.55) return { countryMin: 58, cityMin: 78 };
-    if (d > 2.05) return { countryMin: 42, cityMin: 58 };
-    return { countryMin: 0, cityMin: 36 };
+    if (d > 4.2) return { countryMin: 70, cityMin: 88 };
+    if (d > 3.1) return { countryMin: 48, cityMin: 72 };
+    if (d > 2.4) return { countryMin: 34, cityMin: 54 };
+    return { countryMin: 0, cityMin: 30 };
   }
 
   private isFrontFacing(vec: THREE.Vector3, cameraDir: THREE.Vector3, minDot: number) {
@@ -728,7 +735,7 @@ export class GlobeEngine {
     }
 
     this.rim.quaternion.copy(this.camera.quaternion);
-    this.cityGroup.visible = this.cameraDistance() < 3.1 || Boolean(this.highlightId);
+    this.cityGroup.visible = this.cameraDistance() < 4.6 || Boolean(this.highlightId);
 
     this.renderer.render(this.scene, this.camera);
     this.projectLabels();
