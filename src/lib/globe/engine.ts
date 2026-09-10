@@ -5,7 +5,7 @@ import type { City, Country } from "@/types/catalog";
 import { latLngToVector3 } from "./latlng";
 
 /** Bump this when the engine visual contract changes so <Globe> remounts on HMR. */
-export const GLOBE_ENGINE_REV = 13;
+export const GLOBE_ENGINE_REV = 14;
 
 export type GlobeLabel = {
   id: string;
@@ -79,6 +79,34 @@ function hash01(x: number, y: number) {
   return n - Math.floor(n);
 }
 
+function makeLandMaterial(land: THREE.Texture) {
+  return new THREE.ShaderMaterial({
+    uniforms: {
+      uLand: { value: land },
+    },
+    vertexShader: /* glsl */ `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: /* glsl */ `
+      uniform sampler2D uLand;
+      varying vec2 vUv;
+      void main() {
+        float land = texture2D(uLand, vUv).r;
+        vec3 ocean = vec3(0.0);
+        vec3 ground = vec3(0.055, 0.052, 0.036);
+        float mask = smoothstep(0.22, 0.68, land);
+        gl_FragColor = vec4(mix(ocean, ground, mask), 1.0);
+      }
+    `,
+    toneMapped: false,
+    glslVersion: THREE.GLSL1,
+  });
+}
+
 function makePointMaterial(additive: boolean) {
   return new THREE.ShaderMaterial({
     vertexShader: /* glsl */ `
@@ -143,6 +171,7 @@ export class GlobeEngine {
   private resizeObs: ResizeObserver;
   private cityGroup = new THREE.Group();
   private rim: THREE.LineLoop;
+  private earthMesh: THREE.Mesh;
   private materials: THREE.Material[] = [];
   private geometries: THREE.BufferGeometry[] = [];
   private textures: THREE.Texture[] = [];
@@ -170,7 +199,7 @@ export class GlobeEngine {
 
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(40, 1, 0.1, 60);
-    const start = latLngToVector3(18, -30, 2.32);
+    const start = latLngToVector3(6, 18, 2.28);
     this.camera.position.set(start.x, start.y, start.z);
 
     this.controls = new OrbitControls(this.camera, options.canvas);
@@ -191,13 +220,13 @@ export class GlobeEngine {
     this.scene.add(this.globe);
     this.globe.add(this.cityGroup);
 
-    const occluder = new THREE.Mesh(
-      new THREE.SphereGeometry(EARTH_RADIUS * 0.992, 64, 48),
+    this.earthMesh = new THREE.Mesh(
+      new THREE.SphereGeometry(EARTH_RADIUS, 96, 64),
       new THREE.MeshBasicMaterial({ color: 0x000000 }),
     );
-    this.globe.add(occluder);
-    this.geometries.push(occluder.geometry);
-    this.materials.push(occluder.material);
+    this.globe.add(this.earthMesh);
+    this.geometries.push(this.earthMesh.geometry);
+    this.materials.push(this.earthMesh.material as THREE.Material);
 
     this.rim = this.makeRim();
     this.scene.add(this.rim);
@@ -307,6 +336,20 @@ export class GlobeEngine {
       ]);
       if (this.disposed) return;
 
+      const landTex = new THREE.Texture(landImg);
+      landTex.colorSpace = THREE.NoColorSpace;
+      landTex.minFilter = THREE.LinearFilter;
+      landTex.magFilter = THREE.LinearFilter;
+      landTex.generateMipmaps = false;
+      landTex.needsUpdate = true;
+      this.textures.push(landTex);
+
+      const landMat = makeLandMaterial(landTex);
+      const prev = this.earthMesh.material;
+      this.earthMesh.material = landMat;
+      if (prev instanceof THREE.Material) prev.dispose();
+      this.materials.push(landMat);
+
       this.addLandParticles(landImg, mobile);
       this.addLightParticles(nightImg, mobile);
       this.addBorders(borders.rings);
@@ -316,10 +359,10 @@ export class GlobeEngine {
   }
 
   private addLandParticles(img: HTMLImageElement, mobile: boolean) {
-    const w = mobile ? 640 : 900;
-    const h = mobile ? 320 : 450;
+    const w = mobile ? 720 : 1100;
+    const h = mobile ? 360 : 550;
     const data = imageData(img, w, h);
-    const step = mobile ? 4 : 3;
+    const step = mobile ? 3 : 2;
     const positions: number[] = [];
     const colors: number[] = [];
     const sizes: number[] = [];
@@ -327,19 +370,19 @@ export class GlobeEngine {
 
     for (let y = 0; y < h; y += step) {
       const lat = 90 - ((y + 0.5) / h) * 180;
-      const cosLat = Math.cos((lat * Math.PI) / 180);
-      const keep = Math.max(0.18, Math.abs(cosLat));
+      const cosLat = Math.abs(Math.cos((lat * Math.PI) / 180));
+      const keep = Math.max(0.42, cosLat);
       for (let x = 0; x < w; x += step) {
         const i = (y * w + x) * 4;
-        if (data.data[i] < 90) continue;
-        if (hash01(x, y) > keep * 0.55) continue;
-        const lng = ((x + 0.5) / w) * 360 - 180 + (hash01(x + 3, y) - 0.5) * 0.45;
-        const jitterLat = lat + (hash01(x, y + 9) - 0.5) * 0.38;
+        if (data.data[i] < 80) continue;
+        if (hash01(x, y) > keep) continue;
+        const lng = ((x + 0.5) / w) * 360 - 180 + (hash01(x + 3, y) - 0.5) * 0.22;
+        const jitterLat = lat + (hash01(x, y + 9) - 0.5) * 0.18;
         const p = latLngToVector3(jitterLat, lng, r);
         positions.push(p.x, p.y, p.z);
-        const shade = 0.55 + hash01(y, x) * 0.2;
-        colors.push(shade, shade * 0.97, shade * 0.78);
-        sizes.push(1.55 + hash01(x * 0.7, y) * 0.7);
+        const shade = 0.62 + hash01(y, x) * 0.16;
+        colors.push(shade, shade * 0.97, shade * 0.8);
+        sizes.push(1.35 + hash01(x * 0.7, y) * 0.45);
       }
     }
 
