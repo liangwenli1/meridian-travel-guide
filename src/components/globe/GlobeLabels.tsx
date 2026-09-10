@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { GlobeLabel } from "@/lib/globe/engine";
 import { t, useI18n } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 import type { City } from "@/types/catalog";
 
 type GlobeLabelsProps = {
@@ -32,28 +33,20 @@ export function GlobeLabels({ labels, onSelect }: GlobeLabelsProps) {
             }}
             disabled={!isCity}
           >
-            <span className="flex items-center gap-2 rounded-md bg-void/80 px-2 py-1">
-              <span
-                className={
-                  label.kind === "city"
-                    ? "size-1.5 rounded-full bg-fg"
-                    : "size-1 rounded-full bg-muted"
-                }
-              />
-              <span
-                className={
-                  label.kind === "country"
-                    ? "kicker text-muted"
-                    : "font-sans text-xs text-fg"
-                }
-              >
-                {label.name}
-              </span>
+            <span
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-md px-1.5 py-0.5",
+                "bg-black/70 text-[11px] leading-none text-fg/90 backdrop-blur-sm",
+                isCity && "text-fg",
+              )}
+            >
+              {isCity ? <span className="size-1 shrink-0 rounded-full bg-fg" /> : null}
+              <span className="whitespace-nowrap">{label.name}</span>
             </span>
             {isCity && hovered ? (
-              <span className="mt-1 ml-1 block rounded-md bg-void/80 px-2 py-1 text-xs text-muted">
+              <span className="mt-1 ml-1 block rounded-md bg-black/75 px-1.5 py-0.5 text-[11px] text-muted">
                 {label.subtitle}
-                <span className="ml-2 tracking-widest text-accent uppercase">{t(locale).explore}</span>
+                <span className="ml-1.5 tracking-wide text-accent uppercase">{t(locale).explore}</span>
               </span>
             ) : null}
           </button>
