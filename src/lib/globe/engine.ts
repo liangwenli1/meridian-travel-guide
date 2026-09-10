@@ -27,6 +27,7 @@ export type GlobeEngineOptions = {
   onLabels: (labels: GlobeLabel[]) => void;
   onCityClick: (city: City) => void;
   onReady?: () => void;
+  heroBand?: boolean;
 };
 
 type FlyState = {
@@ -172,6 +173,7 @@ export class GlobeEngine {
   private onLabels: GlobeEngineOptions["onLabels"];
   private onCityClick: GlobeEngineOptions["onCityClick"];
   private onReady?: () => void;
+  private heroBandEnabled: boolean;
   private cityPositions = new Map<string, THREE.Vector3>();
   private cityMeshes = new Map<string, THREE.Mesh>();
   private highlightId: string | null = null;
@@ -200,6 +202,7 @@ export class GlobeEngine {
     this.onLabels = options.onLabels;
     this.onCityClick = options.onCityClick;
     this.onReady = options.onReady;
+    this.heroBandEnabled = options.heroBand !== false;
     this.autoRotate = !options.reducedMotion;
 
     this.renderer = new THREE.WebGLRenderer({
@@ -582,6 +585,7 @@ export class GlobeEngine {
   }
 
   private inHeroBand(x: number, y: number, width: number, height: number) {
+    if (!this.heroBandEnabled) return false;
     const nx = Math.abs(x / width - 0.5);
     const ny = y / height;
     if (isMobile()) {

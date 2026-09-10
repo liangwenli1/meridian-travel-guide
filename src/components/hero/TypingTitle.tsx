@@ -7,9 +7,10 @@ type Phase = "typing" | "blink" | "hold" | "deleting";
 type TypingTitleProps = {
   reducedMotion: boolean;
   ready: boolean;
+  align?: "center" | "left";
 };
 
-export function TypingTitle({ reducedMotion, ready }: TypingTitleProps) {
+export function TypingTitle({ reducedMotion, ready, align = "center" }: TypingTitleProps) {
   const locale = useI18n((s) => s.locale);
   const strings = t(locale);
   const restFull = strings.rest;
@@ -93,11 +94,29 @@ export function TypingTitle({ reducedMotion, ready }: TypingTitleProps) {
   }, [ready, reducedMotion, restFull, locale]);
 
   return (
-    <h1 className="max-w-[16ch] text-center leading-[0.95] tracking-[-0.04em] md:max-w-none">
-      <span className="text-[18vw] font-medium tracking-tight text-accent sm:text-8xl md:text-[7.2rem]">
+    <h1
+      className={
+        align === "left"
+          ? "max-w-[14ch] text-left leading-[0.95] tracking-[-0.04em]"
+          : "max-w-[16ch] text-center leading-[0.95] tracking-[-0.04em] md:max-w-none"
+      }
+    >
+      <span
+        className={
+          align === "left"
+            ? "text-6xl font-medium tracking-tight text-accent sm:text-7xl lg:text-[5.6rem]"
+            : "text-[18vw] font-medium tracking-tight text-accent sm:text-8xl md:text-[7.2rem]"
+        }
+      >
         {strings.where}
       </span>
-      <span className="mt-2 block text-[6.6vw] font-normal text-fg sm:text-3xl md:mt-3 md:text-[2.2rem]">
+      <span
+        className={
+          align === "left"
+            ? "mt-3 block text-2xl font-normal text-fg md:text-[1.85rem]"
+            : "mt-2 block text-[6.6vw] font-normal text-fg sm:text-3xl md:mt-3 md:text-[2.2rem]"
+        }
+      >
         {rest}
         {showMark ? (
           <span className={markOpaque ? "text-accent" : "text-accent/20"}>{locale === "zh" ? "？" : "?"}</span>

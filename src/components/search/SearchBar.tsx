@@ -2,6 +2,7 @@ import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent as Reac
 import { ArrowRight, Search } from "lucide-react";
 import { recordSearch } from "@/lib/server/catalog";
 import { t, useI18n } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 import { searchCitiesIn, type SearchHit } from "@/lib/search/search-cities";
 import type { City, Country } from "@/types/catalog";
 
@@ -9,9 +10,10 @@ type SearchBarProps = {
   cities: City[];
   countries: Country[];
   onSelect: (city: City) => void;
+  className?: string;
 };
 
-export function SearchBar({ cities, countries, onSelect }: SearchBarProps) {
+export function SearchBar({ cities, countries, onSelect, className }: SearchBarProps) {
   const locale = useI18n((s) => s.locale);
   const strings = t(locale);
   const inputId = useId();
@@ -87,7 +89,7 @@ export function SearchBar({ cities, countries, onSelect }: SearchBarProps) {
   };
 
   return (
-    <div ref={rootRef} className="relative mx-auto w-[min(92vw,40rem)]">
+    <div ref={rootRef} className={cn("relative mx-auto w-[min(92vw,40rem)]", className)}>
       <label htmlFor={inputId} className="sr-only">
         {strings.search}
       </label>

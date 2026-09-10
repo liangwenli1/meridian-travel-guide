@@ -17,9 +17,17 @@ type GlobeProps = {
   countries: Country[];
   onCitySelect: (city: City) => void;
   globeRef?: Ref<GlobeHandle | null>;
+  heroBand?: boolean;
 };
 
-export function Globe({ reducedMotion, cities, countries, onCitySelect, globeRef }: GlobeProps) {
+export function Globe({
+  reducedMotion,
+  cities,
+  countries,
+  onCitySelect,
+  globeRef,
+  heroBand = true,
+}: GlobeProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<{
     flyToCity: (city: City) => Promise<void>;
@@ -63,6 +71,7 @@ export function Globe({ reducedMotion, cities, countries, onCitySelect, globeRef
         onReady: () => {
           if (!cancelled) setReady(true);
         },
+        heroBand,
       });
       engineRef.current = engine;
     })().catch(() => {
@@ -76,7 +85,7 @@ export function Globe({ reducedMotion, cities, countries, onCitySelect, globeRef
     };
     // GLOBE_ENGINE_REV forces a remount when the WebGL engine itself changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cities, countries, GLOBE_ENGINE_REV]);
+  }, [cities, countries, GLOBE_ENGINE_REV, heroBand]);
 
   useEffect(() => {
     engineRef.current?.setReducedMotion(reducedMotion);

@@ -32,6 +32,10 @@ export const copy = {
     soon: "Soon",
     explore: "Explore",
     webgl: "The live globe needs WebGL. Search above, or open a finished guide.",
+    layoutOverlay: "Centered",
+    layoutCopyLeft: "Copy left",
+    layoutGlobeLeft: "Globe left",
+    layoutGroup: "Homepage layout",
   },
   zh: {
     where: "你",
@@ -46,6 +50,10 @@ export const copy = {
     soon: "稍后",
     explore: "探索",
     webgl: "地球需要 WebGL。请使用搜索，或打开已完成的指南。",
+    layoutOverlay: "居中",
+    layoutCopyLeft: "文字在左",
+    layoutGlobeLeft: "地球在左",
+    layoutGroup: "首页布局",
   },
 } as const;
 
