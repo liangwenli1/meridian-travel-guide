@@ -1,13 +1,19 @@
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
-import { Search } from "lucide-react";
-import { searchCities, type SearchHit } from "@/lib/search/search-cities";
-import type { City } from "@/types/catalog";
+import { ArrowRight, Search } from "lucide-react";
+import { recordSearch } from "@/lib/server/catalog";
+import { t, useI18n } from "@/lib/i18n";
+import { searchCitiesIn, type SearchHit } from "@/lib/search/search-cities";
+import type { City, Country } from "@/types/catalog";
 
 type SearchBarProps = {
+  cities: City[];
+  countries: Country[];
   onSelect: (city: City) => void;
 };
 
-export function SearchBar({ onSelect }: SearchBarProps) {
+export function SearchBar({ cities, countries, onSelect }: SearchBarProps) {
+  const locale = useI18n((s) => s.locale);
+  const strings = t(locale);
   const inputId = useId();
   const listId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -16,7 +22,7 @@ export function SearchBar({ onSelect }: SearchBarProps) {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
 
-  const hits = useMemo(() => searchCities(query, 8), [query]);
+  const hits = useMemo(() => searchCitiesIn(cities, countries, query, 8), [cities, countries, query]);
   const visible = open && query.trim().length > 0;
 
   useEffect(() => {
@@ -50,7 +56,13 @@ export function SearchBar({ onSelect }: SearchBarProps) {
   const choose = (hit: SearchHit) => {
     setQuery(`${hit.city.name}, ${hit.city.country}`);
     setOpen(false);
+    void recordSearch({ data: { query, resultCityId: hit.city.id } }).catch(() => undefined);
     onSelect(hit.city);
+  };
+
+  const submit = () => {
+    const hit = hits[active] ?? hits[0];
+    if (hit) choose(hit);
   };
 
   const onKeyDown = (event: ReactKeyboardEvent<HTMLInputElement>) => {
@@ -70,17 +82,16 @@ export function SearchBar({ onSelect }: SearchBarProps) {
       setActive((value) => (value - 1 + hits.length) % hits.length);
     } else if (event.key === "Enter") {
       event.preventDefault();
-      const hit = hits[active] ?? hits[0];
-      if (hit) choose(hit);
+      submit();
     }
   };
 
   return (
-    <div ref={rootRef} className="relative mx-auto w-[min(92vw,34rem)]">
+    <div ref={rootRef} className="relative mx-auto w-[min(92vw,40rem)]">
       <label htmlFor={inputId} className="sr-only">
-        Search a city or country
+        {strings.search}
       </label>
-      <div className="flex h-12 items-center gap-3 rounded-full bg-void-elevated/80 px-4 shadow-[var(--shadow-border)] backdrop-blur-md md:h-14 md:px-5">
+      <div className="flex h-12 items-center gap-3 rounded-full bg-void-elevated py-1 pr-1 pl-5 shadow-border md:h-14">
         <Search className="size-4 shrink-0 text-muted" strokeWidth={1.75} aria-hidden="true" />
         <input
           ref={inputRef}
@@ -90,8 +101,8 @@ export function SearchBar({ onSelect }: SearchBarProps) {
           aria-expanded={visible}
           aria-controls={listId}
           aria-activedescendant={visible && hits[active] ? `${listId}-${hits[active].city.id}` : undefined}
-          className="h-full min-w-0 flex-1 bg-transparent text-[15px] text-fg outline-none placeholder:text-muted md:text-base"
-          placeholder="Search a city or country"
+          className="h-full min-w-0 flex-1 bg-transparent text-base text-fg outline-none placeholder:text-muted"
+          placeholder={strings.search}
           autoComplete="off"
           spellCheck={false}
           value={query}
@@ -102,19 +113,24 @@ export function SearchBar({ onSelect }: SearchBarProps) {
           onFocus={() => setOpen(true)}
           onKeyDown={onKeyDown}
         />
-        <kbd className="hidden rounded-md px-1.5 py-0.5 font-sans text-[10px] tracking-wide text-muted shadow-[var(--shadow-border)] sm:inline">
-          /
-        </kbd>
+        <button
+          type="button"
+          aria-label={strings.explore}
+          className="inline-flex size-11 shrink-0 items-center justify-center rounded-2xl bg-accent text-void transition-transform duration-150 ease-out hover:bg-accent-dim active:scale-[0.96]"
+          onClick={submit}
+        >
+          <ArrowRight className="size-5" strokeWidth={2.2} />
+        </button>
       </div>
       {visible ? (
         <ul
           id={listId}
           role="listbox"
-          aria-label="City suggestions"
-          className="absolute z-20 mt-2 w-full overflow-hidden rounded-[20px] bg-void-elevated/95 py-1 shadow-[var(--shadow-border)] backdrop-blur-md"
+          aria-label={strings.search}
+          className="absolute z-20 mt-2 w-full overflow-hidden rounded-2xl bg-void-elevated py-1 shadow-border"
         >
           {hits.length === 0 ? (
-            <li className="px-4 py-3 text-sm text-muted">No matching city yet.</li>
+            <li className="px-4 py-3 text-sm text-muted">{strings.noMatch}</li>
           ) : (
             hits.map((hit, index) => (
               <li key={hit.city.id} role="presentation">
@@ -124,7 +140,7 @@ export function SearchBar({ onSelect }: SearchBarProps) {
                   role="option"
                   aria-selected={index === active}
                   className={`flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors ${
-                    index === active ? "bg-warm/8" : "hover:bg-warm/5"
+                    index === active ? "bg-fg/5" : "hover:bg-fg/5"
                   }`}
                   onMouseEnter={() => setActive(index)}
                   onClick={() => choose(hit)}
@@ -133,7 +149,7 @@ export function SearchBar({ onSelect }: SearchBarProps) {
                     <span className="block text-sm text-fg">{hit.city.name}</span>
                     <span className="block text-xs text-muted">{hit.city.country}</span>
                   </span>
-                  <span className="rounded-full px-2 py-0.5 font-sans text-[10px] tracking-[0.14em] text-silver uppercase shadow-[var(--shadow-border)]">
+                  <span className="rounded-full px-2 py-0.5 text-2xs tracking-widest text-silver uppercase shadow-border">
                     {hit.city.countryCode}
                   </span>
                 </button>

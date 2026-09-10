@@ -33,7 +33,7 @@ export function AmbientParticles() {
           if (dot.y < 0) dot.y = 1;
         }
         ctx.beginPath();
-        ctx.fillStyle = `rgba(110, 224, 210, ${dot.a})`;
+        ctx.fillStyle = `rgba(212, 240, 60, ${dot.a * 0.55})`;
         ctx.arc(dot.x * w, dot.y * h, dot.r, 0, Math.PI * 2);
         ctx.fill();
       }

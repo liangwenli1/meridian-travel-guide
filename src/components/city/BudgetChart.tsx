@@ -35,21 +35,21 @@ export function BudgetChart({ budget }: { budget: CityGuide["budget"] }) {
       <div className="mt-4 h-64 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-            <CartesianGrid stroke="rgba(180,220,224,0.12)" vertical={false} />
-            <XAxis dataKey="item" tick={{ fill: "#9bb7bc", fontSize: 11 }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fill: "#9bb7bc", fontSize: 11 }} axisLine={false} tickLine={false} />
+            <CartesianGrid stroke="rgba(232,232,200,0.12)" vertical={false} />
+            <XAxis dataKey="item" tick={{ fill: "#8a8a76", fontSize: 11 }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: "#8a8a76", fontSize: 11 }} axisLine={false} tickLine={false} />
             <Tooltip
               contentStyle={{
-                background: "#10161d",
-                border: "1px solid rgba(180,220,224,0.18)",
+                background: "#12120c",
+                border: "1px solid rgba(232,232,200,0.18)",
                 borderRadius: 12,
-                color: "#e8f2f4",
+                color: "#f3f3e8",
               }}
             />
-            <Legend wrapperStyle={{ color: "#9bb7bc", fontSize: 12 }} />
-            <Bar dataKey="Budget" fill="#3aa89c" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="Mid" fill="#6ee0d2" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="Luxury" fill="#c5dde0" radius={[4, 4, 0, 0]} />
+            <Legend wrapperStyle={{ color: "#8a8a76", fontSize: 12 }} />
+            <Bar dataKey="Budget" fill="#6a6a58" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="Mid" fill="#d4f03c" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="Luxury" fill="#e8e8d8" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>

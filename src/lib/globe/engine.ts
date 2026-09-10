@@ -1,9 +1,10 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { cities } from "@/data/cities";
-import { countries } from "@/data/countries";
-import type { City } from "@/types/catalog";
+import type { City, Country } from "@/types/catalog";
 import { latLngToVector3 } from "./latlng";
+
+/** Bump this when the engine visual contract changes so <Globe> remounts on HMR. */
+export const GLOBE_ENGINE_REV = 8;
 
 export type GlobeLabel = {
   id: string;
@@ -20,8 +21,11 @@ export type GlobeLabel = {
 export type GlobeEngineOptions = {
   canvas: HTMLCanvasElement;
   reducedMotion: boolean;
+  cities: City[];
+  countries: Country[];
   onLabels: (labels: GlobeLabel[]) => void;
   onCityClick: (city: City) => void;
+  onReady?: () => void;
 };
 
 type FlyState = {
@@ -34,222 +38,53 @@ type FlyState = {
 };
 
 const EARTH_RADIUS = 1;
-const MASK_URL = "/globe/earth-dark.jpg";
+const LAND_MASK_URL = "/globe/land-mask.png";
+const CITY_COLOR = 0xf0f0e4;
+const CITY_DIM = 0x5a5a4c;
+const CITY_ACTIVE = 0xd4f03c;
 
 function isMobile() {
   return window.innerWidth < 768 || window.matchMedia("(pointer: coarse)").matches;
 }
 
-function loadImage(src: string) {
-  return new Promise<HTMLImageElement>((resolve, reject) => {
-    const img = new Image();
-    img.decoding = "async";
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("earth mask failed"));
-    img.src = src;
-  });
-}
-
-function sampleLand(image: HTMLImageElement, step: number) {
-  const width = 1024;
-  const height = 512;
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext("2d", { willReadFrequently: true });
-  if (!ctx) return { positions: new Float32Array(0), colors: new Float32Array(0) };
-
-  ctx.drawImage(image, 0, 0, width, height);
-  const { data } = ctx.getImageData(0, 0, width, height);
-  const positions: number[] = [];
-  const colors: number[] = [];
-
-  const landAt = (x: number, y: number) => {
-    const i = (y * width + x) * 4;
-    return ((data[i] ?? 0) + (data[i + 1] ?? 0) + (data[i + 2] ?? 0)) / 3 > 40;
-  };
-
-  const pushLight = (lat: number, lng: number, intensity: number) => {
-    const p = latLngToVector3(lat, lng, EARTH_RADIUS + 0.006);
-    positions.push(p.x, p.y, p.z);
-    const north = Math.max(0, Math.min(1, (lat + 35) / 80));
-    const cyan = 0.45 + north * 0.45;
-    const warm = 0.55 + (1 - north) * 0.4;
-    colors.push(
-      (0.55 + warm * 0.35) * intensity,
-      (0.78 + cyan * 0.18) * intensity,
-      (0.88 + cyan * 0.12) * intensity,
-    );
-  };
-
-  for (const city of cities) {
-    const count = 10 + Math.round((city.tourismPriority / 100) * (isMobile() ? 14 : 28));
-    const spread = 0.35 + (1 - city.tourismPriority / 100) * 1.4;
-    for (let i = 0; i < count; i += 1) {
-      const ang = Math.random() * Math.PI * 2;
-      const rad = Math.abs(randn()) * spread;
-      const lat = city.latitude + rad * Math.cos(ang);
-      const lng = city.longitude + (rad * Math.sin(ang)) / Math.max(0.35, Math.cos((city.latitude * Math.PI) / 180));
-      const u = Math.min(width - 1, Math.max(0, Math.floor(((lng + 180) / 360) * width)));
-      const v = Math.min(height - 1, Math.max(0, Math.floor(((90 - lat) / 180) * height)));
-      if (!landAt(u, v)) continue;
-      pushLight(lat, lng, 0.75 + Math.random() * 0.35);
-    }
-  }
-
-  const fillStep = isMobile() ? 22 : step;
-  for (let y = 0; y < height; y += fillStep) {
-    for (let x = 0; x < width; x += fillStep) {
-      if (!landAt(x, y)) continue;
-      if (Math.random() > 0.28) continue;
-      const u = (x + 0.5) / width;
-      const v = (y + 0.5) / height;
-      const lat = (0.5 - v) * 180;
-      const lng = (u - 0.5) * 360;
-      pushLight(lat, lng, 0.35 + Math.random() * 0.35);
-    }
-  }
-
-  return {
-    positions: new Float32Array(positions),
-    colors: new Float32Array(colors),
-  };
-}
-
-function randn() {
-  const u = Math.max(1e-6, Math.random());
-  const v = Math.random();
-  return Math.sqrt(-2 * Math.log(u)) * Math.cos(Math.PI * 2 * v);
-}
-
-function extractCoast(image: HTMLImageElement) {
-  const width = 720;
-  const height = 360;
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext("2d", { willReadFrequently: true });
-  if (!ctx) return new Float32Array(0);
-  ctx.drawImage(image, 0, 0, width, height);
-  const { data } = ctx.getImageData(0, 0, width, height);
-  const land = (x: number, y: number) => {
-    const xx = ((x % width) + width) % width;
-    const yy = Math.min(height - 1, Math.max(0, y));
-    const i = (yy * width + xx) * 4;
-    return ((data[i] ?? 0) + (data[i + 1] ?? 0) + (data[i + 2] ?? 0)) / 3 > 40;
-  };
-  const positions: number[] = [];
-  const addSeg = (x0: number, y0: number, x1: number, y1: number) => {
-    const to = (x: number, y: number) => {
-      const lat = (0.5 - (y + 0.5) / height) * 180;
-      const lng = ((x + 0.5) / width - 0.5) * 360;
-      return latLngToVector3(lat, lng, EARTH_RADIUS + 0.003);
-    };
-    const a = to(x0, y0);
-    const b = to(x1, y1);
-    positions.push(a.x, a.y, a.z, b.x, b.y, b.z);
-  };
-  for (let y = 0; y < height; y += 2) {
-    for (let x = 0; x < width; x += 2) {
-      if (!land(x, y)) continue;
-      if (!land(x + 1, y)) addSeg(x, y, x + 0.6, y);
-      if (!land(x, y + 1)) addSeg(x, y, x, y + 0.6);
-    }
-  }
-  return new Float32Array(positions);
-}
-
-function makePointMaterial(size: number, opacity: number) {
-  return new THREE.ShaderMaterial({
-    transparent: true,
-    depthWrite: false,
-    depthTest: true,
-    toneMapped: false,
-    blending: THREE.AdditiveBlending,
-    uniforms: {
-      uSize: { value: size },
-      uOpacity: { value: opacity },
-      uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
-    },
-    vertexShader: `
-      attribute vec3 color;
-      varying vec3 vColor;
-      uniform float uSize;
-      uniform float uPixelRatio;
-      void main() {
-        vColor = color;
-        vec4 mv = modelViewMatrix * vec4(position, 1.0);
-        float dist = max(0.55, -mv.z);
-        gl_PointSize = clamp(uSize * uPixelRatio * (1.8 / dist), 1.2, 9.0);
-        gl_Position = projectionMatrix * mv;
-      }
-    `,
-    fragmentShader: `
-      varying vec3 vColor;
-      uniform float uOpacity;
-      void main() {
-        vec2 p = gl_PointCoord - vec2(0.5);
-        float d = length(p);
-        if (d > 0.5) discard;
-        float core = 1.0 - smoothstep(0.0, 0.22, d);
-        float halo = 1.0 - smoothstep(0.12, 0.5, d);
-        float alpha = (core * 0.95 + halo * 0.45) * uOpacity;
-        gl_FragColor = vec4(vColor, alpha);
-      }
-    `,
-  });
-}
-
-function makeEarthMaterial(texture: THREE.Texture) {
-  return new THREE.ShaderMaterial({
-    toneMapped: false,
-    uniforms: {
-      uMap: { value: texture },
-    },
-    vertexShader: `
-      varying vec2 vUv;
-      varying vec3 vNormalW;
-      varying vec3 vViewDir;
-      void main() {
-        vUv = uv;
-        vec4 world = modelMatrix * vec4(position, 1.0);
-        vNormalW = normalize(mat3(modelMatrix) * normal);
-        vViewDir = cameraPosition - world.xyz;
-        gl_Position = projectionMatrix * viewMatrix * world;
-      }
-    `,
-    fragmentShader: `
-      uniform sampler2D uMap;
-      varying vec2 vUv;
-      varying vec3 vNormalW;
-      varying vec3 vViewDir;
-
-      void main() {
-        vec3 tex = texture2D(uMap, vUv).rgb;
-        float luma = dot(tex, vec3(0.299, 0.587, 0.114));
-        float land = smoothstep(0.06, 0.16, luma);
-
-        vec3 ocean = vec3(0.008, 0.01, 0.018);
-        vec3 landCol = vec3(0.035, 0.05, 0.062);
-        vec3 surface = mix(ocean, landCol, land);
-
-        vec3 N = normalize(vNormalW);
-        vec3 V = normalize(vViewDir);
-        float ndv = clamp(dot(N, V), 0.0, 1.0);
-        float wrap = 0.55 + 0.45 * ndv;
-        float rim = pow(1.0 - ndv, 3.2);
-
-        vec3 color = surface * wrap;
-        color += vec3(0.18, 0.32, 0.48) * rim * 0.22;
-
-        gl_FragColor = vec4(color, 1.0);
-      }
-    `,
-  });
-}
-
 function easeInOutCubic(t: number) {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+function makeStippleMaterial(land: THREE.Texture) {
+  return new THREE.ShaderMaterial({
+    uniforms: {
+      uLand: { value: land },
+      uDotColor: { value: new THREE.Color(0xf6f6ea) },
+      uDensity: { value: isMobile() ? 64 : 78 },
+    },
+    vertexShader: /* glsl */ `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: /* glsl */ `
+      uniform sampler2D uLand;
+      uniform vec3 uDotColor;
+      uniform float uDensity;
+      varying vec2 vUv;
+
+      void main() {
+        float land = step(0.45, texture2D(uLand, vUv).r);
+        float lat = (0.5 - vUv.y) * 3.14159265;
+        float cosLat = max(abs(cos(lat)), 0.28);
+        vec2 grid = vec2(vUv.x * uDensity * 2.0 * cosLat, vUv.y * uDensity);
+        vec2 cell = fract(grid) - 0.5;
+        float d = length(cell);
+        float dot = 1.0 - smoothstep(0.22, 0.34, d);
+        float lit = land * dot;
+        gl_FragColor = vec4(uDotColor * lit, 1.0);
+      }
+    `,
+    toneMapped: false,
+  });
 }
 
 export class GlobeEngine {
@@ -261,8 +96,11 @@ export class GlobeEngine {
   private raf = 0;
   private disposed = false;
   private reducedMotion: boolean;
+  private cities: City[];
+  private countries: Country[];
   private onLabels: GlobeEngineOptions["onLabels"];
   private onCityClick: GlobeEngineOptions["onCityClick"];
+  private onReady?: () => void;
   private cityPositions = new Map<string, THREE.Vector3>();
   private cityMeshes = new Map<string, THREE.Mesh>();
   private highlightId: string | null = null;
@@ -272,12 +110,12 @@ export class GlobeEngine {
   private lastTs = 0;
   private tmp = new THREE.Vector3();
   private spherical = new THREE.Spherical();
-  private labelScratch: GlobeLabel[] = [];
   private raycaster = new THREE.Raycaster();
   private pointer = new THREE.Vector2();
   private canvas: HTMLCanvasElement;
   private resizeObs: ResizeObserver;
   private cityGroup = new THREE.Group();
+  private rim: THREE.LineLoop;
   private materials: THREE.Material[] = [];
   private geometries: THREE.BufferGeometry[] = [];
   private textures: THREE.Texture[] = [];
@@ -285,8 +123,11 @@ export class GlobeEngine {
   constructor(options: GlobeEngineOptions) {
     this.canvas = options.canvas;
     this.reducedMotion = options.reducedMotion;
+    this.cities = options.cities;
+    this.countries = options.countries;
     this.onLabels = options.onLabels;
     this.onCityClick = options.onCityClick;
+    this.onReady = options.onReady;
     this.autoRotate = !options.reducedMotion;
 
     this.renderer = new THREE.WebGLRenderer({
@@ -302,19 +143,19 @@ export class GlobeEngine {
 
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(42, 1, 0.1, 60);
-    const start = latLngToVector3(22, 12, 3.12);
+    const start = latLngToVector3(-8, 125, 3.05);
     this.camera.position.set(start.x, start.y, start.z);
 
     this.controls = new OrbitControls(this.camera, options.canvas);
     this.controls.enablePan = false;
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.075;
-    this.controls.minDistance = 1.48;
-    this.controls.maxDistance = 4.6;
+    this.controls.minDistance = 1.55;
+    this.controls.maxDistance = 4.8;
     this.controls.rotateSpeed = 0.38;
     this.controls.zoomSpeed = 0.7;
     this.controls.autoRotate = this.autoRotate;
-    this.controls.autoRotateSpeed = 0.32;
+    this.controls.autoRotateSpeed = 0.28;
     this.controls.minPolarAngle = 0.18;
     this.controls.maxPolarAngle = Math.PI - 0.18;
     this.controls.target.set(0, 0, 0);
@@ -323,7 +164,9 @@ export class GlobeEngine {
     this.scene.add(this.globe);
     this.globe.add(this.cityGroup);
 
-    this.addAtmosphere();
+    this.rim = this.makeRim();
+    this.scene.add(this.rim);
+    this.addOrbits();
     this.addStars();
     this.addCities();
     this.bindInput();
@@ -411,149 +254,110 @@ export class GlobeEngine {
     this.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     this.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
     this.raycaster.setFromCamera(this.pointer, this.camera);
-    const hits = this.raycaster.intersectObjects(this.cityGroup.children, false);
-    const mesh = hits[0]?.object;
-    const cityId = mesh?.userData.cityId as string | undefined;
+    const hits = this.raycaster.intersectObjects(this.cityGroup.children, true);
+    const obj = hits[0]?.object;
+    let cityId = obj?.userData.cityId as string | undefined;
+    if (!cityId && obj?.parent) cityId = obj.parent.userData.cityId as string | undefined;
     if (!cityId) return;
-    const city = cities.find((c) => c.id === cityId);
+    const city = this.cities.find((c) => c.id === cityId);
     if (city) this.onCityClick(city);
   };
 
   private async loadEarth() {
-    const image = await loadImage(MASK_URL);
-    if (this.disposed) return;
-
-    const texture = new THREE.Texture(image);
-    texture.needsUpdate = true;
-    texture.colorSpace = THREE.NoColorSpace;
-    texture.wrapS = THREE.ClampToEdgeWrapping;
-    texture.wrapT = THREE.ClampToEdgeWrapping;
-    texture.minFilter = THREE.LinearFilter;
-    texture.magFilter = THREE.LinearFilter;
-    texture.generateMipmaps = false;
-    texture.anisotropy = Math.min(4, this.renderer.capabilities.getMaxAnisotropy());
-    this.textures.push(texture);
-
-    const earthMat = makeEarthMaterial(texture);
-    const earth = new THREE.Mesh(new THREE.SphereGeometry(EARTH_RADIUS, 96, 64), earthMat);
-    this.globe.add(earth);
-    this.geometries.push(earth.geometry);
-    this.materials.push(earthMat);
-
-    const land = sampleLand(image, isMobile() ? 22 : 16);
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.BufferAttribute(land.positions, 3));
-    geometry.setAttribute("color", new THREE.BufferAttribute(land.colors, 3));
-    const material = makePointMaterial(isMobile() ? 4.2 : 3.4, 0.92);
-    const points = new THREE.Points(geometry, material);
-    this.globe.add(points);
-    this.geometries.push(geometry);
-    this.materials.push(material);
-
-    const coast = extractCoast(image);
-    if (coast.length) {
-      const coastGeo = new THREE.BufferGeometry();
-      coastGeo.setAttribute("position", new THREE.BufferAttribute(coast, 3));
-      const coastMat = new THREE.LineBasicMaterial({
-        color: 0x8ec4d4,
-        transparent: true,
-        opacity: 0.28,
-        depthWrite: false,
-        toneMapped: false,
-      });
-      const coastLines = new THREE.LineSegments(coastGeo, coastMat);
-      this.globe.add(coastLines);
-      this.geometries.push(coastGeo);
-      this.materials.push(coastMat);
-    }
-
-    await this.addBorders();
-  }
-
-  private async addBorders() {
     try {
-      const response = await fetch("/globe/borders.json");
-      if (!response.ok) return;
-      const data = (await response.json()) as { rings: number[][] };
-      const positions: number[] = [];
-      for (const ring of data.rings ?? []) {
-        if (ring.length < 6) continue;
-        for (let i = 0; i + 3 < ring.length; i += 2) {
-          const a = latLngToVector3(ring[i + 1] ?? 0, ring[i] ?? 0, EARTH_RADIUS + 0.004);
-          const b = latLngToVector3(ring[i + 3] ?? 0, ring[i + 2] ?? 0, EARTH_RADIUS + 0.004);
-          positions.push(a.x, a.y, a.z, b.x, b.y, b.z);
-        }
+      const texture = await new THREE.TextureLoader().loadAsync(LAND_MASK_URL);
+      if (this.disposed) {
+        texture.dispose();
+        return;
       }
-      if (!positions.length || this.disposed) return;
-      const geo = new THREE.BufferGeometry();
-      geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(positions), 3));
-      const mat = new THREE.LineBasicMaterial({
-        color: 0xb7d4de,
-        transparent: true,
-        opacity: 0.38,
-        depthWrite: false,
-        toneMapped: false,
-      });
-      this.globe.add(new THREE.LineSegments(geo, mat));
-      this.geometries.push(geo);
-      this.materials.push(mat);
-    } catch {
-      /* borders are optional */
+      texture.colorSpace = THREE.NoColorSpace;
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      texture.generateMipmaps = false;
+      texture.needsUpdate = true;
+      this.textures.push(texture);
+
+      const earthMat = makeStippleMaterial(texture);
+      const earth = new THREE.Mesh(new THREE.SphereGeometry(EARTH_RADIUS, 96, 64), earthMat);
+      this.globe.add(earth);
+      this.geometries.push(earth.geometry);
+      this.materials.push(earthMat);
+    } finally {
+      if (!this.disposed) this.onReady?.();
     }
   }
 
-  private addAtmosphere() {
-    const material = new THREE.ShaderMaterial({
-      side: THREE.BackSide,
+  private makeRim() {
+    const pts: THREE.Vector3[] = [];
+    for (let i = 0; i <= 256; i += 1) {
+      const a = (i / 256) * Math.PI * 2;
+      pts.push(new THREE.Vector3(Math.cos(a), Math.sin(a), 0));
+    }
+    const geo = new THREE.BufferGeometry().setFromPoints(pts);
+    const mat = new THREE.LineBasicMaterial({
+      color: 0x5c5c52,
       transparent: true,
-      blending: THREE.AdditiveBlending,
+      opacity: 0.42,
       depthWrite: false,
       toneMapped: false,
-      vertexShader: `
-        varying vec3 vNormal;
-        void main() {
-          vNormal = normalize(normalMatrix * normal);
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `,
-      fragmentShader: `
-        varying vec3 vNormal;
-        void main() {
-          float intensity = pow(0.72 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.8);
-          gl_FragColor = vec4(0.28, 0.48, 0.72, 1.0) * intensity * 0.55;
-        }
-      `,
     });
-    const mesh = new THREE.Mesh(new THREE.SphereGeometry(EARTH_RADIUS * 1.16, 48, 32), material);
-    this.scene.add(mesh);
-    this.geometries.push(mesh.geometry);
-    this.materials.push(material);
+    this.geometries.push(geo);
+    this.materials.push(mat);
+    const line = new THREE.LineLoop(geo, mat);
+    line.scale.setScalar(EARTH_RADIUS * 1.002);
+    return line;
+  }
+
+  private addOrbits() {
+    const rings = [
+      { rx: 1.92, ry: 0.74, rotX: 0.62, rotZ: 0.32, opacity: 0.16 },
+      { rx: 2.28, ry: 0.9, rotX: 1.02, rotZ: -0.22, opacity: 0.1 },
+      { rx: 1.62, ry: 0.58, rotX: -0.38, rotZ: 0.72, opacity: 0.08 },
+    ];
+    for (const ring of rings) {
+      const curve = new THREE.EllipseCurve(0, 0, ring.rx, ring.ry, 0, Math.PI * 2, false, 0);
+      const points = curve.getPoints(180).map((p) => new THREE.Vector3(p.x, p.y, 0));
+      const geo = new THREE.BufferGeometry().setFromPoints(points);
+      const mat = new THREE.LineBasicMaterial({
+        color: 0x4a4a40,
+        transparent: true,
+        opacity: ring.opacity,
+        depthWrite: false,
+        toneMapped: false,
+      });
+      const line = new THREE.LineLoop(geo, mat);
+      line.rotation.x = ring.rotX;
+      line.rotation.z = ring.rotZ;
+      this.scene.add(line);
+      this.geometries.push(geo);
+      this.materials.push(mat);
+    }
   }
 
   private addStars() {
-    const count = isMobile() ? 420 : 1100;
+    const count = isMobile() ? 180 : 420;
     const positions = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
     for (let i = 0; i < count; i += 1) {
-      const r = 9 + Math.random() * 18;
+      const r = 10 + Math.random() * 18;
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(2 * Math.random() - 1);
       positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
       positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
       positions[i * 3 + 2] = r * Math.cos(phi);
-      const c = 0.55 + Math.random() * 0.45;
+      const c = 0.55 + Math.random() * 0.4;
       colors[i * 3] = c;
-      colors[i * 3 + 1] = c * (0.92 + Math.random() * 0.08);
-      colors[i * 3 + 2] = c * (0.88 + Math.random() * 0.12);
+      colors[i * 3 + 1] = c;
+      colors[i * 3 + 2] = c * 0.92;
     }
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
     geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
     const material = new THREE.PointsMaterial({
-      size: 0.07,
+      size: 0.032,
       vertexColors: true,
       transparent: true,
-      opacity: 0.85,
+      opacity: 0.65,
       depthWrite: false,
       sizeAttenuation: true,
       toneMapped: false,
@@ -564,25 +368,36 @@ export class GlobeEngine {
   }
 
   private addCities() {
-    const geo = new THREE.SphereGeometry(0.01, 12, 12);
-    this.geometries.push(geo);
-    for (const city of cities) {
-      const pos = latLngToVector3(city.latitude, city.longitude, EARTH_RADIUS + 0.014);
+    const visGeo = new THREE.SphereGeometry(0.0026, 8, 8);
+    const hitGeo = new THREE.SphereGeometry(0.018, 8, 8);
+    const hitMat = new THREE.MeshBasicMaterial({
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      colorWrite: false,
+      toneMapped: false,
+    });
+    this.geometries.push(visGeo, hitGeo);
+    this.materials.push(hitMat);
+
+    for (const city of this.cities) {
+      const pos = latLngToVector3(city.latitude, city.longitude, EARTH_RADIUS + 0.004);
       const vec = new THREE.Vector3(pos.x, pos.y, pos.z);
       this.cityPositions.set(city.id, vec);
-      const material = new THREE.MeshBasicMaterial({
-        color: city.contentStatus === "published" ? 0xb8fff4 : 0x6a8890,
-        transparent: true,
-        opacity: 0.96,
+
+      const visMat = new THREE.MeshBasicMaterial({
+        color: city.contentStatus === "published" ? CITY_COLOR : CITY_DIM,
         toneMapped: false,
       });
-      this.materials.push(material);
-      const mesh = new THREE.Mesh(geo, material);
-      mesh.position.copy(vec);
-      mesh.scale.setScalar(city.contentStatus === "published" ? 1.25 : 0.85);
-      mesh.userData.cityId = city.id;
-      this.cityGroup.add(mesh);
-      this.cityMeshes.set(city.id, mesh);
+      this.materials.push(visMat);
+      const vis = new THREE.Mesh(visGeo, visMat);
+      const hit = new THREE.Mesh(hitGeo, hitMat);
+      hit.position.copy(vec);
+      hit.userData.cityId = city.id;
+      vis.userData.cityId = city.id;
+      hit.add(vis);
+      this.cityGroup.add(hit);
+      this.cityMeshes.set(city.id, vis);
     }
   }
 
@@ -590,8 +405,8 @@ export class GlobeEngine {
     for (const [id, mesh] of this.cityMeshes) {
       const material = mesh.material as THREE.MeshBasicMaterial;
       const active = id === this.highlightId;
-      mesh.scale.setScalar(active ? 2.4 : 1);
-      material.color.set(active ? 0xffffff : 0xb8fff4);
+      mesh.scale.setScalar(active ? 1.8 : 1);
+      material.color.set(active ? CITY_ACTIVE : CITY_COLOR);
     }
   }
 
@@ -607,9 +422,9 @@ export class GlobeEngine {
   private inHeroBand(x: number, y: number, width: number, height: number) {
     const mobile = isMobile();
     const top = height * (mobile ? 0.1 : 0.12);
-    const bottom = height * (mobile ? 0.44 : 0.6);
-    const left = width * (mobile ? 0.12 : 0.2);
-    const right = width * (mobile ? 0.88 : 0.8);
+    const bottom = height * (mobile ? 0.48 : 0.62);
+    const left = width * (mobile ? 0.1 : 0.18);
+    const right = width * (mobile ? 0.9 : 0.82);
     return x > left && x < right && y > top && y < bottom;
   }
 
@@ -619,9 +434,9 @@ export class GlobeEngine {
 
   private lodThresholds() {
     const d = this.cameraDistance();
-    if (d > 3.15) return { countries: true, cityMin: 200 };
-    if (d > 2.45) return { countries: true, cityMin: 90 };
-    if (d > 1.9) return { countries: false, cityMin: 68 };
+    if (d > 2.7) return { countries: false, cityMin: 200 };
+    if (d > 2.35) return { countries: true, cityMin: 88 };
+    if (d > 1.9) return { countries: true, cityMin: 68 };
     return { countries: false, cityMin: 30 };
   }
 
@@ -633,7 +448,7 @@ export class GlobeEngine {
     const labels: GlobeLabel[] = [];
 
     if (showCountries) {
-      for (const country of countries) {
+      for (const country of this.countries) {
         const p = latLngToVector3(country.latitude, country.longitude, EARTH_RADIUS * 1.02);
         const vec = new THREE.Vector3(p.x, p.y, p.z);
         const facing = vec.clone().normalize().dot(cameraDir);
@@ -655,7 +470,7 @@ export class GlobeEngine {
       }
     }
 
-    for (const city of cities) {
+    for (const city of this.cities) {
       if (city.tourismPriority < cityMin && city.id !== this.highlightId) continue;
       const vec = this.cityPositions.get(city.id);
       if (!vec) continue;
@@ -690,9 +505,8 @@ export class GlobeEngine {
       });
       if (overlaps) continue;
       placed.push(label);
-      if (placed.length >= (isMobile() ? 10 : 18)) break;
+      if (placed.length >= (isMobile() ? 8 : 14)) break;
     }
-    this.labelScratch = placed;
     this.onLabels(placed);
   }
 
@@ -736,6 +550,9 @@ export class GlobeEngine {
       }
       this.controls.update();
     }
+
+    this.rim.quaternion.copy(this.camera.quaternion);
+    this.cityGroup.visible = this.cameraDistance() < 2.55 || Boolean(this.highlightId);
 
     this.renderer.render(this.scene, this.camera);
     this.projectLabels();

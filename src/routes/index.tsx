@@ -3,13 +3,16 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Globe, type GlobeHandle } from "@/components/globe/Globe";
 import { TypingTitle } from "@/components/hero/TypingTitle";
 import { SearchBar } from "@/components/search/SearchBar";
+import { LanguageToggle } from "@/components/site/LanguageToggle";
 import { Button } from "@/components/ui/Button";
-import { publishedCities } from "@/data/cities";
+import { t, useI18n } from "@/lib/i18n";
 import { usePrefersReducedMotion } from "@/lib/motion";
+import { getHomeCatalog } from "@/lib/server/catalog";
 import { SITE } from "@/lib/site";
 import type { City } from "@/types/catalog";
 
 export const Route = createFileRoute("/")({
+  loader: () => getHomeCatalog(),
   head: () => ({
     meta: [
       { title: `${SITE.name} — Where do you want to go?` },
@@ -20,10 +23,12 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
+  const { cities, countries, published } = Route.useLoaderData();
   const navigate = useNavigate();
   const globeRef = useRef<GlobeHandle | null>(null);
   const { reduced, ready } = usePrefersReducedMotion();
   const [leaving, setLeaving] = useState(false);
+  const locale = useI18n((s) => s.locale);
 
   const openCity = async (city: City) => {
     if (leaving) return;
@@ -65,9 +70,15 @@ function Home() {
         href="#search"
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-30 focus:rounded-md focus:bg-void-elevated focus:px-3 focus:py-2"
       >
-        Skip to search
+        {t(locale).skip}
       </a>
-      <Globe reducedMotion={reduced} onCitySelect={openCity} globeRef={globeRef} />
+      <Globe
+        reducedMotion={reduced}
+        cities={cities}
+        countries={countries}
+        onCitySelect={openCity}
+        globeRef={globeRef}
+      />
 
       <div
         className={`pointer-events-none relative z-10 flex h-full flex-col transition-[opacity,filter,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
@@ -78,23 +89,20 @@ function Home() {
           <p className="pointer-events-auto text-xl font-medium tracking-tight text-fg">
             {SITE.name}
           </p>
-          <p className="hidden text-xs tracking-[0.2em] text-accent uppercase sm:block">
-            City guides
-          </p>
         </header>
 
         <div className="flex flex-1 flex-col items-center px-4 pt-[13vh] md:pt-[15vh]">
           <TypingTitle reducedMotion={reduced} ready={ready} />
           <div id="search" className="pointer-events-auto mt-8 w-full md:mt-10">
-            <SearchBar onSelect={openCity} />
+            <SearchBar cities={cities} countries={countries} onSelect={openCity} />
           </div>
         </div>
 
         <nav
           aria-label="Published guides"
-          className="pointer-events-auto flex justify-center gap-2 px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))]"
+          className="pointer-events-auto flex justify-center gap-2 px-4 pb-[calc(4.5rem+env(safe-area-inset-bottom))]"
         >
-          {publishedCities.map((city) => (
+          {published.map((city) => (
             <Button
               key={city.id}
               type="button"
@@ -107,6 +115,8 @@ function Home() {
           ))}
         </nav>
       </div>
+
+      <LanguageToggle className="pointer-events-auto absolute right-5 bottom-6 z-20 md:right-8" />
 
       <div
         className={`pointer-events-none absolute inset-0 z-30 bg-void transition-opacity duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${

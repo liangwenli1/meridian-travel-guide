@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import type { City } from "@/types/catalog";
 import type { CityGuide } from "@/types/guide";
 import { SITE } from "@/lib/site";
+import { t, useI18n } from "@/lib/i18n";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardDescription, CardHeader, CardMeta, CardTitle } from "@/components/ui/Card";
@@ -34,6 +35,7 @@ const TIER_VARIANT: Record<CityGuide["attractions"][number]["tier"], "accent" | 
 };
 
 export function CityGuideView({ city, guide }: { city: City; guide: CityGuide }) {
+  const locale = useI18n((s) => s.locale);
   const snapshotEntries = [
     ["Country", guide.snapshot.country],
     ["Language", guide.snapshot.languages],
@@ -65,7 +67,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
         <Button asChild variant="outline" size="sm">
           <Link to="/">
             <ArrowLeft className="size-4" strokeWidth={1.75} />
-            Globe
+            {t(locale).globe}
           </Link>
         </Button>
         <Link to="/" className="text-lg font-medium tracking-tight text-fg">
@@ -79,7 +81,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           alt={guide.hero.alt}
           className="content-img absolute inset-0 size-full object-cover"
         />
-        <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(7,8,12,0.78),rgba(7,8,12,0.18)_55%,rgba(7,8,12,0.35))]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.82),rgba(0,0,0,0.2)_55%,rgba(0,0,0,0.4))]" />
         <div className="relative mx-auto flex min-h-[72vh] max-w-6xl flex-col justify-end px-4 pt-28 pb-12 md:px-8 md:pb-16">
           <p className="kicker text-silver">
             {city.country} · Travel guide

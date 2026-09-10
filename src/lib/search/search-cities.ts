@@ -1,6 +1,4 @@
-import { cities } from "@/data/cities";
-import { countries } from "@/data/countries";
-import type { City } from "@/types/catalog";
+import type { City, Country } from "@/types/catalog";
 
 export type SearchHit = {
   city: City;
@@ -51,7 +49,12 @@ function scoreName(query: string, name: string) {
   return 0;
 }
 
-export function searchCities(rawQuery: string, limit = 8): SearchHit[] {
+export function searchCitiesIn(
+  cities: City[],
+  countries: Country[],
+  rawQuery: string,
+  limit = 8,
+): SearchHit[] {
   const query = normalize(rawQuery);
   if (query.length < 1) return [];
 

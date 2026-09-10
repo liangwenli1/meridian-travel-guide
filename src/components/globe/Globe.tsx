@@ -1,8 +1,11 @@
 import { useEffect, useImperativeHandle, useRef, useState, type Ref } from "react";
-import type { City } from "@/types/catalog";
+import type { City, Country } from "@/types/catalog";
 import type { GlobeLabel } from "@/lib/globe/engine";
 import { GlobeLabels } from "./GlobeLabels";
 import { GlobeFallback } from "./GlobeFallback";
+
+/** Bump with the engine so HMR remounts WebGL. */
+const GLOBE_ENGINE_REV = 8;
 
 export type GlobeHandle = {
   flyToCity: (city: City) => Promise<void>;
@@ -10,11 +13,13 @@ export type GlobeHandle = {
 
 type GlobeProps = {
   reducedMotion: boolean;
+  cities: City[];
+  countries: Country[];
   onCitySelect: (city: City) => void;
   globeRef?: Ref<GlobeHandle | null>;
 };
 
-export function Globe({ reducedMotion, onCitySelect, globeRef }: GlobeProps) {
+export function Globe({ reducedMotion, cities, countries, onCitySelect, globeRef }: GlobeProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<{
     flyToCity: (city: City) => Promise<void>;
@@ -35,8 +40,9 @@ export function Globe({ reducedMotion, onCitySelect, globeRef }: GlobeProps) {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || !cities.length) return;
     let cancelled = false;
+    setReady(false);
 
     void (async () => {
       const { GlobeEngine, webglAvailable } = await import("@/lib/globe/engine");
@@ -48,13 +54,17 @@ export function Globe({ reducedMotion, onCitySelect, globeRef }: GlobeProps) {
       const engine = new GlobeEngine({
         canvas,
         reducedMotion,
+        cities,
+        countries,
         onLabels: (next) => {
           if (!cancelled) setLabels(next);
         },
         onCityClick: (city) => selectRef.current(city),
+        onReady: () => {
+          if (!cancelled) setReady(true);
+        },
       });
       engineRef.current = engine;
-      setReady(true);
     })().catch(() => {
       if (!cancelled) setFailed(true);
     });
@@ -64,16 +74,16 @@ export function Globe({ reducedMotion, onCitySelect, globeRef }: GlobeProps) {
       engineRef.current?.dispose();
       engineRef.current = null;
     };
-    // Create the WebGL context once. Reduced-motion is applied via the effect below.
+    // GLOBE_ENGINE_REV forces a remount when the WebGL engine itself changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [cities, countries, GLOBE_ENGINE_REV]);
 
   useEffect(() => {
     engineRef.current?.setReducedMotion(reducedMotion);
   }, [reducedMotion]);
 
   if (failed) {
-    return <GlobeFallback onCitySelect={onCitySelect} />;
+    return <GlobeFallback cities={cities.filter((c) => c.contentStatus === "published")} onCitySelect={onCitySelect} />;
   }
 
   return (

@@ -1,15 +1,15 @@
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { CityGuideView } from "@/components/city/CityGuideView";
 import { ComingSoon } from "@/components/city/ComingSoon";
-import { findCity } from "@/data/cities";
-import { getGuide } from "@/data/guides";
+import { t, useI18n } from "@/lib/i18n";
+import { getCityPage } from "@/lib/server/catalog";
+import { SITE } from "@/lib/site";
 
 export const Route = createFileRoute("/$country/$city")({
-  loader: ({ params }) => {
-    const city = findCity(params.country, params.city);
-    if (!city) throw notFound();
-    const guide = getGuide(city.slug);
-    return { city, guide };
+  loader: async ({ params }) => {
+    const data = await getCityPage({ data: { country: params.country, city: params.city } });
+    if (!data.city) throw notFound();
+    return data;
   },
   head: ({ loaderData }) => {
     const city = loaderData?.city;
@@ -18,7 +18,7 @@ export const Route = createFileRoute("/$country/$city")({
     return {
       meta: [
         {
-          title: guide?.seoTitle ?? `${city.name} Travel Guide · Meridian`,
+          title: guide?.seoTitle ?? `${city.name} Travel Guide · ${SITE.name}`,
         },
         {
           name: "description",
@@ -35,17 +35,19 @@ export const Route = createFileRoute("/$country/$city")({
 
 function CityRoute() {
   const { city, guide } = Route.useLoaderData();
+  if (!city) return <CityMissing />;
   if (guide) return <CityGuideView city={city} guide={guide} />;
   return <ComingSoon city={city} />;
 }
 
 function CityMissing() {
+  const locale = useI18n((s) => s.locale);
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center bg-paper px-6 text-center text-ink">
-      <p className="font-display text-4xl italic">We do not have that city yet.</p>
-      <a href="/" className="mt-4 text-sm text-ink-soft underline-offset-4 hover:underline">
-        Back to the globe
-      </a>
+    <main className="flex min-h-dvh flex-col items-center justify-center bg-void px-6 text-center text-fg">
+      <p className="text-4xl font-medium tracking-tight">We do not have that city yet.</p>
+      <Link to="/" className="mt-4 text-sm text-muted underline-offset-4 hover:text-fg hover:underline">
+        {t(locale).globe}
+      </Link>
     </main>
   );
 }

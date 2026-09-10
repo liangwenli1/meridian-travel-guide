@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { GlobeLabel } from "@/lib/globe/engine";
+import { t, useI18n } from "@/lib/i18n";
 import type { City } from "@/types/catalog";
 
 type GlobeLabelsProps = {
@@ -8,6 +9,7 @@ type GlobeLabelsProps = {
 };
 
 export function GlobeLabels({ labels, onSelect }: GlobeLabelsProps) {
+  const locale = useI18n((s) => s.locale);
   const [hoverId, setHoverId] = useState<string | null>(null);
 
   return (
@@ -30,28 +32,28 @@ export function GlobeLabels({ labels, onSelect }: GlobeLabelsProps) {
             }}
             disabled={!isCity}
           >
-            <span className="flex items-center gap-2 rounded-md bg-void/75 px-2 py-1 backdrop-blur-sm">
+            <span className="flex items-center gap-2 rounded-md bg-void/80 px-2 py-1">
               <span
                 className={
                   label.kind === "city"
-                    ? "size-1.5 rounded-full bg-accent shadow-[0_0_10px_rgba(110,224,210,0.7)]"
-                    : "size-1 rounded-full bg-accent/50"
+                    ? "size-1.5 rounded-full bg-fg"
+                    : "size-1 rounded-full bg-muted"
                 }
               />
               <span
                 className={
                   label.kind === "country"
-                    ? "font-sans text-[11px] tracking-[0.16em] text-accent uppercase"
-                    : "font-sans text-[12px] text-fg"
+                    ? "kicker text-muted"
+                    : "font-sans text-xs text-fg"
                 }
               >
                 {label.name}
               </span>
             </span>
             {isCity && hovered ? (
-              <span className="mt-1 ml-1 block rounded-md bg-void/80 px-2 py-1 text-[11px] text-muted">
+              <span className="mt-1 ml-1 block rounded-md bg-void/80 px-2 py-1 text-xs text-muted">
                 {label.subtitle}
-                <span className="ml-2 tracking-[0.16em] text-accent uppercase">Explore</span>
+                <span className="ml-2 tracking-widest text-accent uppercase">{t(locale).explore}</span>
               </span>
             ) : null}
           </button>

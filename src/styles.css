@@ -1,27 +1,27 @@
 @import "tailwindcss";
 
 @theme {
-  --color-void: #05070b;
-  --color-void-elevated: #10161d;
-  --color-card: #121a22;
-  --color-paper: #10161d;
-  --color-paper-2: #121a22;
-  --color-paper-3: #182028;
-  --color-ink: #e8f2f4;
-  --color-ink-soft: #9bb7bc;
-  --color-fg: #e8f2f4;
-  --color-warm: #e8f2f4;
-  --color-muted: #9bb7bc;
-  --color-muted-paper: #7f99a0;
-  --color-silver: #c5dde0;
-  --color-accent: #6ee0d2;
-  --color-accent-dim: #3aa89c;
-  --color-line: rgb(180 220 224 / 0.12);
-  --color-line-strong: rgb(180 220 224 / 0.22);
-  --color-line-paper: rgb(180 220 224 / 0.12);
-  --color-warn: #e0a090;
-  --color-ok: #7dcca8;
-  --color-focus: #6ee0d2;
+  --color-void: #000000;
+  --color-void-elevated: #12120c;
+  --color-card: #16160f;
+  --color-paper: #12120c;
+  --color-paper-2: #16160f;
+  --color-paper-3: #1c1c14;
+  --color-ink: #f3f3e8;
+  --color-ink-soft: #8a8a76;
+  --color-fg: #f3f3e8;
+  --color-warm: #f3f3e8;
+  --color-muted: #8a8a76;
+  --color-muted-paper: #6e6e5c;
+  --color-silver: #d0d0c0;
+  --color-accent: #d4f03c;
+  --color-accent-dim: #b8d42a;
+  --color-line: rgb(232 232 200 / 0.12);
+  --color-line-strong: rgb(232 232 200 / 0.22);
+  --color-line-paper: rgb(232 232 200 / 0.12);
+  --color-warn: #e0a070;
+  --color-ok: #c6de4a;
+  --color-focus: #d4f03c;
 
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
@@ -33,9 +33,9 @@
   --radius-lg: 16px;
   --radius-xl: 24px;
 
-  --shadow-border: 0 0 0 1px rgb(180 220 224 / 0.12);
-  --shadow-border-hover: 0 0 0 1px rgb(110 224 210 / 0.35);
-  --shadow-paper: 0 0 0 1px rgb(180 220 224 / 0.12);
+  --shadow-border: 0 0 0 1px rgb(232 232 200 / 0.12);
+  --shadow-border-hover: 0 0 0 1px rgb(212 240 60 / 0.45);
+  --shadow-paper: 0 0 0 1px rgb(232 232 200 / 0.12);
 }
 
 @layer base {
@@ -69,7 +69,7 @@
   }
 
   ::selection {
-    background: rgb(110 224 210 / 0.28);
+    background: rgb(212 240 60 / 0.35);
     color: var(--color-void);
   }
 
@@ -84,16 +84,11 @@
   p {
     text-wrap: pretty;
   }
-
-  img.content-img {
-    outline: 1px solid rgb(255 255 255 / 0.1);
-    outline-offset: -1px;
-  }
 }
 
 @layer components {
   .surface {
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-lg);
     background: var(--color-card);
     box-shadow: var(--shadow-border);
   }
@@ -114,21 +109,22 @@
     text-transform: uppercase;
   }
 
-  .grid-fill-sm {
+  .grid-fill-sm,
+  .grid-fill-md,
+  .grid-fill-lg {
     display: grid;
     gap: 1rem;
+  }
+
+  .grid-fill-sm {
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 12.5rem), 1fr));
   }
 
   .grid-fill-md {
-    display: grid;
-    gap: 1rem;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 17.5rem), 1fr));
   }
 
   .grid-fill-lg {
-    display: grid;
-    gap: 1rem;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
   }
 
@@ -137,7 +133,7 @@
     gap: 1px;
     overflow: hidden;
     border-radius: var(--radius-lg);
-    background: var(--color-line);
+    background: color-mix(in oklab, var(--color-fg) 12%, transparent);
     box-shadow: var(--shadow-border);
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 10.25rem), 1fr));
   }
@@ -145,6 +141,7 @@
   .stat-cell {
     background: var(--color-card);
     padding: 0.875rem 1rem;
+    min-width: 0;
   }
 
   .photo-bento {
@@ -156,12 +153,17 @@
   @media (min-width: 768px) {
     .photo-bento {
       grid-template-columns: 1.45fr 1fr;
-      grid-template-rows: 13rem 13rem;
+      grid-template-rows: 12.5rem 12.5rem;
     }
 
     .photo-bento > figure:first-child {
       grid-row: 1 / span 2;
     }
+  }
+
+  .content-img {
+    outline: 1px solid rgb(255 255 255 / 0.1);
+    outline-offset: -1px;
   }
 
   .page-enter {
