@@ -5,7 +5,7 @@ import type { City, Country } from "@/types/catalog";
 import { latLngToVector3 } from "./latlng";
 
 /** Bump this when the engine visual contract changes so <Globe> remounts on HMR. */
-export const GLOBE_ENGINE_REV = 22;
+export const GLOBE_ENGINE_REV = 23;
 
 export type GlobeLabel = {
   id: string;
@@ -218,15 +218,15 @@ export class GlobeEngine {
 
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 80);
-    const start = latLngToVector3(12, -78, 3.22);
+    const start = latLngToVector3(12, -78, 2.48);
     this.camera.position.set(start.x, start.y, start.z);
 
     this.controls = new OrbitControls(this.camera, options.canvas);
     this.controls.enablePan = false;
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.075;
-    this.controls.minDistance = 1.78;
-    this.controls.maxDistance = 5.8;
+    this.controls.minDistance = 1.62;
+    this.controls.maxDistance = 4.6;
     this.controls.rotateSpeed = 0.42;
     this.controls.zoomSpeed = 0.75;
     this.controls.autoRotate = this.autoRotate;

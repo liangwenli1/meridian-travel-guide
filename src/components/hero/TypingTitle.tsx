@@ -97,14 +97,14 @@ export function TypingTitle({ reducedMotion, ready, align = "center" }: TypingTi
     <h1
       className={
         align === "left"
-          ? "max-w-[14ch] text-left leading-[0.95] tracking-[-0.04em]"
+          ? "text-left leading-[0.92] tracking-[-0.045em]"
           : "max-w-[16ch] text-center leading-[0.95] tracking-[-0.04em] md:max-w-none"
       }
     >
       <span
         className={
           align === "left"
-            ? "text-6xl font-medium tracking-tight text-accent sm:text-7xl lg:text-[5.6rem]"
+            ? "block text-[4.6rem] font-medium tracking-tight text-accent sm:text-7xl lg:text-[6.4rem]"
             : "text-[18vw] font-medium tracking-tight text-accent sm:text-8xl md:text-[7.2rem]"
         }
       >
@@ -113,13 +113,15 @@ export function TypingTitle({ reducedMotion, ready, align = "center" }: TypingTi
       <span
         className={
           align === "left"
-            ? "mt-3 block text-2xl font-normal text-fg md:text-[1.85rem]"
+            ? "mt-5 block text-[1.65rem] font-normal text-fg sm:text-[1.85rem] lg:text-[2.05rem]"
             : "mt-2 block text-[6.6vw] font-normal text-fg sm:text-3xl md:mt-3 md:text-[2.2rem]"
         }
       >
         {rest}
         {showMark ? (
-          <span className={markOpaque ? "text-accent" : "text-accent/20"}>{locale === "zh" ? "？" : "?"}</span>
+          <span className={markOpaque ? "ml-[0.35em] text-fg" : "ml-[0.35em] text-fg/25"}>
+            {locale === "zh" ? "？" : "?"}
+          </span>
         ) : null}
         {!reducedMotion ? (
           <span
