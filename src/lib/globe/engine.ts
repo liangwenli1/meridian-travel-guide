@@ -5,7 +5,7 @@ import type { City, Country } from "@/types/catalog";
 import { latLngToVector3 } from "./latlng";
 
 /** Bump this when the engine visual contract changes so <Globe> remounts on HMR. */
-export const GLOBE_ENGINE_REV = 25;
+export const GLOBE_ENGINE_REV = 26;
 
 export type GlobeLabel = {
   id: string;
@@ -226,6 +226,7 @@ export class GlobeEngine {
 
     this.controls = new OrbitControls(this.camera, options.canvas);
     this.controls.enablePan = false;
+    this.controls.enableZoom = false;
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.075;
     this.controls.minDistance = 1.72;
@@ -311,6 +312,7 @@ export class GlobeEngine {
     this.controls.removeEventListener("start", this.handleUserStart);
     this.controls.removeEventListener("end", this.handleUserEnd);
     this.canvas.removeEventListener("pointerup", this.handlePointerUp);
+    this.canvas.removeEventListener("wheel", this.handleWheel);
     this.controls.dispose();
     this.geometries.forEach((g) => g.dispose());
     this.materials.forEach((m) => m.dispose());
@@ -333,7 +335,21 @@ export class GlobeEngine {
 
   private bindInput() {
     this.canvas.addEventListener("pointerup", this.handlePointerUp);
+    this.canvas.addEventListener("wheel", this.handleWheel, { passive: false });
   }
+
+  private handleWheel = (event: WheelEvent) => {
+    if (!(event.ctrlKey || event.metaKey)) return;
+    event.preventDefault();
+    this.autoRotate = false;
+    this.controls.autoRotate = false;
+    this.idleTimer = 0;
+    const factor = Math.exp(event.deltaY * 0.0018);
+    const dist = this.camera.position.length();
+    const next = Math.min(this.controls.maxDistance, Math.max(this.controls.minDistance, dist * factor));
+    this.camera.position.multiplyScalar(next / dist);
+    this.controls.update();
+  };
 
   private handlePointerUp = (event: PointerEvent) => {
     if (event.button !== 0) return;

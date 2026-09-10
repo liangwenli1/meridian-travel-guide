@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { t, useI18n } from "@/lib/i18n";
 import { randBetween } from "@/lib/motion";
 
-type Phase = "typing" | "blink" | "hold" | "deleting";
+type Phase = "typing" | "hold" | "deleting";
 
 type TypingTitleProps = {
   reducedMotion: boolean;
@@ -16,14 +16,12 @@ export function TypingTitle({ reducedMotion, ready, align = "center" }: TypingTi
   const restFull = strings.rest;
   const [rest, setRest] = useState(reducedMotion ? restFull : "");
   const [showMark, setShowMark] = useState(reducedMotion);
-  const [markOpaque, setMarkOpaque] = useState(true);
   const [caret, setCaret] = useState(true);
 
   useEffect(() => {
     if (!ready || reducedMotion) {
       setRest(restFull);
       setShowMark(true);
-      setMarkOpaque(true);
       return;
     }
 
@@ -31,7 +29,6 @@ export function TypingTitle({ reducedMotion, ready, align = "center" }: TypingTi
     let timer = 0;
     let phase: Phase = "typing";
     let index = 0;
-    let blinks = 0;
 
     const wait = (ms: number) =>
       new Promise<void>((resolve) => {
@@ -42,7 +39,6 @@ export function TypingTitle({ reducedMotion, ready, align = "center" }: TypingTi
       while (!cancelled) {
         if (phase === "typing") {
           setShowMark(false);
-          setMarkOpaque(true);
           while (index < restFull.length && !cancelled) {
             index += 1;
             setRest(restFull.slice(0, index));
@@ -50,20 +46,9 @@ export function TypingTitle({ reducedMotion, ready, align = "center" }: TypingTi
           }
           if (cancelled) return;
           setShowMark(true);
-          phase = "blink";
-          blinks = 0;
-        } else if (phase === "blink") {
-          const slice = randBetween(200, 320);
-          setMarkOpaque(false);
-          await wait(slice);
-          if (cancelled) return;
-          setMarkOpaque(true);
-          await wait(slice);
-          if (cancelled) return;
-          blinks += 1;
-          if (blinks >= 2) phase = "hold";
+          phase = "hold";
         } else if (phase === "hold") {
-          await wait(randBetween(1000, 1800));
+          await wait(randBetween(1400, 2200));
           if (cancelled) return;
           phase = "deleting";
         } else {
@@ -119,9 +104,7 @@ export function TypingTitle({ reducedMotion, ready, align = "center" }: TypingTi
       >
         {rest}
         {showMark ? (
-          <span className={markOpaque ? "ml-[0.35em] text-fg" : "ml-[0.35em] text-fg/25"}>
-            {locale === "zh" ? "？" : "?"}
-          </span>
+          <span className="ml-[0.28em] text-fg">{locale === "zh" ? "？" : "?"}</span>
         ) : null}
         {!reducedMotion ? (
           <span

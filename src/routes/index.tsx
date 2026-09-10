@@ -87,13 +87,13 @@ function Home() {
             leaving ? "translate-y-2 opacity-0 blur-sm" : "opacity-100"
           }`}
         >
-          <header className="relative z-20 flex items-center justify-between gap-3 px-6 py-4 md:px-10">
+          <header className="relative z-20 flex items-center justify-between gap-3 px-6 py-4 md:px-12 lg:px-16">
             <p className="text-xl font-medium tracking-tight text-fg">{SITE.name}</p>
             <LanguageToggle />
           </header>
 
-          <div className="flex min-h-0 flex-1 flex-col md:flex-row">
-            <div className="relative z-10 flex shrink-0 flex-col justify-center px-6 py-8 md:w-[min(34%,28rem)] md:pr-6 md:pl-10 lg:w-[28rem] lg:pr-8 lg:pl-12">
+          <div className="flex min-h-0 flex-1 flex-col md:flex-row md:pl-4 lg:pl-8">
+            <div className="relative z-10 flex shrink-0 flex-col justify-center px-6 py-8 md:w-[min(34%,28rem)] md:pr-4 md:pl-12 lg:w-[28rem] lg:pr-6 lg:pl-16">
               <TypingTitle reducedMotion={reduced} ready={ready} align="left" />
               <div id="search" className="pointer-events-auto mt-7 w-full">
                 <SearchBar
