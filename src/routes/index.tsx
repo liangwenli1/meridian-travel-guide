@@ -75,26 +75,22 @@ function Home() {
   };
 
   goPageRef.current = (dir: 1 | -1) => {
-    if (pagingRef.current) return;
     const scroller = scrollerRef.current;
     if (!scroller) return;
     const h = scroller.clientHeight || 1;
     const from = Math.round(scroller.scrollTop / h);
     const next = Math.max(0, Math.min(HOME_PAGES.length - 1, from + dir));
     if (next === from) return;
-    pagingRef.current = true;
     setWipeDir(dir);
     if (!reduced) {
       setWiping(true);
-      window.setTimeout(() => setWiping(false), 820);
+      window.setTimeout(() => setWiping(false), 720);
     }
-    document.getElementById(HOME_PAGES[next].id)?.scrollIntoView({
-      behavior: reduced ? "auto" : "smooth",
-      block: "start",
+    scroller.style.scrollSnapType = "none";
+    scroller.scrollTo({ top: next * h, behavior: "auto" });
+    requestAnimationFrame(() => {
+      scroller.style.scrollSnapType = "";
     });
-    window.setTimeout(() => {
-      pagingRef.current = false;
-    }, reduced ? 80 : 920);
   };
 
   const scrollAtlas = () => goPageRef.current(1);
@@ -121,14 +117,25 @@ function Home() {
   useEffect(() => {
     const scroller = scrollerRef.current;
     if (!scroller) return;
+    let idle = 0;
     const onWheel = (event: WheelEvent) => {
       if (event.ctrlKey || event.metaKey) return;
-      if (Math.abs(event.deltaY) < 10) return;
+      if (Math.abs(event.deltaY) < 8) return;
       event.preventDefault();
-      goPageRef.current(event.deltaY > 0 ? 1 : -1);
+      if (!pagingRef.current) {
+        pagingRef.current = true;
+        goPageRef.current(event.deltaY > 0 ? 1 : -1);
+      }
+      window.clearTimeout(idle);
+      idle = window.setTimeout(() => {
+        pagingRef.current = false;
+      }, 420);
     };
     scroller.addEventListener("wheel", onWheel, { passive: false });
-    return () => scroller.removeEventListener("wheel", onWheel);
+    return () => {
+      scroller.removeEventListener("wheel", onWheel);
+      window.clearTimeout(idle);
+    };
   }, []);
 
   return (

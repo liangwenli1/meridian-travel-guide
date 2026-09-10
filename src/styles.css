@@ -191,7 +191,7 @@
   height: 100dvh;
   overflow-x: clip;
   overflow-y: auto;
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
   scroll-snap-type: y mandatory;
 }
 
