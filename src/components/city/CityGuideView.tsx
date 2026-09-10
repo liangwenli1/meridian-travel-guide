@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useSearch } from "@tanstack/react-router";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { useEffect, useRef } from "react";
 import type { City } from "@/types/catalog";
@@ -39,6 +39,7 @@ const TIER_VARIANT: Record<CityGuide["attractions"][number]["tier"], "accent" | 
 export function CityGuideView({ city, guide }: { city: City; guide: CityGuide }) {
   const locale = useI18n((s) => s.locale);
   const heroRef = useRef<HTMLImageElement>(null);
+  const section = useSearch({ from: "/$country/$city" }).s ?? "overview";
 
   useEffect(() => {
     const image = heroRef.current;
@@ -52,6 +53,11 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    if (section === "overview") return;
+    document.getElementById("guide-nav")?.scrollIntoView({ block: "start", behavior: "auto" });
+  }, [section]);
   const snapshotEntries = [
     ["Country", guide.snapshot.country],
     ["Language", guide.snapshot.languages],
@@ -112,7 +118,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
 
       <StickyNav />
 
-      <section id="overview" className="scroll-mt-20 py-14 md:py-20">
+      <section id="overview" className={`guide-panel scroll-mt-20 py-14 md:py-20 ${section === "overview" ? "" : "hidden"}`}>
         <div className="mx-auto max-w-6xl px-4 md:px-8">
           <p className="kicker text-muted">City snapshot</p>
           <h2 className="mt-2 text-3xl font-medium tracking-tight text-fg md:text-4xl">Thirty seconds on {city.name}</h2>
@@ -177,7 +183,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
         </div>
       </section>
 
-      <Section id="neighborhoods" eyebrow="Urban grain" title="Neighborhoods at a glance">
+      <Section id="neighborhoods" show={section === "neighborhoods"} eyebrow="Urban grain" title="Neighborhoods at a glance">
         <Grid min="md">
           {guide.neighborhoods.map((area) => (
             <Card key={area.name}>
@@ -247,7 +253,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
         </Table>
       </Section>
 
-      <Section id="things-to-do" eyebrow="Time well spent" title="Attractions and things to do">
+      <Section id="things-to-do" show={section === "things-to-do"} eyebrow="Time well spent" title="Attractions and things to do">
         <div className="space-y-4">
           {guide.attractions.map((place) => (
             <Card key={place.name} padding="lg">
@@ -320,7 +326,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
         </div>
       </Section>
 
-      <Section id="food" eyebrow="What to eat" title="Food and drinks" intro={guide.foodIntro}>
+      <Section id="food" show={section === "food"} eyebrow="What to eat" title="Food and drinks" intro={guide.foodIntro}>
         <Grid min="md">
           {guide.dishes.map((dish) => (
             <Card key={dish.name}>
@@ -379,7 +385,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
         </Grid>
       </Section>
 
-      <Section id="stay" eyebrow="Where to sleep" title="Where to stay" intro={guide.stayIntro}>
+      <Section id="stay" show={section === "stay"} eyebrow="Where to sleep" title="Where to stay" intro={guide.stayIntro}>
         <Grid min="md">
           {guide.stayAreas.map((area) => (
             <Card key={area.name}>
@@ -401,7 +407,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
         </ul>
       </Section>
 
-      <Section id="transport" eyebrow="Getting in and around" title="Transport">
+      <Section id="transport" show={section === "transport"} eyebrow="Getting in and around" title="Transport">
         <h3 className="mb-3 kicker text-muted">Airport and station arrival</h3>
         <Table>
           <THead>
@@ -448,7 +454,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
         </Grid>
       </Section>
 
-      <Section id="money" eyebrow="Costs" title="Budget and payments">
+      <Section id="money" show={section === "money"} eyebrow="Costs" title="Budget and payments">
         <p className="mb-4 text-sm text-muted">
           {guide.budget.currency} · {guide.budget.asOf}
         </p>
@@ -517,7 +523,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
         </Grid>
       </Section>
 
-      <Section id="connectivity" eyebrow="Before you fly" title="Visa, SIM, and weather">
+      <Section id="connectivity" show={section === "connectivity"} eyebrow="Before you fly" title="Visa, SIM, and weather">
         <Callout kind="watch-out" title="Visa and entry">
           {guide.visa.summary}
         </Callout>
@@ -569,7 +575,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
         </ul>
       </Section>
 
-      <Section id="apps" eyebrow="Phone" title="Essential apps">
+      <Section id="apps" show={section === "apps"} eyebrow="Phone" title="Essential apps">
         <Grid min="md">
           {guide.apps.map((app) => (
             <Card key={app.name} padding="sm">
@@ -594,7 +600,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
         </Grid>
       </Section>
 
-      <Section id="culture" eyebrow="How the city behaves" title="Culture and etiquette">
+      <Section id="culture" show={section === "culture"} eyebrow="How the city behaves" title="Culture and etiquette">
         <div className="space-y-4">
           {guide.culture.map((item) => (
             <Card key={item.title} padding="sm">
@@ -647,7 +653,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
         </div>
       </Section>
 
-      <Section id="safety" eyebrow="Keep it specific" title="Safety, scams, and access">
+      <Section id="safety" show={section === "safety"} eyebrow="Keep it specific" title="Safety, scams, and access">
         <Grid min="md">
           {guide.safety.map((item) => (
             <Card key={item.title}>
@@ -702,7 +708,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
         </div>
       </Section>
 
-      <Section id="itinerary" eyebrow="Time" title="Suggested itineraries">
+      <Section id="itinerary" show={section === "itinerary"} eyebrow="Time" title="Suggested itineraries">
         <Grid min="md" className="mb-6">
           {guide.timePlanning.map((item) => (
             <Card key={item.title} padding="sm">
@@ -745,7 +751,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
         </div>
       </Section>
 
-      <Section id="faq" eyebrow="Direct answers" title="FAQ">
+      <Section id="faq" show={section === "faq"} eyebrow="Direct answers" title="FAQ">
         <Card padding="none" className="divide-y divide-line">
           {guide.faq.map((item) => (
             <details key={item.q} className="group px-5 py-4">

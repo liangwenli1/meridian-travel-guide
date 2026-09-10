@@ -14,11 +14,11 @@ export type CitySearch = {
 
 export const Route = createFileRoute("/$country/$city")({
   validateSearch: (search: Record<string, unknown>): CitySearch => {
-    const raw = typeof search.s === "string" ? search.s : undefined;
-    if (raw && SECTION_IDS.has(raw)) {
+    const raw = typeof search.s === "string" ? search.s : "overview";
+    if (SECTION_IDS.has(raw)) {
       return { s: raw as CitySearch["s"] };
     }
-    return {};
+    return { s: "overview" };
   },
   loader: async ({ params }) => {
     const data = await getCityPage({ data: { country: params.country, city: params.city } });

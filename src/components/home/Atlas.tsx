@@ -21,7 +21,7 @@ export function Atlas({ published }: { published: City[] }) {
           <h2 className="mt-3 max-w-3xl text-4xl font-medium tracking-tight md:text-5xl">{strings.guidesTitle}</h2>
           <p className="mt-4 max-w-xl text-base text-muted">{strings.guidesDek}</p>
         </div>
-        <div className="scene-item mt-8 grid min-h-0 flex-1 grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="scene-item mt-8 grid min-h-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {published.map((city) => {
             const guide = getGuide(city.slug);
             return (
@@ -29,8 +29,8 @@ export function Atlas({ published }: { published: City[] }) {
                 key={city.id}
                 to="/$country/$city"
                 params={{ country: city.countrySlug, city: city.slug }}
-                search={{}}
-                className="group relative block h-full min-h-[28vh] overflow-hidden rounded-2xl bg-void-elevated shadow-border transition-transform duration-200 ease-out hover:-translate-y-0.5 sm:min-h-0"
+                search={{ s: "overview" }}
+                className="group relative block min-h-[28vh] overflow-hidden rounded-2xl bg-void-elevated shadow-border transition-transform duration-200 ease-out hover:-translate-y-0.5"
               >
                 <div className="relative h-full min-h-[28vh] overflow-hidden sm:min-h-[32vh]">
                   {guide ? (

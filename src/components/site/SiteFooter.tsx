@@ -26,7 +26,7 @@ export function SiteFooter() {
         <nav aria-label="Published guides" className="flex flex-wrap gap-2">
           {cities.map((city) => (
             <Button key={city.id} asChild variant="outline" size="sm">
-              <Link to="/$country/$city" params={{ country: city.countrySlug, city: city.slug }} search={{}}>
+              <Link to="/$country/$city" params={{ country: city.countrySlug, city: city.slug }} search={{ s: "overview" }}>
                 {city.name}
               </Link>
             </Button>

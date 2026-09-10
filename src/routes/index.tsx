@@ -53,7 +53,7 @@ function Home() {
         navigate({
           to: "/$country/$city",
           params: { country: city.countrySlug, city: city.slug },
-          search: {},
+          search: { s: "overview" },
         });
       const doc = document as Document & {
         startViewTransition?: (cb: () => void) => { finished: Promise<void> };
