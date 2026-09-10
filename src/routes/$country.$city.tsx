@@ -1,11 +1,25 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { CityGuideView } from "@/components/city/CityGuideView";
 import { ComingSoon } from "@/components/city/ComingSoon";
+import { GUIDE_NAV } from "@/lib/guide-nav";
 import { t, useI18n } from "@/lib/i18n";
 import { getCityPage } from "@/lib/server/catalog";
 import { SITE } from "@/lib/site";
 
+const SECTION_IDS = new Set<string>(GUIDE_NAV.map((item) => item.id));
+
+export type CitySearch = {
+  s?: (typeof GUIDE_NAV)[number]["id"];
+};
+
 export const Route = createFileRoute("/$country/$city")({
+  validateSearch: (search: Record<string, unknown>): CitySearch => {
+    const raw = typeof search.s === "string" ? search.s : undefined;
+    if (raw && SECTION_IDS.has(raw)) {
+      return { s: raw as CitySearch["s"] };
+    }
+    return {};
+  },
   loader: async ({ params }) => {
     const data = await getCityPage({ data: { country: params.country, city: params.city } });
     if (!data.city) throw notFound();

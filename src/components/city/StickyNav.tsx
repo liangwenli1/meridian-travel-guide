@@ -1,9 +1,15 @@
 import { useEffect, useState } from "react";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { GUIDE_NAV } from "@/lib/guide-nav";
+import { t, useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export function StickyNav() {
-  const [active, setActive] = useState<string>(GUIDE_NAV[0].id);
+  const locale = useI18n((s) => s.locale);
+  const navigate = useNavigate({ from: "/$country/$city" });
+  const search = useSearch({ from: "/$country/$city" });
+  const [active, setActive] = useState<string>(search.s ?? GUIDE_NAV[0].id);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     const nodes = GUIDE_NAV.map((item) => document.getElementById(item.id)).filter(
@@ -23,24 +29,50 @@ export function StickyNav() {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const onScroll = () => {
+      const doc = document.documentElement;
+      const max = doc.scrollHeight - doc.clientHeight;
+      setProgress(max > 0 ? Math.min(1, doc.scrollTop / max) : 0);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    if (!search.s) return;
+    const node = document.getElementById(search.s);
+    if (!node) return;
+    node.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [search.s]);
+
+  const go = (id: (typeof GUIDE_NAV)[number]["id"]) => {
+    setActive(id);
+    void navigate({ search: { s: id }, replace: true });
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
-    <nav
-      aria-label="On this page"
-      className="sticky top-0 z-20 border-b border-line bg-void/90 backdrop-blur-md"
-    >
+    <nav aria-label={t(locale).onThisPage} className="sticky top-0 z-20 border-b border-line bg-void/90 backdrop-blur-md">
+      <div className="h-px w-full bg-line">
+        <div className="h-px bg-accent transition-[width] duration-150 ease-out" style={{ width: `${progress * 100}%` }} />
+      </div>
       <div className="overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <ul className="mx-auto flex w-max min-w-full max-w-6xl flex-nowrap gap-1 px-4 py-2 md:px-8">
           {GUIDE_NAV.map((item) => (
             <li key={item.id} className="shrink-0">
-              <a
-                href={`#${item.id}`}
+              <button
+                type="button"
+                onClick={() => go(item.id)}
+                aria-current={active === item.id ? "true" : undefined}
                 className={cn(
                   "block min-h-9 whitespace-nowrap rounded-full px-3 py-2 text-sm transition-colors duration-150",
                   active === item.id ? "bg-accent text-void" : "text-muted hover:text-fg",
                 )}
               >
                 {item.label}
-              </a>
+              </button>
             </li>
           ))}
         </ul>

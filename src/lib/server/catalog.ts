@@ -52,3 +52,13 @@ export const listPublishedCities = createServerFn({ method: "GET" }).handler(asy
   const { listPublishedData } = await import("./catalog.server");
   return listPublishedData();
 });
+
+export const recordIntent = createServerFn({ method: "POST" })
+  .validator((input: { kind: string; citySlug?: string | null }) => ({
+    kind: String(input.kind ?? "letter").slice(0, 40),
+    citySlug: input.citySlug ? String(input.citySlug).slice(0, 80) : null,
+  }))
+  .handler(async ({ data }) => {
+    const { recordIntentData } = await import("./catalog.server");
+    await recordIntentData(data.kind, data.citySlug);
+  });

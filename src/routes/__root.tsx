@@ -2,6 +2,7 @@ import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-r
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { SITE } from "@/lib/site";
+import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 
 export const Route = createRootRoute({
@@ -59,6 +60,15 @@ function RootDocument() {
         <AuthProvider>
           <Outlet />
         </AuthProvider>
+        <Toaster
+          theme="dark"
+          position="bottom-center"
+          toastOptions={{
+            classNames: {
+              toast: "bg-void-elevated text-fg shadow-border",
+            },
+          }}
+        />
         <Scripts />
       </body>
     </html>

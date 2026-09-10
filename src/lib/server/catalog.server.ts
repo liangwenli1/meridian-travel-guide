@@ -238,3 +238,9 @@ export async function listPublishedData() {
   `;
   return rows.map(mapCity);
 }
+
+export async function recordIntentData(kind: string, citySlug: string | null) {
+  await ensureSeeded();
+  const sql = await getSql();
+  await sql.query(`insert into intents (kind, city_slug) values ($1, $2)`, [kind, citySlug]);
+}

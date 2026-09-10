@@ -45,7 +45,7 @@ function CountryPage() {
           <Grid min="lg" className="mt-10">
             {list.map((city) => (
               <Card key={city.id} asChild interactive>
-                <Link to="/$country/$city" params={{ country: city.countrySlug, city: city.slug }}>
+                <Link to="/$country/$city" params={{ country: city.countrySlug, city: city.slug }} search={{}}>
                   <div className="flex items-start justify-between gap-4">
                     <span>
                       <span className="block text-2xl font-medium tracking-tight">{city.name}</span>

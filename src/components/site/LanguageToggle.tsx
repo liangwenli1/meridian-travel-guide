@@ -30,7 +30,14 @@ export function LanguageToggle({ className }: { className?: string }) {
           aria-pressed={locale === option.id}
           onClick={() => setLocale(option.id)}
         >
-          {option.label}
+            {option.id === "zh" ? (
+              <span>
+                <span className="md:hidden">中文</span>
+                <span className="hidden md:inline">{option.label}</span>
+              </span>
+            ) : (
+              option.label
+            )}
         </button>
       ))}
     </div>

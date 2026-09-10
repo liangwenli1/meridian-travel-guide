@@ -1,9 +1,12 @@
 import { useRef, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ChevronDown } from "lucide-react";
 import { Globe, type GlobeHandle } from "@/components/globe/Globe";
+import { Atlas } from "@/components/home/Atlas";
 import { TypingTitle } from "@/components/hero/TypingTitle";
 import { SearchBar } from "@/components/search/SearchBar";
 import { LanguageToggle } from "@/components/site/LanguageToggle";
+import { SiteFooter } from "@/components/site/SiteFooter";
 import { Button } from "@/components/ui/Button";
 import { t, useI18n } from "@/lib/i18n";
 import { usePrefersReducedMotion } from "@/lib/motion";
@@ -50,6 +53,7 @@ function Home() {
         navigate({
           to: "/$country/$city",
           params: { country: city.countrySlug, city: city.slug },
+          search: {},
         });
       const doc = document as Document & {
         startViewTransition?: (cb: () => void) => { finished: Promise<void> };
@@ -64,8 +68,12 @@ function Home() {
     }
   };
 
+  const scrollAtlas = () => {
+    document.getElementById("atlas")?.scrollIntoView({ behavior: reduced ? "auto" : "smooth" });
+  };
+
   return (
-    <main className="relative h-dvh overflow-hidden bg-void text-fg">
+    <div className="overflow-x-hidden bg-void text-fg">
       <a
         href="#search"
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-30 focus:rounded-md focus:bg-void-elevated focus:px-3 focus:py-2"
@@ -73,61 +81,77 @@ function Home() {
         {t(locale).skip}
       </a>
 
-      <div
-        className={`flex h-full flex-col transition-[opacity,filter,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-          leaving ? "translate-y-2 opacity-0 blur-sm" : "opacity-100"
-        }`}
-      >
-        <header className="relative z-20 flex items-center justify-between gap-3 px-6 py-4 md:px-10">
-          <p className="text-xl font-medium tracking-tight text-fg">{SITE.name}</p>
-          <LanguageToggle />
-        </header>
+      <section className="sticky top-0 h-dvh overflow-hidden">
+        <div
+          className={`flex h-full flex-col transition-[opacity,filter,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+            leaving ? "translate-y-2 opacity-0 blur-sm" : "opacity-100"
+          }`}
+        >
+          <header className="relative z-20 flex items-center justify-between gap-3 px-6 py-4 md:px-10">
+            <p className="text-xl font-medium tracking-tight text-fg">{SITE.name}</p>
+            <LanguageToggle />
+          </header>
 
-        <div className="flex min-h-0 flex-1 flex-col md:flex-row">
-          <div className="relative z-10 flex shrink-0 flex-col justify-center px-6 py-8 md:w-[min(34%,28rem)] md:pr-6 md:pl-10 lg:w-[28rem] lg:pr-8 lg:pl-12">
-            <TypingTitle reducedMotion={reduced} ready={ready} align="left" />
-            <div id="search" className="pointer-events-auto mt-7 w-full">
-              <SearchBar
+          <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+            <div className="relative z-10 flex shrink-0 flex-col justify-center px-6 py-8 md:w-[min(34%,28rem)] md:pr-6 md:pl-10 lg:w-[28rem] lg:pr-8 lg:pl-12">
+              <TypingTitle reducedMotion={reduced} ready={ready} align="left" />
+              <div id="search" className="pointer-events-auto mt-7 w-full">
+                <SearchBar
+                  cities={cities}
+                  countries={countries}
+                  onSelect={openCity}
+                  className="mx-0 w-full max-w-lg"
+                />
+              </div>
+              <nav aria-label="Published guides" className="pointer-events-auto mt-8 flex flex-wrap gap-2">
+                {published.map((city) => (
+                  <Button
+                    key={city.id}
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => void openCity(city)}
+                  >
+                    {city.name}
+                  </Button>
+                ))}
+              </nav>
+            </div>
+
+            <div className="globe-stage relative min-h-[46vh] min-w-0 flex-1 cursor-pointer overflow-hidden">
+              <Globe
+                reducedMotion={reduced}
                 cities={cities}
                 countries={countries}
-                onSelect={openCity}
-                className="mx-0 w-full max-w-lg"
+                onCitySelect={openCity}
+                globeRef={globeRef}
+                heroBand={false}
               />
             </div>
-            <nav aria-label="Published guides" className="pointer-events-auto mt-8 flex flex-wrap gap-2">
-              {published.map((city) => (
-                <Button
-                  key={city.id}
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => void openCity(city)}
-                >
-                  {city.name}
-                </Button>
-              ))}
-            </nav>
           </div>
 
-          <div className="globe-stage relative min-h-[46vh] min-w-0 flex-1 cursor-pointer overflow-hidden">
-            <Globe
-              reducedMotion={reduced}
-              cities={cities}
-              countries={countries}
-              onCitySelect={openCity}
-              globeRef={globeRef}
-              heroBand={false}
-            />
-          </div>
+          <button
+            type="button"
+            onClick={scrollAtlas}
+            className="absolute bottom-5 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 text-xs tracking-[0.2em] text-muted uppercase transition-colors hover:text-fg"
+          >
+            {t(locale).scrollAtlas}
+            <ChevronDown className="size-4 animate-bounce" strokeWidth={1.75} />
+          </button>
         </div>
+      </section>
+
+      <div id="atlas" className="relative z-20 bg-void">
+        <Atlas published={published} />
+        <SiteFooter />
       </div>
 
       <div
-        className={`pointer-events-none absolute inset-0 z-30 bg-void transition-opacity duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+        className={`pointer-events-none fixed inset-0 z-30 bg-void transition-opacity duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
           leaving ? "opacity-100" : "opacity-0"
         }`}
         aria-hidden="true"
       />
-    </main>
+    </div>
   );
 }

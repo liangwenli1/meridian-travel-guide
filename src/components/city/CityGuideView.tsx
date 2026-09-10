@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { useEffect, useRef } from "react";
 import type { City } from "@/types/catalog";
 import type { CityGuide } from "@/types/guide";
 import { SITE } from "@/lib/site";
@@ -17,6 +18,7 @@ import { JsonLd } from "./JsonLd";
 import { PhotoStrip } from "./PhotoStrip";
 import { Section } from "./Section";
 import { StickyNav } from "./StickyNav";
+import { LetterForm } from "@/components/letter/LetterForm";
 
 const TIER_LABEL: Record<CityGuide["attractions"][number]["tier"], string> = {
   essential: "Essential",
@@ -36,6 +38,20 @@ const TIER_VARIANT: Record<CityGuide["attractions"][number]["tier"], "accent" | 
 
 export function CityGuideView({ city, guide }: { city: City; guide: CityGuide }) {
   const locale = useI18n((s) => s.locale);
+  const heroRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    const image = heroRef.current;
+    if (!image) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const onScroll = () => {
+      const y = Math.min(window.scrollY, 720);
+      image.style.transform = `translate3d(0, ${y * 0.18}px, 0) scale(1.08)`;
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
   const snapshotEntries = [
     ["Country", guide.snapshot.country],
     ["Language", guide.snapshot.languages],
@@ -59,7 +75,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
   ] as const;
 
   return (
-    <div className="page-enter relative min-h-dvh bg-void text-fg">
+    <div className="page-enter relative min-h-dvh overflow-x-hidden bg-void text-fg">
       <AmbientParticles />
       <JsonLd city={city} guide={guide} />
       <div className="relative z-10">
@@ -77,9 +93,10 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
 
       <section className="relative isolate min-h-[72vh] overflow-hidden">
         <img
+          ref={heroRef}
           src={guide.hero.url}
           alt={guide.hero.alt}
-          className="content-img absolute inset-0 size-full object-cover"
+          className="content-img absolute inset-0 size-full origin-center scale-105 object-cover will-change-transform"
         />
         <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.82),rgba(0,0,0,0.2)_55%,rgba(0,0,0,0.4))]" />
         <div className="relative mx-auto flex min-h-[72vh] max-w-6xl flex-col justify-end px-4 pt-28 pb-12 md:px-8 md:pb-16">
@@ -756,6 +773,16 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           </p>
         </div>
       </Section>
+      <section className="border-t border-line py-16">
+        <div className="mx-auto grid max-w-6xl gap-8 px-4 md:grid-cols-[1.2fr_1fr] md:items-end md:px-8">
+          <div>
+            <p className="kicker text-accent">{t(locale).letterKicker}</p>
+            <h2 className="mt-2 text-3xl font-medium tracking-tight">{t(locale).letterTitle}</h2>
+            <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted">{t(locale).letterDek}</p>
+          </div>
+          <LetterForm citySlug={city.slug} compact />
+        </div>
+      </section>
       <SiteFooter />
       </div>
     </div>
