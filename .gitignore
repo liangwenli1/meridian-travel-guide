@@ -1,0 +1,28 @@
+# dependencies
+node_modules/
+
+# build / platform output
+.vercel/
+.tanstack/
+.output/
+.nitro/
+dist/
+.cache/
+
+# local env
+.env
+.env.*
+!.env.example
+
+# logs & OS
+*.log
+.DS_Store
+
+# sandbox / QA (not part of the product)
+.grok/
+artifacts/
+attachments/
+screenshots/
+AGENTS.md
+.project_id
+.node_modules.lock

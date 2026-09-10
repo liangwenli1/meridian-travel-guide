@@ -1,0 +1,15 @@
+export const GUIDE_NAV = [
+  { id: "overview", label: "Overview" },
+  { id: "neighborhoods", label: "Neighborhoods" },
+  { id: "things-to-do", label: "Things to Do" },
+  { id: "food", label: "Food" },
+  { id: "stay", label: "Stay" },
+  { id: "transport", label: "Transport" },
+  { id: "money", label: "Money" },
+  { id: "connectivity", label: "Connectivity" },
+  { id: "apps", label: "Apps" },
+  { id: "culture", label: "Culture" },
+  { id: "safety", label: "Safety" },
+  { id: "itinerary", label: "Itinerary" },
+  { id: "faq", label: "FAQ" },
+] as const;
