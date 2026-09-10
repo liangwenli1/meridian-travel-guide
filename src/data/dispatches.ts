@@ -37,4 +37,14 @@ export const dispatches: Dispatch[] = [
       zh: "平季不是打折季。那是厨房、旅馆和人行道重新还给当地人的时候。",
     },
   },
+  {
+    slug: "the-table-that-waits",
+    date: "2026-09-08",
+    kicker: { en: "Kitchen", zh: "厨房" },
+    title: { en: "The table that waits", zh: "还在等你的那张桌" },
+    dek: {
+      en: "A reservation is a rumor. The places that keep a stool for walk-ins are the ones we print.",
+      zh: "预订只是传闻。会给散客留一张凳子的地方，我们才印上去。",
+    },
+  },
 ];

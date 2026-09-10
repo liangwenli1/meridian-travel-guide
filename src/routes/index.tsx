@@ -3,10 +3,13 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ChevronDown } from "lucide-react";
 import { Globe, type GlobeHandle } from "@/components/globe/Globe";
 import { Atlas } from "@/components/home/Atlas";
+import { SceneRail } from "@/components/home/SceneRail";
+import { PageWipe } from "@/components/fx/PageWipe";
 import { TypingTitle } from "@/components/hero/TypingTitle";
 import { SearchBar } from "@/components/search/SearchBar";
 import { LanguageToggle } from "@/components/site/LanguageToggle";
 import { Button } from "@/components/ui/Button";
+import { HOME_PAGES, type HomePageId } from "@/lib/home-pages";
 import { t, useI18n } from "@/lib/i18n";
 import { usePrefersReducedMotion } from "@/lib/motion";
 import { getHomeCatalog } from "@/lib/server/catalog";
@@ -31,6 +34,9 @@ function Home() {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const { reduced, ready } = usePrefersReducedMotion();
   const [leaving, setLeaving] = useState(false);
+  const [scene, setScene] = useState<HomePageId>("hero");
+  const [wipeDir, setWipeDir] = useState<1 | -1>(1);
+  const [wiping, setWiping] = useState(false);
   const locale = useI18n((s) => s.locale);
 
   const openCity = async (city: City) => {
@@ -68,20 +74,51 @@ function Home() {
     }
   };
 
-  const goPage = (dir: 1 | -1) => {
-    const scroller = scrollerRef.current;
-    if (!scroller) return;
-    const pages = ["hero", "guides", "desk", "method", "letter"];
-    const h = scroller.clientHeight || window.innerHeight;
-    const current = Math.round(scroller.scrollTop / h);
-    const next = Math.max(0, Math.min(pages.length - 1, current + dir));
-    document.getElementById(pages[next])?.scrollIntoView({
+  const goTo = (id: HomePageId) => {
+    const from = HOME_PAGES.findIndex((page) => page.id === scene);
+    const to = HOME_PAGES.findIndex((page) => page.id === id);
+    if (to < 0 || to === from) return;
+    const dir: 1 | -1 = to > from ? 1 : -1;
+    setWipeDir(dir);
+    setScene(id);
+    if (!reduced) {
+      setWiping(true);
+      window.setTimeout(() => setWiping(false), 820);
+    }
+    document.getElementById(id)?.scrollIntoView({
       behavior: reduced ? "auto" : "smooth",
       block: "start",
     });
   };
 
+  const goPage = (dir: 1 | -1) => {
+    const from = HOME_PAGES.findIndex((page) => page.id === scene);
+    const next = Math.max(0, Math.min(HOME_PAGES.length - 1, from + dir));
+    goTo(HOME_PAGES[next].id);
+  };
+
   const scrollAtlas = () => goPage(1);
+
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    const nodes = [...scroller.querySelectorAll<HTMLElement>(".home-page")];
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting && entry.intersectionRatio >= 0.45)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (!visible?.target.id) return;
+        const id = visible.target.id as HomePageId;
+        setScene(id);
+        nodes.forEach((node) => node.classList.toggle("is-active", node.id === id));
+      },
+      { root: scroller, threshold: [0.45, 0.7] },
+    );
+    nodes.forEach((node) => observer.observe(node));
+    document.getElementById("hero")?.classList.add("is-active");
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const scroller = scrollerRef.current;
@@ -97,17 +134,19 @@ function Home() {
       goPage(event.deltaY > 0 ? 1 : -1);
       unlock = window.setTimeout(() => {
         locked = false;
-      }, reduced ? 80 : 780);
+      }, reduced ? 80 : 900);
     };
     scroller.addEventListener("wheel", onWheel, { passive: false });
     return () => {
       scroller.removeEventListener("wheel", onWheel);
       window.clearTimeout(unlock);
     };
-  }, [reduced]);
+  }, [reduced, scene]);
 
   return (
     <div ref={scrollerRef} className="home-snap bg-void text-fg">
+      <PageWipe dir={wipeDir} on={wiping} />
+      <SceneRail active={scene} onSelect={goTo} />
       <a
         href="#search"
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-30 focus:rounded-md focus:bg-void-elevated focus:px-3 focus:py-2"
@@ -115,7 +154,7 @@ function Home() {
         {t(locale).skip}
       </a>
 
-      <section id="hero" className="home-page relative overflow-hidden">
+      <section id="hero" className="home-page is-active relative overflow-hidden">
         <div
           className={`flex h-full flex-col transition-[opacity,filter,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
             leaving ? "translate-y-2 opacity-0 blur-sm" : "opacity-100"

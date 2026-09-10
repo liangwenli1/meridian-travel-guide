@@ -42,6 +42,9 @@ export const copy = {
     dispatchKicker: "The desk",
     dispatchTitle: "Notes from the atlas.",
     readingNote: "Letter",
+    hoursKicker: "A day",
+    hoursTitle: "Write the hour, not the postcard.",
+    hoursDek: "Six times of day. If a city fails one of them, we say so in the guide.",
     methodKicker: "How we write",
     methodTitle: "Fewer cities. Sharper pages.",
     methodWalk: {
@@ -92,6 +95,9 @@ export const copy = {
     dispatchKicker: "编辑部",
     dispatchTitle: "来自地图边上的笔记。",
     readingNote: "通讯",
+    hoursKicker: "一天",
+    hoursTitle: "写那个小时，不写明信片。",
+    hoursDek: "一天里的六个时刻。有一个时刻站不住，指南里会直说。",
     methodKicker: "写法",
     methodTitle: "更少的城市，更锋利的页面。",
     methodWalk: {

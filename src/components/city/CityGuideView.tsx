@@ -96,7 +96,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           ref={heroRef}
           src={guide.hero.url}
           alt={guide.hero.alt}
-          className="content-img absolute inset-0 size-full origin-center scale-105 object-cover will-change-transform"
+          className="content-img reveal-clip is-in absolute inset-0 size-full origin-center object-cover will-change-transform"
         />
         <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.82),rgba(0,0,0,0.2)_55%,rgba(0,0,0,0.4))]" />
         <div className="relative mx-auto flex min-h-[72vh] max-w-6xl flex-col justify-end px-4 pt-28 pb-12 md:px-8 md:pb-16">
