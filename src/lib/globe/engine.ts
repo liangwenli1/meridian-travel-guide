@@ -5,7 +5,7 @@ import type { City, Country } from "@/types/catalog";
 import { latLngToVector3 } from "./latlng";
 
 /** Bump this when the engine visual contract changes so <Globe> remounts on HMR. */
-export const GLOBE_ENGINE_REV = 11;
+export const GLOBE_ENGINE_REV = 13;
 
 export type GlobeLabel = {
   id: string;
@@ -42,8 +42,8 @@ const EARTH_RADIUS = 1;
 const NIGHT_URL = "/globe/earth-night.jpg";
 const LAND_MASK_URL = "/globe/land-mask.png";
 const BORDERS_URL = "/globe/borders.json";
-const CITY_COLOR = 0xe8f4ff;
-const CITY_DIM = 0x6a7a88;
+const CITY_COLOR = 0xf4f1dc;
+const CITY_DIM = 0x7a7560;
 const CITY_ACTIVE = 0xd4f03c;
 
 function isMobile() {
@@ -54,82 +54,63 @@ function easeInOutCubic(t: number) {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
 
-function makeNightMaterial(night: THREE.Texture, land: THREE.Texture) {
-  return new THREE.ShaderMaterial({
-    uniforms: {
-      uNight: { value: night },
-      uLand: { value: land },
-    },
-    vertexShader: /* glsl */ `
-      varying vec2 vUv;
-      varying vec3 vWorldNormal;
-      varying vec3 vWorldPos;
-      void main() {
-        vUv = uv;
-        vec4 world = modelMatrix * vec4(position, 1.0);
-        vWorldPos = world.xyz;
-        vWorldNormal = normalize(mat3(modelMatrix) * normal);
-        gl_Position = projectionMatrix * viewMatrix * world;
-      }
-    `,
-    fragmentShader: /* glsl */ `
-      uniform sampler2D uNight;
-      uniform sampler2D uLand;
-      varying vec2 vUv;
-      varying vec3 vWorldNormal;
-      varying vec3 vWorldPos;
-
-      void main() {
-        vec3 night = texture2D(uNight, vUv).rgb * 3.4;
-        float land = texture2D(uLand, vUv).r;
-        float lum = max(max(night.r, night.g), night.b);
-
-        vec3 ocean = vec3(0.0, 0.0, 0.0);
-        vec3 landCol = vec3(0.028, 0.034, 0.045);
-        vec3 base = mix(ocean, landCol, smoothstep(0.22, 0.62, land));
-
-        vec3 lights = night * smoothstep(0.02, 0.08, lum);
-
-        vec3 viewDir = normalize(cameraPosition - vWorldPos);
-        float fresnel = pow(1.0 - max(dot(normalize(vWorldNormal), viewDir), 0.0), 3.2);
-        vec3 limb = vec3(0.10, 0.16, 0.22) * fresnel * 0.45;
-
-        gl_FragColor = vec4(base + lights + limb, 1.0);
-      }
-    `,
-    toneMapped: false,
+function loadImage(url: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new Image();
+    img.decoding = "async";
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error(`Failed to load ${url}`));
+    img.src = url;
   });
 }
 
-function makeAtmosphereMaterial() {
+function imageData(img: HTMLImageElement, width: number, height: number) {
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) throw new Error("2d context unavailable");
+  ctx.drawImage(img, 0, 0, width, height);
+  return ctx.getImageData(0, 0, width, height);
+}
+
+function hash01(x: number, y: number) {
+  const n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
+  return n - Math.floor(n);
+}
+
+function makePointMaterial(additive: boolean) {
   return new THREE.ShaderMaterial({
-    uniforms: {
-      uColor: { value: new THREE.Color(0x7a9bb8) },
-    },
     vertexShader: /* glsl */ `
-      varying vec3 vNormal;
-      varying vec3 vWorldPos;
+      attribute float aSize;
+      varying vec3 vColor;
       void main() {
-        vNormal = normalize(mat3(modelMatrix) * normal);
-        vec4 world = modelMatrix * vec4(position, 1.0);
-        vWorldPos = world.xyz;
-        gl_Position = projectionMatrix * viewMatrix * world;
+        vColor = color;
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        float dist = max(-mv.z, 0.35);
+        gl_PointSize = clamp(aSize * (200.0 / dist), 1.15, 7.5);
+        gl_Position = projectionMatrix * mv;
       }
     `,
     fragmentShader: /* glsl */ `
-      uniform vec3 uColor;
-      varying vec3 vNormal;
-      varying vec3 vWorldPos;
+      varying vec3 vColor;
       void main() {
-        vec3 viewDir = normalize(cameraPosition - vWorldPos);
-        float f = pow(0.62 - dot(normalize(vNormal), viewDir), 2.4);
-        gl_FragColor = vec4(uColor, clamp(f, 0.0, 0.55) * 0.55);
+        vec2 p = gl_PointCoord * 2.0 - 1.0;
+        float d = dot(p, p);
+        if (d > 1.0) discard;
+        float core = 1.0 - smoothstep(0.0, 0.55, d);
+        float halo = 1.0 - smoothstep(0.2, 1.0, d);
+        float alpha = mix(halo * 0.55, core, core);
+        gl_FragColor = vec4(vColor, alpha);
       }
     `,
-    side: THREE.BackSide,
     transparent: true,
+    depthTest: true,
     depthWrite: false,
+    blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending,
+    vertexColors: true,
     toneMapped: false,
+    glslVersion: THREE.GLSL1,
   });
 }
 
@@ -185,11 +166,11 @@ export class GlobeEngine {
     this.renderer.setClearColor(0x000000, 0);
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.NoToneMapping;
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile() ? 1.4 : 2));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile() ? 1.35 : 2));
 
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(40, 1, 0.1, 60);
-    const start = latLngToVector3(12, -45, 2.28);
+    const start = latLngToVector3(18, -30, 2.32);
     this.camera.position.set(start.x, start.y, start.z);
 
     this.controls = new OrbitControls(this.camera, options.canvas);
@@ -201,7 +182,7 @@ export class GlobeEngine {
     this.controls.rotateSpeed = 0.38;
     this.controls.zoomSpeed = 0.7;
     this.controls.autoRotate = this.autoRotate;
-    this.controls.autoRotateSpeed = 0.22;
+    this.controls.autoRotateSpeed = 0.2;
     this.controls.minPolarAngle = 0.18;
     this.controls.maxPolarAngle = Math.PI - 0.18;
     this.controls.target.set(0, 0, 0);
@@ -209,6 +190,14 @@ export class GlobeEngine {
 
     this.scene.add(this.globe);
     this.globe.add(this.cityGroup);
+
+    const occluder = new THREE.Mesh(
+      new THREE.SphereGeometry(EARTH_RADIUS * 0.992, 64, 48),
+      new THREE.MeshBasicMaterial({ color: 0x000000 }),
+    );
+    this.globe.add(occluder);
+    this.geometries.push(occluder.geometry);
+    this.materials.push(occluder.material);
 
     this.rim = this.makeRim();
     this.scene.add(this.rim);
@@ -309,51 +298,110 @@ export class GlobeEngine {
   };
 
   private async loadEarth() {
-    const loader = new THREE.TextureLoader();
     try {
-      const [night, land, borders] = await Promise.all([
-        loader.loadAsync(NIGHT_URL),
-        loader.loadAsync(LAND_MASK_URL),
+      const mobile = isMobile();
+      const [nightImg, landImg, borders] = await Promise.all([
+        loadImage(NIGHT_URL),
+        loadImage(LAND_MASK_URL),
         fetch(BORDERS_URL).then((res) => res.json()) as Promise<{ rings: number[][] }>,
       ]);
-      if (this.disposed) {
-        night.dispose();
-        land.dispose();
-        return;
-      }
-      night.colorSpace = THREE.SRGBColorSpace;
-      night.minFilter = THREE.LinearFilter;
-      night.magFilter = THREE.LinearFilter;
-      night.anisotropy = Math.min(8, this.renderer.capabilities.getMaxAnisotropy());
-      night.needsUpdate = true;
-      land.colorSpace = THREE.NoColorSpace;
-      land.minFilter = THREE.LinearFilter;
-      land.magFilter = THREE.LinearFilter;
-      land.generateMipmaps = false;
-      this.textures.push(night, land);
+      if (this.disposed) return;
 
-      const earthMat = makeNightMaterial(night, land);
-      const earthGeo = new THREE.SphereGeometry(EARTH_RADIUS, 96, 64);
-      const earth = new THREE.Mesh(earthGeo, earthMat);
-      this.globe.add(earth);
-      this.geometries.push(earthGeo);
-      this.materials.push(earthMat);
-
-      const atmosMat = makeAtmosphereMaterial();
-      const atmos = new THREE.Mesh(new THREE.SphereGeometry(EARTH_RADIUS * 1.045, 64, 48), atmosMat);
-      this.globe.add(atmos);
-      this.geometries.push(atmos.geometry);
-      this.materials.push(atmosMat);
-
+      this.addLandParticles(landImg, mobile);
+      this.addLightParticles(nightImg, mobile);
       this.addBorders(borders.rings);
     } finally {
       if (!this.disposed) this.onReady?.();
     }
   }
 
+  private addLandParticles(img: HTMLImageElement, mobile: boolean) {
+    const w = mobile ? 640 : 900;
+    const h = mobile ? 320 : 450;
+    const data = imageData(img, w, h);
+    const step = mobile ? 4 : 3;
+    const positions: number[] = [];
+    const colors: number[] = [];
+    const sizes: number[] = [];
+    const r = EARTH_RADIUS * 1.004;
+
+    for (let y = 0; y < h; y += step) {
+      const lat = 90 - ((y + 0.5) / h) * 180;
+      const cosLat = Math.cos((lat * Math.PI) / 180);
+      const keep = Math.max(0.18, Math.abs(cosLat));
+      for (let x = 0; x < w; x += step) {
+        const i = (y * w + x) * 4;
+        if (data.data[i] < 90) continue;
+        if (hash01(x, y) > keep * 0.55) continue;
+        const lng = ((x + 0.5) / w) * 360 - 180 + (hash01(x + 3, y) - 0.5) * 0.45;
+        const jitterLat = lat + (hash01(x, y + 9) - 0.5) * 0.38;
+        const p = latLngToVector3(jitterLat, lng, r);
+        positions.push(p.x, p.y, p.z);
+        const shade = 0.55 + hash01(y, x) * 0.2;
+        colors.push(shade, shade * 0.97, shade * 0.78);
+        sizes.push(1.55 + hash01(x * 0.7, y) * 0.7);
+      }
+    }
+
+    this.pushPoints(positions, colors, sizes, false);
+  }
+
+  private addLightParticles(img: HTMLImageElement, mobile: boolean) {
+    const w = mobile ? 960 : 1400;
+    const h = mobile ? 480 : 700;
+    const data = imageData(img, w, h);
+    const step = mobile ? 3 : 2;
+    const positions: number[] = [];
+    const colors: number[] = [];
+    const sizes: number[] = [];
+    const r = EARTH_RADIUS * 1.007;
+
+    for (let y = 0; y < h; y += step) {
+      const lat = 90 - ((y + 0.5) / h) * 180;
+      const cosLat = Math.max(0.16, Math.abs(Math.cos((lat * Math.PI) / 180)));
+      for (let x = 0; x < w; x += step) {
+        const i = (y * w + x) * 4;
+        const red = data.data[i];
+        const green = data.data[i + 1];
+        const blue = data.data[i + 2];
+        const lum = Math.max(red, green, blue);
+        if (lum < 52) continue;
+        if (blue > red + 10 && blue > green + 6 && lum < 88) continue;
+        if (hash01(x + 11, y) > cosLat) continue;
+        const lng = ((x + 0.5) / w) * 360 - 180 + (hash01(x, y + 4) - 0.5) * 0.22;
+        const jitterLat = lat + (hash01(x + 5, y) - 0.5) * 0.18;
+        const p = latLngToVector3(jitterLat, lng, r);
+        positions.push(p.x, p.y, p.z);
+        const boost = 1.15 + (lum / 255) * 1.15;
+        colors.push(
+          Math.min(1, (red / 255) * boost + 0.12),
+          Math.min(1, (green / 255) * boost + 0.1),
+          Math.min(1, (blue / 255) * boost * 0.7 + 0.04),
+        );
+        sizes.push(1.5 + (lum / 255) * 2.4);
+      }
+    }
+
+    this.pushPoints(positions, colors, sizes, true);
+  }
+
+  private pushPoints(positions: number[], colors: number[], sizes: number[], additive: boolean) {
+    if (!positions.length) return;
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geo.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+    geo.setAttribute("aSize", new THREE.Float32BufferAttribute(sizes, 1));
+    const mat = makePointMaterial(additive);
+    const points = new THREE.Points(geo, mat);
+    points.frustumCulled = false;
+    this.globe.add(points);
+    this.geometries.push(geo);
+    this.materials.push(mat);
+  }
+
   private addBorders(rings: number[][]) {
     const positions: number[] = [];
-    const r = EARTH_RADIUS * 1.003;
+    const r = EARTH_RADIUS * 1.009;
     for (const ring of rings) {
       if (ring.length < 6) continue;
       for (let i = 0; i < ring.length - 2; i += 2) {
@@ -365,14 +413,13 @@ export class GlobeEngine {
     const geo = new THREE.BufferGeometry();
     geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
     const mat = new THREE.LineBasicMaterial({
-      color: 0xd0dce4,
+      color: 0x9aa6b0,
       transparent: true,
-      opacity: 0.58,
+      opacity: 0.32,
       depthWrite: false,
       toneMapped: false,
     });
-    const lines = new THREE.LineSegments(geo, mat);
-    this.globe.add(lines);
+    this.globe.add(new THREE.LineSegments(geo, mat));
     this.geometries.push(geo);
     this.materials.push(mat);
   }
@@ -385,16 +432,16 @@ export class GlobeEngine {
     }
     const geo = new THREE.BufferGeometry().setFromPoints(pts);
     const mat = new THREE.LineBasicMaterial({
-      color: 0x6a7a88,
+      color: 0x3a3a34,
       transparent: true,
-      opacity: 0.28,
+      opacity: 0.55,
       depthWrite: false,
       toneMapped: false,
     });
     this.geometries.push(geo);
     this.materials.push(mat);
     const line = new THREE.LineLoop(geo, mat);
-    line.scale.setScalar(EARTH_RADIUS * 1.002);
+    line.scale.setScalar(EARTH_RADIUS * 1.001);
     return line;
   }
 
@@ -432,7 +479,7 @@ export class GlobeEngine {
   }
 
   private addCities() {
-    const visGeo = new THREE.SphereGeometry(0.0034, 8, 8);
+    const visGeo = new THREE.SphereGeometry(0.0024, 8, 8);
     const hitGeo = new THREE.SphereGeometry(0.02, 8, 8);
     const hitMat = new THREE.MeshBasicMaterial({
       transparent: true,
@@ -445,7 +492,7 @@ export class GlobeEngine {
     this.materials.push(hitMat);
 
     for (const city of this.cities) {
-      const pos = latLngToVector3(city.latitude, city.longitude, EARTH_RADIUS + 0.005);
+      const pos = latLngToVector3(city.latitude, city.longitude, EARTH_RADIUS + 0.012);
       const vec = new THREE.Vector3(pos.x, pos.y, pos.z);
       this.cityPositions.set(city.id, vec);
 
@@ -470,7 +517,7 @@ export class GlobeEngine {
       const material = mesh.material as THREE.MeshBasicMaterial;
       const active = id === this.highlightId;
       const city = this.cities.find((item) => item.id === id);
-      mesh.scale.setScalar(active ? 2.1 : 1);
+      mesh.scale.setScalar(active ? 2.2 : 1);
       material.color.set(
         active ? CITY_ACTIVE : city?.contentStatus === "published" ? CITY_COLOR : CITY_DIM,
       );
@@ -507,6 +554,10 @@ export class GlobeEngine {
     return { countryMin: 0, cityMin: 36 };
   }
 
+  private isFrontFacing(vec: THREE.Vector3, cameraDir: THREE.Vector3, minDot: number) {
+    return vec.clone().normalize().dot(cameraDir) >= minDot;
+  }
+
   private projectLabels() {
     const { countryMin, cityMin } = this.lodThresholds();
     const width = this.canvas.clientWidth;
@@ -525,9 +576,9 @@ export class GlobeEngine {
       if (priority < countryMin || seen.has(name.toLowerCase())) return;
       const p = latLngToVector3(lat, lng, EARTH_RADIUS * 1.02);
       const vec = new THREE.Vector3(p.x, p.y, p.z);
-      const facing = vec.clone().normalize().dot(cameraDir);
-      if (facing < 0.16) return;
+      if (!this.isFrontFacing(vec, cameraDir, 0.42)) return;
       vec.project(this.camera);
+      if (vec.z > 0.98) return;
       const x = (vec.x * 0.5 + 0.5) * width;
       const y = (-vec.y * 0.5 + 0.5) * height;
       if (x < 10 || y < 10 || x > width - 10 || y > height - 10) return;
@@ -556,9 +607,9 @@ export class GlobeEngine {
       if (boosted < cityMin && city.id !== this.highlightId) continue;
       const vec = this.cityPositions.get(city.id);
       if (!vec) continue;
-      const facing = vec.clone().normalize().dot(cameraDir);
-      if (facing < 0.2 && city.id !== this.highlightId) continue;
+      if (city.id !== this.highlightId && !this.isFrontFacing(vec, cameraDir, 0.45)) continue;
       const projected = vec.clone().project(this.camera);
+      if (projected.z > 0.98 && city.id !== this.highlightId) continue;
       const x = (projected.x * 0.5 + 0.5) * width;
       const y = (-projected.y * 0.5 + 0.5) * height;
       if (x < 8 || y < 8 || x > width - 8 || y > height - 8) continue;
