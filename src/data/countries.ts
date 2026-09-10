@@ -31,4 +31,6 @@ export const countries: Country[] = [
   { name: "Peru", slug: "peru", code: "PE", latitude: -9.2, longitude: -75.0, priority: 73 },
   { name: "Kenya", slug: "kenya", code: "KE", latitude: -0.02, longitude: 37.9, priority: 70 },
   { name: "Netherlands", slug: "netherlands", code: "NL", latitude: 52.1, longitude: 5.3, priority: 82 },
+  { name: "Czechia", slug: "czechia", code: "CZ", latitude: 49.8, longitude: 15.5, priority: 62 },
+  { name: "Taiwan", slug: "taiwan", code: "TW", latitude: 23.7, longitude: 121.0, priority: 76 },
 ];

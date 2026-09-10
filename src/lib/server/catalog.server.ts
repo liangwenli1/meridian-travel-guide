@@ -96,66 +96,68 @@ let seedPromise: Promise<void> | null = null;
 
 async function seedCatalog() {
   const sql = await getSql();
-  const [{ n } = { n: 0 }] = await sql<{ n: number }>`select count(*)::int as n from cities`;
-  const [{ g } = { g: 0 }] = await sql<{ g: number }>`select count(*)::int as g from city_guides`;
 
-  if (Number(n) === 0) {
-    for (const country of seedCountries) {
-      await sql.query(
-        `insert into countries (slug, name, code, latitude, longitude, priority)
-         values ($1, $2, $3, $4, $5, $6)
-         on conflict (slug) do nothing`,
-        [country.slug, country.name, country.code, country.latitude, country.longitude, country.priority],
-      );
-    }
-
-    for (const city of seedCities) {
-      await sql.query(
-        `insert into cities (
-           id, name, slug, alternate_names, country, country_slug, country_code, region,
-           latitude, longitude, population, tourism_priority, capital, timezone, currency,
-           currency_code, languages, airport_codes, short_description, content_status
-         ) values (
-           $1,$2,$3,$4::jsonb,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17::jsonb,$18::jsonb,$19,$20
-         )
-         on conflict (id) do nothing`,
-        [
-          city.id,
-          city.name,
-          city.slug,
-          JSON.stringify(city.alternateNames),
-          city.country,
-          city.countrySlug,
-          city.countryCode,
-          city.region,
-          city.latitude,
-          city.longitude,
-          city.population,
-          city.tourismPriority,
-          city.capital,
-          city.timezone,
-          city.currency,
-          city.currencyCode,
-          JSON.stringify(city.languages),
-          JSON.stringify(city.airportCodes),
-          city.shortDescription,
-          city.contentStatus,
-        ],
-      );
-    }
+  for (const country of seedCountries) {
+    await sql.query(
+      `insert into countries (slug, name, code, latitude, longitude, priority)
+       values ($1, $2, $3, $4, $5, $6)
+       on conflict (slug) do update set
+         name = excluded.name,
+         code = excluded.code,
+         latitude = excluded.latitude,
+         longitude = excluded.longitude,
+         priority = excluded.priority`,
+      [country.slug, country.name, country.code, country.latitude, country.longitude, country.priority],
+    );
   }
 
-  if (Number(g) === 0) {
-    for (const city of seedCities.filter((item) => item.contentStatus === "published")) {
-      const guide = getGuide(city.slug);
-      if (!guide) continue;
-      await sql.query(
-        `insert into city_guides (city_slug, payload)
-         values ($1, $2)
-         on conflict (city_slug) do update set payload = excluded.payload, updated_at = now()`,
-        [city.slug, JSON.stringify(guide)],
-      );
-    }
+  for (const city of seedCities) {
+    await sql.query(
+      `insert into cities (
+         id, name, slug, alternate_names, country, country_slug, country_code, region,
+         latitude, longitude, population, tourism_priority, capital, timezone, currency,
+         currency_code, languages, airport_codes, short_description, content_status
+       ) values (
+         $1,$2,$3,$4::jsonb,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17::jsonb,$18::jsonb,$19,$20
+       )
+       on conflict (id) do update set
+         short_description = excluded.short_description,
+         content_status = excluded.content_status,
+         tourism_priority = excluded.tourism_priority`,
+      [
+        city.id,
+        city.name,
+        city.slug,
+        JSON.stringify(city.alternateNames),
+        city.country,
+        city.countrySlug,
+        city.countryCode,
+        city.region,
+        city.latitude,
+        city.longitude,
+        city.population,
+        city.tourismPriority,
+        city.capital,
+        city.timezone,
+        city.currency,
+        city.currencyCode,
+        JSON.stringify(city.languages),
+        JSON.stringify(city.airportCodes),
+        city.shortDescription,
+        city.contentStatus,
+      ],
+    );
+  }
+
+  for (const city of seedCities.filter((item) => item.contentStatus === "published")) {
+    const guide = getGuide(city.slug);
+    if (!guide) continue;
+    await sql.query(
+      `insert into city_guides (city_slug, payload)
+       values ($1, $2)
+       on conflict (city_slug) do update set payload = excluded.payload, updated_at = now()`,
+      [city.slug, JSON.stringify(guide)],
+    );
   }
 }
 

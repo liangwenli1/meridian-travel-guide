@@ -45,7 +45,14 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     overflow-x: clip;
-    overflow-y: scroll;
+    overflow-y: auto;
+  }
+
+  html:has(.home-snap),
+  html:has(.home-snap) body,
+  html:has(.home-snap) #root {
+    height: 100%;
+    overflow: hidden;
   }
 
   html,
