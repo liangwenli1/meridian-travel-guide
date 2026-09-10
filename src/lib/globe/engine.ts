@@ -5,7 +5,7 @@ import type { City, Country } from "@/types/catalog";
 import { latLngToVector3 } from "./latlng";
 
 /** Bump this when the engine visual contract changes so <Globe> remounts on HMR. */
-export const GLOBE_ENGINE_REV = 19;
+export const GLOBE_ENGINE_REV = 22;
 
 export type GlobeLabel = {
   id: string;
@@ -45,6 +45,13 @@ const BORDERS_URL = "/globe/borders.json";
 const CITY_COLOR = 0xf4f1dc;
 const CITY_DIM = 0x7a7560;
 const CITY_ACTIVE = 0xd4f03c;
+
+/** Keep large-country names off the homepage title. */
+const LABEL_ANCHORS: Record<string, { lat: number; lng: number }> = {
+  "United States": { lat: 44.2, lng: -120.8 },
+  Mexico: { lat: 31.0, lng: -110.8 },
+  Canada: { lat: 53.2, lng: -66.5 },
+};
 
 function isMobile() {
   return window.innerWidth < 768 || window.matchMedia("(pointer: coarse)").matches;
@@ -105,7 +112,7 @@ function makeLandMaterial(land: THREE.Texture) {
       void main() {
         float land = texture2D(uLand, vUv).r;
         vec3 ocean = vec3(0.0);
-        vec3 ground = vec3(0.09, 0.086, 0.062);
+        vec3 ground = vec3(0.02, 0.026, 0.032);
         float mask = smoothstep(0.2, 0.72, land);
         gl_FragColor = vec4(mix(ocean, ground, mask), 1.0);
       }
@@ -116,7 +123,7 @@ function makeLandMaterial(land: THREE.Texture) {
 }
 
 function makePointMaterial(additive: boolean) {
-  const maxSize = additive ? "4.6" : "2.05";
+  const maxSize = additive ? "2.6" : "1.6";
   return new THREE.ShaderMaterial({
     vertexShader: /* glsl */ `
       attribute float aSize;
@@ -125,7 +132,7 @@ function makePointMaterial(additive: boolean) {
         vColor = color;
         vec4 mv = modelViewMatrix * vec4(position, 1.0);
         float dist = max(-mv.z, 0.55);
-        gl_PointSize = clamp(aSize * (6.6 / dist), 0.85, ${maxSize});
+        gl_PointSize = clamp(aSize * (5.2 / dist), 0.7, ${maxSize});
         gl_Position = projectionMatrix * mv;
       }
     `,
@@ -208,7 +215,7 @@ export class GlobeEngine {
 
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 80);
-    const start = latLngToVector3(14, 12, 3.28);
+    const start = latLngToVector3(12, -78, 3.22);
     this.camera.position.set(start.x, start.y, start.z);
 
     this.controls = new OrbitControls(this.camera, options.canvas);
@@ -371,83 +378,59 @@ export class GlobeEngine {
     nightImg: HTMLImageElement,
     mobile: boolean,
   ) {
-    const w = mobile ? 768 : 1024;
+    const w = mobile ? 2048 : 4096;
     const h = w / 2;
     const land = imageData(landImg, w, h);
     const night = imageData(nightImg, w, h);
     const step = mobile ? 2 : 1;
 
-    const dimPos: number[] = [];
-    const dimCol: number[] = [];
-    const dimSize: number[] = [];
-    const litPos: number[] = [];
-    const litCol: number[] = [];
-    const litSize: number[] = [];
+    const positions: number[] = [];
+    const colors: number[] = [];
+    const sizes: number[] = [];
 
-    const spawn = (
-      lat: number,
-      lng: number,
-      lum: number,
-      seed: number,
-      city: boolean,
-    ) => {
-      if (samplePixel(land, w, h, lat, lng).r < 78) return;
-      const pop = Math.min(1, Math.max(0, (lum - 12) / 243));
-      const radius = EARTH_RADIUS * (1.002 + hash01(seed, 13) * 0.0055);
+    const spawn = (lat: number, lng: number, signal: number, seed: number) => {
+      const radius = EARTH_RADIUS * (1.0032 + hash01(seed, 13) * 0.0028);
       const p = latLngToVector3(lat, lng, radius);
-      if (city) {
-        const boost = 0.85 + pop * 1.05;
-        litPos.push(p.x, p.y, p.z);
-        litCol.push(
-          Math.min(1, 0.72 * boost),
-          Math.min(1, 0.64 * boost),
-          Math.min(1, 0.38 * boost),
-        );
-        litSize.push(1.35 + pop * 2.6 + hash01(seed, 5) * 0.5);
-      } else {
-        const shade = 0.26 + pop * 0.28 + hash01(seed, 21) * 0.08;
-        dimPos.push(p.x, p.y, p.z);
-        dimCol.push(shade, shade * 0.95, shade * 0.72);
-        dimSize.push(0.75 + pop * 0.7);
-      }
+      positions.push(p.x, p.y, p.z);
+      const north = Math.min(1, Math.max(0, (lat + 38) / 72));
+      const intensity = 0.42 + (signal / 255) * 0.9;
+      colors.push(
+        Math.min(1, (1.0 * (1 - north) + 0.68 * north) * intensity),
+        Math.min(1, (0.78 * (1 - north) + 0.96 * north) * intensity),
+        Math.min(1, (0.28 * (1 - north) + 1.02 * north) * intensity),
+      );
+      sizes.push(0.72 + (signal / 255) * 1.15);
     };
 
     for (let y = 0; y < h; y += step) {
       const lat0 = 90 - ((y + 0.5) / h) * 180;
       for (let x = 0; x < w; x += step) {
-        const li = (y * w + x) * 4;
-        if (land.data[li] < 88) continue;
-        const red = night.data[li];
-        const green = night.data[li + 1];
-        const blue = night.data[li + 2];
+        const i = (y * w + x) * 4;
+        if (land.data[i] < 80) continue;
+        const red = night.data[i];
+        const green = night.data[i + 1];
+        const blue = night.data[i + 2];
         const signal = Math.min(red, green);
-        if (signal < 26) continue;
-        if (blue > signal + 20 && signal < 34) continue;
+        if (signal < 20) continue;
+        if (blue > signal + 18 && signal < 32) continue;
 
-        const pop = Math.pow(Math.min(1, (signal - 24) / 200), 1.08);
-        const keep = Math.min(1, 0.1 + pop * 1.05);
-        if (hash01(x + 0.31, y + 0.73) > keep) continue;
+        const lng0 = ((x + 0.5) / w) * 360 - 180;
+        const lat = lat0 + (hash01(x, y + 11) - 0.5) * 0.05;
+        const lng = lng0 + (hash01(x + 9, y) - 0.5) * 0.05;
+        spawn(lat, lng, signal, x * 13 + y);
 
-        const jitter = signal > 70 ? 0.16 : 0.38;
-        const lat = lat0 + (hash01(x, y + 11) - 0.5) * jitter;
-        const lng = ((x + 0.5) / w) * 360 - 180 + (hash01(x + 9, y) - 0.5) * jitter;
-        const city = signal >= 40;
-        spawn(lat, lng, signal, x * 13 + y, city);
-
-        if (city && pop > 0.22 && hash01(x, y + 33) < pop * 0.7) {
+        if (!mobile && signal > 70) {
           spawn(
-            lat + (hash01(x, y + 41) - 0.5) * 0.22,
-            lng + (hash01(x + 47, y) - 0.5) * 0.22,
+            lat + (hash01(x, y + 41) - 0.5) * 0.07,
+            lng + (hash01(x + 47, y) - 0.5) * 0.07,
             signal,
             x * 17 + y + 0.4,
-            true,
           );
         }
       }
     }
 
-    this.pushPoints(dimPos, dimCol, dimSize, false);
-    this.pushPoints(litPos, litCol, litSize, true);
+    this.pushPoints(positions, colors, sizes, true);
   }
 
   private pushPoints(positions: number[], colors: number[], sizes: number[], additive: boolean) {
@@ -478,9 +461,9 @@ export class GlobeEngine {
     const geo = new THREE.BufferGeometry();
     geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
     const mat = new THREE.LineBasicMaterial({
-      color: 0x9aa6b0,
+      color: 0xc9d4de,
       transparent: true,
-      opacity: 0.4,
+      opacity: 0.52,
       depthWrite: false,
       toneMapped: false,
     });
@@ -497,9 +480,9 @@ export class GlobeEngine {
     }
     const geo = new THREE.BufferGeometry().setFromPoints(pts);
     const mat = new THREE.LineBasicMaterial({
-      color: 0x3a3a34,
+      color: 0x6a6a62,
       transparent: true,
-      opacity: 0.55,
+      opacity: 0.7,
       depthWrite: false,
       toneMapped: false,
     });
@@ -602,9 +585,12 @@ export class GlobeEngine {
     const nx = Math.abs(x / width - 0.5);
     const ny = y / height;
     if (isMobile()) {
-      return nx < 0.42 && ny > 0.08 && ny < 0.5;
+      return nx < 0.42 && ny > 0.1 && ny < 0.48;
     }
-    return nx < 0.26 && ny > 0.08 && ny < 0.55;
+    if (ny > 0.46 && ny < 0.56 && nx < 0.36) return true;
+    if (ny > 0.26 && ny < 0.4 && nx < 0.2) return true;
+    if (ny > 0.38 && ny < 0.47 && nx < 0.18) return true;
+    return false;
   }
 
   private cameraDistance() {
@@ -639,9 +625,10 @@ export class GlobeEngine {
       priority: number,
     ) => {
       if (priority < countryMin || seen.has(name.toLowerCase())) return;
-      const p = latLngToVector3(lat, lng, EARTH_RADIUS * 1.02);
+      const anchor = LABEL_ANCHORS[name];
+      const p = latLngToVector3(anchor?.lat ?? lat, anchor?.lng ?? lng, EARTH_RADIUS * 1.02);
       const vec = new THREE.Vector3(p.x, p.y, p.z);
-      if (!this.isFrontFacing(vec, cameraDir, 0.42)) return;
+      if (!this.isFrontFacing(vec, cameraDir, 0.32)) return;
       vec.project(this.camera);
       if (vec.z > 0.98) return;
       const x = (vec.x * 0.5 + 0.5) * width;
@@ -703,7 +690,7 @@ export class GlobeEngine {
       });
       if (overlaps) continue;
       placed.push(label);
-      if (placed.length >= (isMobile() ? 14 : 24)) break;
+      if (placed.length >= (isMobile() ? 16 : 32)) break;
     }
     this.onLabels(placed);
   }
