@@ -82,39 +82,49 @@ export function TypingTitle({ reducedMotion, ready, align = "center" }: TypingTi
     <h1
       className={
         align === "left"
-          ? "text-left leading-[0.92] tracking-[-0.045em]"
+          ? "text-left tracking-[-0.03em]"
           : "max-w-[16ch] text-center leading-[0.95] tracking-[-0.04em] md:max-w-none"
       }
     >
-      <span
-        className={
-          align === "left"
-            ? "block whitespace-nowrap text-[3.25rem] font-medium tracking-tight text-accent sm:text-[3.75rem] lg:text-[4.35rem]"
-            : "text-[18vw] font-medium tracking-tight text-accent sm:text-8xl md:text-[7.2rem]"
-        }
-      >
-        {strings.where}
-      </span>
-      <span
-        className={
-          align === "left"
-            ? "mt-4 block whitespace-nowrap text-[1.35rem] font-normal text-fg sm:text-[1.5rem] lg:text-[1.65rem]"
-            : "mt-2 block text-[6.6vw] font-normal text-fg sm:text-3xl md:mt-3 md:text-[2.2rem]"
-        }
-      >
-        {rest}
-        {showMark ? (
-          <span className="ml-[0.28em] text-fg">{locale === "zh" ? "？" : "?"}</span>
-        ) : null}
-        {!reducedMotion ? (
-          <span
-            aria-hidden="true"
-            className={`ml-0.5 inline-block h-[0.9em] w-0.5 translate-y-[0.08em] bg-accent ${
-              caret ? "opacity-100" : "opacity-0"
-            }`}
-          />
-        ) : null}
-      </span>
+      {align === "left" ? (
+        <span className="inline-flex max-w-full items-baseline whitespace-nowrap text-[1.55rem] font-medium sm:text-[1.85rem] lg:text-[2.15rem]">
+          <span className="text-accent">{strings.where}</span>
+          <span className="ml-[0.28em] font-normal text-fg">
+            {rest}
+            {showMark ? (
+              <span className="ml-[0.22em] text-fg">{locale === "zh" ? "？" : "?"}</span>
+            ) : null}
+            {!reducedMotion ? (
+              <span
+                aria-hidden="true"
+                className={`ml-0.5 inline-block h-[0.85em] w-0.5 translate-y-[0.08em] bg-accent ${
+                  caret ? "opacity-100" : "opacity-0"
+                }`}
+              />
+            ) : null}
+          </span>
+        </span>
+      ) : (
+        <>
+          <span className="text-[18vw] font-medium tracking-tight text-accent sm:text-8xl md:text-[7.2rem]">
+            {strings.where}
+          </span>
+          <span className="mt-2 block text-[6.6vw] font-normal text-fg sm:text-3xl md:mt-3 md:text-[2.2rem]">
+            {rest}
+            {showMark ? (
+              <span className="ml-[0.28em] text-fg">{locale === "zh" ? "？" : "?"}</span>
+            ) : null}
+            {!reducedMotion ? (
+              <span
+                aria-hidden="true"
+                className={`ml-0.5 inline-block h-[0.9em] w-0.5 translate-y-[0.08em] bg-accent ${
+                  caret ? "opacity-100" : "opacity-0"
+                }`}
+              />
+            ) : null}
+          </span>
+        </>
+      )}
     </h1>
   );
 }

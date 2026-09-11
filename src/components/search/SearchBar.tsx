@@ -89,7 +89,7 @@ export function SearchBar({ cities, countries, onSelect, className }: SearchBarP
   };
 
   return (
-    <div ref={rootRef} className={cn("relative mx-auto w-[min(92vw,40rem)]", className)}>
+    <div ref={rootRef} className={cn("relative mx-auto w-full max-w-[40rem]", className)}>
       <label htmlFor={inputId} className="sr-only">
         {strings.search}
       </label>

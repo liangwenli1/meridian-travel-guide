@@ -95,20 +95,30 @@ function Home() {
             <LanguageToggle />
           </header>
 
-          <div className="flex min-h-0 flex-1 flex-col md:flex-row">
-            <div className="relative z-20 flex w-full shrink-0 flex-col justify-center overflow-visible px-6 py-8 md:w-[28rem] md:pl-10 lg:w-[32rem] lg:pl-12">
+          <div className="relative min-h-0 flex-1">
+            <div className="globe-stage absolute inset-0 z-0 cursor-pointer overflow-hidden">
+              <Globe
+                reducedMotion={reduced}
+                cities={cities}
+                countries={countries}
+                onCitySelect={openCity}
+                globeRef={globeRef}
+                heroBand={false}
+              />
+            </div>
+            <div className="relative z-20 flex h-full w-full max-w-[42rem] flex-col justify-center px-6 py-8 md:pl-12 lg:pl-16">
               <TypingTitle reducedMotion={reduced} ready={ready} align="left" />
-              <div id="search" className="pointer-events-auto mt-6 w-full">
+              <div id="search" className="pointer-events-auto mt-6 w-full max-w-[38rem]">
                 <SearchBar
                   cities={cities}
                   countries={countries}
                   onSelect={openCity}
-                  className="mx-0 w-full"
+                  className="mx-0 w-full max-w-none"
                 />
               </div>
               <nav
                 aria-label="Published guides"
-                className="pointer-events-auto mt-7 grid grid-cols-2 gap-x-5 gap-y-1.5 md:grid-cols-4"
+                className="pointer-events-auto mt-7 grid w-full max-w-[38rem] grid-cols-2 gap-x-5 gap-y-1.5 md:grid-cols-4"
               >
                 {published.map((city) => (
                   <Button
@@ -122,17 +132,6 @@ function Home() {
                   </Button>
                 ))}
               </nav>
-            </div>
-
-            <div className="globe-stage relative z-0 min-h-[46vh] min-w-0 flex-1 cursor-pointer overflow-hidden md:pl-4 lg:pl-8">
-              <Globe
-                reducedMotion={reduced}
-                cities={cities}
-                countries={countries}
-                onCitySelect={openCity}
-                globeRef={globeRef}
-                heroBand={false}
-              />
             </div>
           </div>
 

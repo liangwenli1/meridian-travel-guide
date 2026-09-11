@@ -5,7 +5,7 @@ import type { City, Country } from "@/types/catalog";
 import { latLngToVector3 } from "./latlng";
 
 /** Bump this when the engine visual contract changes so <Globe> remounts on HMR. */
-export const GLOBE_ENGINE_REV = 27;
+export const GLOBE_ENGINE_REV = 29;
 
 export type GlobeLabel = {
   id: string;
@@ -601,7 +601,7 @@ export class GlobeEngine {
     const height = Math.max(1, this.frameEl.clientHeight || this.canvas.clientHeight || window.innerHeight);
     this.camera.aspect = width / height;
     if (width > 720) {
-      const shift = Math.round(width * 0.07);
+      const shift = Math.round(width * 0.18);
       this.camera.setViewOffset(width, height, -shift, 0, width, height);
     } else {
       this.camera.clearViewOffset();
