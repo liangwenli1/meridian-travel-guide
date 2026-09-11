@@ -37,6 +37,10 @@ export function ParticleWhere({
     let w = 1;
     let h = 1;
     let dpr = 1;
+    let glyphW = 1;
+    let glyphH = 1;
+    const padX = 48;
+    const padY = 90;
     let start = 0;
     let last = 0;
     const mouse = { x: -9999, y: -9999, down: false, inside: false };
@@ -87,15 +91,17 @@ export function ParticleWhere({
     const resize = () => {
       const next = sample();
       particles = next.pts;
-      w = next.width + 48 + 720;
-      h = next.height + 90 + 56;
+      glyphW = next.width;
+      glyphH = next.height;
+      w = next.width + padX + 720;
+      h = next.height + padY + 56;
       dpr = Math.min(2, window.devicePixelRatio || 1);
       canvas.width = Math.floor(w * dpr);
       canvas.height = Math.floor(h * dpr);
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
-      canvas.style.left = "-48px";
-      canvas.style.top = "-90px";
+      canvas.style.left = `-${padX}px`;
+      canvas.style.top = `-${padY}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
 
@@ -110,7 +116,12 @@ export function ParticleWhere({
       const p = localPoint(event);
       mouse.x = p.x;
       mouse.y = p.y;
-      mouse.inside = true;
+      const over =
+        p.x > padX - 28 &&
+        p.x < padX + glyphW + 28 &&
+        p.y > padY - 28 &&
+        p.y < padY + glyphH + 28;
+      mouse.inside = over || mouse.down;
     };
     const onDown = (event: PointerEvent) => {
       canvas.setPointerCapture(event.pointerId);
@@ -141,16 +152,20 @@ export function ParticleWhere({
       ctx.clearRect(0, 0, w, h);
       ctx.fillStyle = ACCENT;
       const formed = gather >= 1;
-      const radius = mouse.down ? 280 : mouse.inside ? 190 : 0;
-      const push = mouse.down ? 9800 : 4200;
-      const spring = mouse.down ? 0.55 : formed ? 2.05 : 32 + gather * 28;
-      const damp = mouse.down ? 0.985 : formed ? 0.965 : 0.78;
+      const active = mouse.inside || mouse.down;
+      const radius = mouse.down ? 78 : active ? 42 : 0;
+      const push = mouse.down ? 2600 : 720;
+      const spring = mouse.down ? 3.2 : formed ? 9.5 : 34 + gather * 24;
+      const damp = mouse.down ? 0.9 : 0.84;
 
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
-        const tremble = 0.4 + (mouse.inside ? 1.1 : 0);
-        const tx = p.hx + Math.sin(t * 7.6 + p.phase) * tremble;
-        const ty = p.hy + Math.cos(t * 6.2 + p.phase) * tremble * 0.8;
+        const mdx = p.hx - mouse.x;
+        const mdy = p.hy - mouse.y;
+        const near = active && mdx * mdx + mdy * mdy < 52 * 52;
+        const tremble = 0.22 + (near ? 0.28 : 0);
+        const tx = p.hx + Math.sin(t * 5.4 + p.phase) * tremble;
+        const ty = p.hy + Math.cos(t * 4.6 + p.phase) * tremble * 0.75;
         let ax = (tx - p.x) * spring;
         let ay = (ty - p.y) * spring;
         if (radius > 0) {
@@ -163,8 +178,6 @@ export function ParticleWhere({
             const f = (push * falloff * falloff) / d;
             ax += dx * f;
             ay += dy * f;
-            ax += falloff * (mouse.down ? 1400 : 420);
-            ay += falloff * (Math.sin(p.phase) * (mouse.down ? 900 : 240));
           }
         }
         p.vx = (p.vx + ax * dt) * damp;

@@ -234,9 +234,9 @@
 }
 
 .hero-ask-rest {
-  margin-left: 0.42em;
+  margin-left: 0.95em;
   flex-shrink: 0;
-  font-size: clamp(1.35rem, 5.45cqi, 2.65rem);
+  font-size: clamp(1.6rem, 6.4cqi, 3.15rem);
   font-weight: 400;
   color: var(--color-fg);
   line-height: 1;
