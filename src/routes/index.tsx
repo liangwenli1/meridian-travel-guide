@@ -6,7 +6,6 @@ import { Atlas } from "@/components/home/Atlas";
 import { TypingTitle } from "@/components/hero/TypingTitle";
 import { SearchBar } from "@/components/search/SearchBar";
 import { LanguageToggle } from "@/components/site/LanguageToggle";
-import { Button } from "@/components/ui/Button";
 import { t, useI18n } from "@/lib/i18n";
 import { usePrefersReducedMotion } from "@/lib/motion";
 import { getHomeCatalog } from "@/lib/server/catalog";
@@ -108,7 +107,7 @@ function Home() {
             </div>
             <div className="relative z-20 flex h-full w-full max-w-[46rem] flex-col justify-center px-6 py-8 md:pl-12 lg:pl-16">
               <TypingTitle reducedMotion={reduced} ready={ready} align="left" />
-              <div id="search" className="pointer-events-auto mt-6 w-full">
+              <div id="search" className="pointer-events-auto mt-12 w-full">
                 <SearchBar
                   cities={cities}
                   countries={countries}
@@ -116,22 +115,6 @@ function Home() {
                   className="mx-0 w-full max-w-none"
                 />
               </div>
-              <nav
-                aria-label="Published guides"
-                className="pointer-events-auto mt-7 grid w-full grid-cols-2 gap-x-5 gap-y-1.5 md:grid-cols-4"
-              >
-                {published.map((city) => (
-                  <Button
-                    key={city.id}
-                    type="button"
-                    variant="ghost"
-                    className="h-auto justify-start px-0 text-left text-sm font-medium"
-                    onClick={() => void openCity(city)}
-                  >
-                    {city.name}
-                  </Button>
-                ))}
-              </nav>
             </div>
           </div>
 

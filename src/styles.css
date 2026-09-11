@@ -225,7 +225,7 @@
 }
 
 .hero-ask-where {
-  font-size: clamp(2.5rem, 11.4cqi, 5.1rem);
+  font-size: clamp(2.85rem, 13.2cqi, 5.85rem);
   font-weight: 500;
   color: var(--color-accent);
   line-height: 0.95;
