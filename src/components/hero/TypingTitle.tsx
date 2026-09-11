@@ -5,6 +5,11 @@ import { ParticleWhere } from "./ParticleWhere";
 
 type Phase = "typing" | "hold" | "deleting";
 
+/** Cities the particle headline cycles through before the plane takes off. */
+const HEADLINE_CITIES = ["Tokyo", "Paris", "London", "New York"] as const;
+
+const hasCjk = (value: string) => /[\u3400-\u9fff]/.test(value);
+
 type TypingTitleProps = {
   reducedMotion: boolean;
   ready: boolean;
@@ -15,6 +20,7 @@ export function TypingTitle({ reducedMotion, ready, align = "center" }: TypingTi
   const locale = useI18n((s) => s.locale);
   const strings = t(locale);
   const restFull = strings.rest;
+  const mark = hasCjk(restFull) ? "？" : "?";
   const [rest, setRest] = useState(reducedMotion ? restFull : "");
   const [showMark, setShowMark] = useState(reducedMotion);
   const [caret, setCaret] = useState(true);
@@ -89,16 +95,18 @@ export function TypingTitle({ reducedMotion, ready, align = "center" }: TypingTi
     >
       {align === "left" ? (
         <span className="hero-ask">
-          <ParticleWhere text={strings.where} reducedMotion={reducedMotion} />
+          <ParticleWhere
+            text={strings.where}
+            cities={HEADLINE_CITIES}
+            reducedMotion={reducedMotion}
+          />
           <span className="hero-ask-rest">
             {rest}
-            {showMark ? (
-              <span className="ml-[0.22em] text-fg">{locale === "zh" ? "？" : "?"}</span>
-            ) : null}
+            {showMark ? <span className="text-fg">{mark}</span> : null}
             {!reducedMotion ? (
               <span
                 aria-hidden="true"
-                className={`ml-0.5 inline-block h-[0.85em] w-0.5 translate-y-[0.08em] bg-accent ${
+                className={`ml-1 inline-block h-[0.85em] w-0.5 translate-y-[0.08em] bg-accent ${
                   caret ? "opacity-100" : "opacity-0"
                 }`}
               />
@@ -112,9 +120,7 @@ export function TypingTitle({ reducedMotion, ready, align = "center" }: TypingTi
           </span>
           <span className="mt-2 block text-[6.6vw] font-normal text-fg sm:text-3xl md:mt-3 md:text-[2.2rem]">
             {rest}
-            {showMark ? (
-              <span className="ml-[0.28em] text-fg">{locale === "zh" ? "？" : "?"}</span>
-            ) : null}
+            {showMark ? <span className="text-fg">{mark}</span> : null}
             {!reducedMotion ? (
               <span
                 aria-hidden="true"
