@@ -216,6 +216,29 @@
   animation: page-enter 420ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+.hero-ask {
+  display: flex;
+  width: 100%;
+  align-items: baseline;
+  white-space: nowrap;
+  letter-spacing: -0.03em;
+}
+
+.hero-ask-where {
+  font-size: clamp(2.5rem, 11.4cqi, 5.1rem);
+  font-weight: 500;
+  color: var(--color-accent);
+  line-height: 0.95;
+}
+
+.hero-ask-rest {
+  margin-left: 0.3em;
+  font-size: clamp(1.35rem, 5.45cqi, 2.65rem);
+  font-weight: 400;
+  color: var(--color-fg);
+  line-height: 1;
+}
+
 .guide-shell {
   width: 100%;
   max-width: 90rem;

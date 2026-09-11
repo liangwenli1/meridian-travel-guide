@@ -106,9 +106,9 @@ function Home() {
                 heroBand={false}
               />
             </div>
-            <div className="relative z-20 flex h-full w-full max-w-[48rem] flex-col justify-center px-6 py-8 md:pl-12 lg:pl-16">
+            <div className="relative z-20 flex h-full w-full max-w-[46rem] flex-col justify-center px-6 py-8 md:pl-12 lg:pl-16">
               <TypingTitle reducedMotion={reduced} ready={ready} align="left" />
-              <div id="search" className="pointer-events-auto mt-6 w-full max-w-[46rem]">
+              <div id="search" className="pointer-events-auto mt-6 w-full">
                 <SearchBar
                   cities={cities}
                   countries={countries}
@@ -118,7 +118,7 @@ function Home() {
               </div>
               <nav
                 aria-label="Published guides"
-                className="pointer-events-auto mt-7 grid w-full max-w-[46rem] grid-cols-2 gap-x-5 gap-y-1.5 md:grid-cols-4"
+                className="pointer-events-auto mt-7 grid w-full grid-cols-2 gap-x-5 gap-y-1.5 md:grid-cols-4"
               >
                 {published.map((city) => (
                   <Button

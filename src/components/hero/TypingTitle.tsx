@@ -82,16 +82,14 @@ export function TypingTitle({ reducedMotion, ready, align = "center" }: TypingTi
     <h1
       className={
         align === "left"
-          ? "text-left tracking-[-0.03em]"
+          ? "@container w-full text-left tracking-[-0.03em]"
           : "max-w-[16ch] text-center leading-[0.95] tracking-[-0.04em] md:max-w-none"
       }
     >
       {align === "left" ? (
-        <span className="inline-flex max-w-full items-baseline whitespace-nowrap tracking-tight">
-          <span className="text-[2.95rem] font-medium text-accent sm:text-[3.5rem] lg:text-[4.2rem]">
-            {strings.where}
-          </span>
-          <span className="ml-[0.32em] text-[1.55rem] font-normal text-fg sm:text-[1.85rem] lg:text-[2.2rem]">
+        <span className="hero-ask">
+          <span className="hero-ask-where">{strings.where}</span>
+          <span className="hero-ask-rest">
             {rest}
             {showMark ? (
               <span className="ml-[0.22em] text-fg">{locale === "zh" ? "？" : "?"}</span>
