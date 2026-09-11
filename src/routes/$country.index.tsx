@@ -1,6 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { AmbientParticles } from "@/components/fx/AmbientParticles";
 import { SiteFooter } from "@/components/site/SiteFooter";
+import { SiteHeader } from "@/components/site/SiteHeader";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Grid } from "@/components/ui/Grid";
@@ -31,14 +32,7 @@ function CountryPage() {
     <main className="page-enter relative min-h-dvh bg-void text-fg">
       <AmbientParticles />
       <div className="relative z-10">
-        <header className="flex items-center justify-between px-4 py-5 md:px-8">
-          <Link to="/" className="text-sm text-muted hover:text-fg">
-            {t(locale).globe}
-          </Link>
-          <Link to="/" className="text-lg font-medium tracking-tight">
-            {SITE.name}
-          </Link>
-        </header>
+        <SiteHeader />
         <div className="mx-auto max-w-3xl px-4 py-12 md:px-8">
           <p className="kicker text-accent">{t(locale).country}</p>
           <h1 className="mt-2 text-5xl font-medium tracking-tight">{countryName}</h1>

@@ -11,8 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CountryRouteImport } from './routes/$country'
+import { Route as AccountRouteImport } from './routes/account'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as PassRouteImport } from './routes/pass'
 import { Route as CountryIndexRouteImport } from './routes/$country.index'
 import { Route as CountryCityRouteImport } from './routes/$country.$city'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,6 +26,21 @@ const IndexRoute = IndexRouteImport.update({
 const CountryRoute = CountryRouteImport.update({
   id: '/$country',
   path: '/$country',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountRoute = AccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PassRoute = PassRouteImport.update({
+  id: '/pass',
+  path: '/pass',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CountryIndexRoute = CountryIndexRouteImport.update({
@@ -34,36 +53,81 @@ const CountryCityRoute = CountryCityRouteImport.update({
   path: '/$city',
   getParentRoute: () => CountryRoute,
 } as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$country': typeof CountryRouteWithChildren
+  '/account': typeof AccountRoute
+  '/login': typeof LoginRoute
+  '/pass': typeof PassRoute
   '/$country/$city': typeof CountryCityRoute
   '/$country/': typeof CountryIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
+  '/login': typeof LoginRoute
+  '/pass': typeof PassRoute
   '/$country/$city': typeof CountryCityRoute
   '/$country': typeof CountryIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$country': typeof CountryRouteWithChildren
+  '/account': typeof AccountRoute
+  '/login': typeof LoginRoute
+  '/pass': typeof PassRoute
   '/$country/$city': typeof CountryCityRoute
   '/$country/': typeof CountryIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/$country' | '/$country/$city' | '/$country/'
+  fullPaths:
+    | '/'
+    | '/$country'
+    | '/account'
+    | '/login'
+    | '/pass'
+    | '/$country/$city'
+    | '/$country/'
+    | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$country/$city' | '/$country'
-  id: '__root__' | '/' | '/$country' | '/$country/$city' | '/$country/'
+  to:
+    | '/'
+    | '/account'
+    | '/login'
+    | '/pass'
+    | '/$country/$city'
+    | '/$country'
+    | '/api/auth/$'
+  id:
+    | '__root__'
+    | '/'
+    | '/$country'
+    | '/account'
+    | '/login'
+    | '/pass'
+    | '/$country/$city'
+    | '/$country/'
+    | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CountryRoute: typeof CountryRouteWithChildren
+  AccountRoute: typeof AccountRoute
+  LoginRoute: typeof LoginRoute
+  PassRoute: typeof PassRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +146,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CountryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pass': {
+      id: '/pass'
+      path: '/pass'
+      fullPath: '/pass'
+      preLoaderRoute: typeof PassRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$country/': {
       id: '/$country/'
       path: '/'
@@ -95,6 +180,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/$country/$city'
       preLoaderRoute: typeof CountryCityRouteImport
       parentRoute: typeof CountryRoute
+    }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -115,6 +207,10 @@ const CountryRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CountryRoute: CountryRouteWithChildren,
+  AccountRoute: AccountRoute,
+  LoginRoute: LoginRoute,
+  PassRoute: PassRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

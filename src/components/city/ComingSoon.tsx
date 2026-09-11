@@ -1,12 +1,9 @@
-import { Link } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
+import type { City } from "@/types/catalog";
 import { AmbientParticles } from "@/components/fx/AmbientParticles";
 import { SiteFooter } from "@/components/site/SiteFooter";
-import { Button } from "@/components/ui/Button";
+import { SiteHeader } from "@/components/site/SiteHeader";
 import { StatCell, StatGrid } from "@/components/ui/Grid";
 import { t, useI18n } from "@/lib/i18n";
-import { SITE } from "@/lib/site";
-import type { City } from "@/types/catalog";
 
 export function ComingSoon({ city }: { city: City }) {
   const locale = useI18n((s) => s.locale);
@@ -14,17 +11,7 @@ export function ComingSoon({ city }: { city: City }) {
     <main className="page-enter relative min-h-dvh bg-void text-fg">
       <AmbientParticles />
       <div className="relative z-10">
-        <header className="flex items-center justify-between px-4 py-5 md:px-8">
-          <Button asChild variant="ghost" size="sm">
-            <Link to="/">
-              <ArrowLeft className="size-4" />
-              {t(locale).globe}
-            </Link>
-          </Button>
-          <Link to="/" className="text-lg font-medium tracking-tight">
-            {SITE.name}
-          </Link>
-        </header>
+        <SiteHeader />
         <div className="mx-auto max-w-2xl px-4 py-16 md:px-8">
           <p className="kicker text-accent">
             {city.country} · {t(locale).comingSoon}

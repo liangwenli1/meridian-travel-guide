@@ -1,11 +1,19 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { SITE } from "@/lib/site";
 import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 
+const fetchSessionUser = createServerFn({ method: "GET" }).handler(async () => {
+  const { getSessionUser } = await import("@/lib/auth/verify.server");
+  const user = await getSessionUser();
+  return user ? { id: user.id, email: user.email } : null;
+});
+
 export const Route = createRootRoute({
+  beforeLoad: async () => ({ sessionUser: await fetchSessionUser() }),
   head: () => ({
     meta: [
       { charSet: "utf-8" },

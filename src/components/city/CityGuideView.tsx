@@ -1,8 +1,7 @@
 import { Link, useSearch } from "@tanstack/react-router";
-import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import type { City } from "@/types/catalog";
 import type { CityGuide } from "@/types/guide";
-import { SITE } from "@/lib/site";
 import { t, useI18n } from "@/lib/i18n";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -11,6 +10,7 @@ import { Grid, StatCell, StatGrid } from "@/components/ui/Grid";
 import { Table, THead, Th, Tr, Td } from "@/components/ui/Table";
 import { AmbientParticles } from "@/components/fx/AmbientParticles";
 import { SiteFooter } from "@/components/site/SiteFooter";
+import { SiteHeader } from "@/components/site/SiteHeader";
 import { BudgetChart } from "./BudgetChart";
 import { Callout } from "./callouts";
 import { JsonLd } from "./JsonLd";
@@ -65,17 +65,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
       <AmbientParticles />
       <JsonLd city={city} guide={guide} />
       <div className="relative z-10">
-      <header className="absolute top-0 right-0 left-0 z-20 flex items-center justify-between px-4 py-4 text-fg md:px-8">
-        <Button asChild variant="outline" size="sm">
-          <Link to="/">
-            <ArrowLeft className="size-4" strokeWidth={1.75} />
-            {t(locale).globe}
-          </Link>
-        </Button>
-        <Link to="/" className="text-lg font-medium tracking-tight text-fg">
-          {SITE.name}
-        </Link>
-      </header>
+      <SiteHeader overlay className="px-4 md:px-8" />
 
       <section className="relative isolate min-h-[72vh] overflow-hidden">
         <img

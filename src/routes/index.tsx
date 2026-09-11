@@ -5,7 +5,7 @@ import { Globe, type GlobeHandle } from "@/components/globe/Globe";
 import { Atlas } from "@/components/home/Atlas";
 import { TypingTitle } from "@/components/hero/TypingTitle";
 import { SearchBar } from "@/components/search/SearchBar";
-import { LanguageToggle } from "@/components/site/LanguageToggle";
+import { SiteHeader } from "@/components/site/SiteHeader";
 import { t, useI18n } from "@/lib/i18n";
 import { usePrefersReducedMotion } from "@/lib/motion";
 import { getHomeCatalog } from "@/lib/server/catalog";
@@ -90,10 +90,7 @@ function Home() {
           }`}
         >
           <div id="hero-fx" className="pointer-events-none absolute inset-0 z-10" aria-hidden="true" />
-          <header className="relative z-20 flex items-center justify-between gap-3 px-6 py-4 md:px-12 lg:px-16">
-            <p className="text-xl font-medium tracking-tight text-fg">{SITE.name}</p>
-            <LanguageToggle />
-          </header>
+          <SiteHeader />
 
           <div className="relative min-h-0 flex-1">
             <div className="globe-stage absolute inset-0 z-0 cursor-pointer overflow-hidden">

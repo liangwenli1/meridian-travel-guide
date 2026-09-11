@@ -38,8 +38,13 @@ export function SiteFooter() {
               </li>
             ))}
             <li>
-              <Link to="/" className="text-sm text-fg/80 transition-colors hover:text-accent">
-                {t(locale).globe}
+              <Link to="/pass" className="text-sm text-fg/80 transition-colors hover:text-accent">
+                {t(locale).passTitle}
+              </Link>
+            </li>
+            <li>
+              <Link to="/login" className="text-sm text-fg/80 transition-colors hover:text-accent">
+                {t(locale).signIn}
               </Link>
             </li>
           </ul>

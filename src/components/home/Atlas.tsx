@@ -127,13 +127,11 @@ export function Atlas({ published }: { published: City[] }) {
             <div className="rounded-2xl bg-void-elevated p-6 shadow-border">
               <p className="text-sm font-medium text-fg">{strings.passTitle}</p>
               <p className="mt-2 text-sm leading-relaxed text-muted">{strings.passDek}</p>
-              <Button
-                type="button"
-                className="mt-5"
-                onClick={() => document.getElementById("letter-email")?.focus()}
-              >
-                {strings.passCta}
-                <ArrowRight className="size-4" strokeWidth={1.75} />
+              <Button asChild className="mt-5">
+                <Link to="/pass">
+                  {strings.passCta}
+                  <ArrowRight className="size-4" strokeWidth={1.75} />
+                </Link>
               </Button>
             </div>
           </div>
