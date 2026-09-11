@@ -29,9 +29,9 @@ services:
       HOST: 0.0.0.0
       PORT: 3000
       VITE_AUTH_ENABLED: "true"
-      CONFIG_PATH: /app/config.json
+      CONFIG_PATH: /opt/meridian/config.json
     volumes:
-      - ./config.json:/app/config.json:ro
+      - /opt/meridian:/opt/meridian:ro
     healthcheck:
       test:
         [

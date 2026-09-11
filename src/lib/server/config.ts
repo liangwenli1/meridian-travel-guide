@@ -24,9 +24,9 @@ export type SiteConfig = {
 };
 
 const FALLBACK: SiteConfig = {
-  site: { origin: "https://tapzm.com", port: 3000 },
+  site: { origin: "https://CHANGE_ME_DOMAIN", port: 3000 },
   admin: {
-    email: "admin@tapzm.com",
+    email: "CHANGE_ME_ADMIN_EMAIL",
     password: "CHANGE_ME_ADMIN_PASSWORD",
     name: "Meridian Desk",
   },
@@ -43,9 +43,9 @@ const FALLBACK: SiteConfig = {
     port: 465,
     username: "resend",
     password: "CHANGE_ME_RESEND_API_KEY",
-    fromEmail: "hello@tapzm.com",
+    fromEmail: "CHANGE_ME_FROM_EMAIL",
     fromName: "Meridian",
-    inbox: "hello@tapzm.com",
+    inbox: "CHANGE_ME_INBOX_EMAIL",
   },
 };
 
