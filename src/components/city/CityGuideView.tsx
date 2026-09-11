@@ -18,6 +18,12 @@ import { PhotoStrip } from "./PhotoStrip";
 import { Section } from "./Section";
 import { StickyNav } from "./StickyNav";
 import { LetterForm } from "@/components/letter/LetterForm";
+import { PassGate } from "@/components/pass/PassGate";
+import { getMembership } from "@/lib/server/membership";
+import { downloadPassItinerary } from "@/lib/server/pass-locker";
+import { useCurrentUserState } from "@/lib/auth/use-current-user";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 const TIER_LABEL: Record<CityGuide["attractions"][number]["tier"], string> = {
   essential: "Essential",
@@ -37,7 +43,41 @@ const TIER_VARIANT: Record<CityGuide["attractions"][number]["tier"], "accent" | 
 
 export function CityGuideView({ city, guide }: { city: City; guide: CityGuide }) {
   const locale = useI18n((s) => s.locale);
+  const strings = t(locale);
   const section = useSearch({ from: "/$country/$city" }).s ?? "overview";
+  const { user, isPending: authPending } = useCurrentUserState();
+  const [passActive, setPassActive] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+
+  useEffect(() => {
+    if (authPending || !user) {
+      setPassActive(false);
+      return;
+    }
+    void getMembership()
+      .then((m) => setPassActive(m?.status === "active"))
+      .catch(() => setPassActive(false));
+  }, [authPending, user]);
+
+  const downloadTokyoMd = async () => {
+    setDownloading(true);
+    try {
+      const file = await downloadPassItinerary();
+      const blob = new Blob([file.markdown], { type: "text/markdown;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = file.filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error(strings.passDownloadFailed);
+    } finally {
+      setDownloading(false);
+    }
+  };
   const snapshotEntries = [
     ["Country", guide.snapshot.country],
     ["Language", guide.snapshot.languages],
@@ -679,6 +719,20 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
       </Section>
 
       <Section id="itinerary" show={section === "itinerary"} eyebrow="Time" title="Suggested itineraries">
+        {guide.citySlug === "tokyo" ? (
+          <div className="mb-6">
+            <PassGate active={passActive} teaserTitle={strings.passTeaserShort}>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={downloading}
+                onClick={() => void downloadTokyoMd()}
+              >
+                {downloading ? strings.passDownloading : strings.passDownloadItinerary}
+              </Button>
+            </PassGate>
+          </div>
+        ) : null}
         <Grid min="md" className="mb-6">
           {guide.timePlanning.map((item) => (
             <Card key={item.title} padding="sm">
