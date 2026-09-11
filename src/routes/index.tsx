@@ -89,6 +89,7 @@ function Home() {
             leaving ? "translate-y-2 opacity-0 blur-sm" : "opacity-100"
           }`}
         >
+          <div id="hero-fx" className="pointer-events-none absolute inset-0 z-10" aria-hidden="true" />
           <header className="relative z-20 flex items-center justify-between gap-3 px-6 py-4 md:px-12 lg:px-16">
             <p className="text-xl font-medium tracking-tight text-fg">{SITE.name}</p>
             <LanguageToggle />
@@ -107,7 +108,7 @@ function Home() {
             </div>
             <div className="relative z-20 flex h-full w-full max-w-[46rem] flex-col justify-center overflow-visible px-6 py-8 md:pl-12 lg:pl-16">
               <TypingTitle reducedMotion={reduced} ready={ready} align="left" />
-              <div id="search" className="pointer-events-auto mt-20 w-full">
+              <div id="search" className="pointer-events-auto mt-12 w-full md:mt-14">
                 <SearchBar
                   cities={cities}
                   countries={countries}
