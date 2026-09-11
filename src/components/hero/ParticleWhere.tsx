@@ -86,10 +86,11 @@ vec3 rotY(vec3 p, float a) { float c = cos(a); float s = sin(a); return vec3(c*p
 vec3 rotZ(vec3 p, float a) { float c = cos(a); float s = sin(a); return vec3(c*p.x - s*p.y, s*p.x + c*p.y, p.z); }
 
 vec3 ribbonCenter(float t) {
-  float x = mix(-uHalfW * 0.92, uHalfW * (1.55 * uRibbonLength + 0.35), t);
-  float y = sin(t * 3.14159265 * 1.55 + 0.12) * uHalfH * 0.48 * uRibbonWave;
-  y += sin(t * 3.14159265 * 3.05 + 0.6) * uHalfH * 0.16 * uRibbonWave;
-  float z = sin(t * 3.14159265 * 1.7 + 0.2) * uHalfH * 0.7 * uRibbonDepth;
+  float x = mix(-uHalfW * 0.55, uHalfW * 0.7, t);
+  x += sin(t * 6.2831853 * 0.85) * uHalfW * 0.22 * uRibbonWave;
+  float y = mix(uHalfH * 0.15, uHalfH * (2.55 * uRibbonLength + 0.35), t);
+  y += sin(t * 3.14159265 * 2.1 + 0.2) * uHalfH * 0.28 * uRibbonWave;
+  float z = sin(t * 3.14159265 * 1.55 + 0.15) * uHalfH * 0.72 * uRibbonDepth;
   return vec3(x, y, z);
 }
 
@@ -103,32 +104,32 @@ void main() {
   vec3 pos = home;
 
   float wave = uCurl * live;
-  pos.y += sin(home.x * 0.032 + uTime * 1.15) * uHalfH * 0.1 * wave;
-  pos.z += sin(home.x * 0.022 + ny * 1.4) * 6.5 * wave;
-  pos = rotY(pos, wave * nx * 0.16);
-  pos = rotX(pos, wave * ny * 0.07);
-  pos += vec3(n1 - 0.5, noise(vec3(aSeed, home.yx * 0.04)) - 0.5, 0.0) * 0.22 * wave;
+  pos.y += wave * uHalfH * (0.18 + (nx * 0.5 + 0.5) * 0.35);
+  pos.y += sin(home.x * 0.03 + uTime * 1.1) * uHalfH * 0.08 * wave;
+  pos.z += sin(home.x * 0.02 + ny * 1.3) * 6.0 * wave;
+  pos = rotX(pos, wave * -0.18);
+  pos += vec3(n1 - 0.5, noise(vec3(aSeed, home.yx * 0.04)) - 0.5, 0.0) * 0.2 * wave;
 
   float st = uStretch * live;
-  pos.x += st * uHalfW * (0.12 + max(0.0, nx) * 0.5);
-  pos.y *= mix(1.0, 0.36, st);
+  pos.y += st * uHalfH * (0.35 + (nx * 0.5 + 0.5) * 1.05);
+  pos.x *= mix(1.0, 0.72, st);
   pos.z += st * ny * 4.0;
 
   float rb = pow(clamp(uRibbon, 0.0, 1.0), 0.82) * live;
-  float t = clamp(0.06 + (nx * 0.5 + 0.5) * 0.86 + aFlowOffset * 0.06, 0.001, 0.999);
+  float t = clamp(0.05 + (nx * 0.5 + 0.5) * 0.88 + aFlowOffset * 0.05, 0.001, 0.999);
   vec3 c0 = ribbonCenter(max(0.001, t - 0.008));
   vec3 c1 = ribbonCenter(min(0.999, t + 0.008));
   vec3 center = ribbonCenter(t);
   vec3 tangent = normalize(c1 - c0);
-  vec3 up = abs(tangent.y) > 0.92 ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 1.0, 0.0);
-  vec3 normal = normalize(cross(tangent, up));
+  vec3 side = abs(tangent.x) > 0.92 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
+  vec3 normal = normalize(cross(tangent, side));
   vec3 binormal = normalize(cross(normal, tangent));
-  float thick = mix(uHalfH * 0.85, uHalfH * 0.17, rb);
-  vec3 rib = center + binormal * ny * thick + normal * (aSeed - 0.5) * 2.2;
-  rib += tangent * aEdge * 4.0 * (aFlowOffset - 0.5);
+  float thick = mix(uHalfH * 0.7, uHalfH * 0.16, rb);
+  vec3 rib = center + binormal * ny * thick + normal * (aSeed - 0.5) * 2.1;
+  rib += tangent * aEdge * 3.5 * (aFlowOffset - 0.5);
   pos = mix(pos, rib, rb);
 
-  pos += tangent * aEdge * uCloud * uCloudStrength * live * 7.0;
+  pos += tangent * aEdge * uCloud * uCloudStrength * live * 6.0;
 
   pos = mix(pos, home, uReturn);
 
@@ -138,8 +139,8 @@ void main() {
   pos.z += fall * fall * 2.6 * uPointerStrength * live * (1.0 - rb * 0.7);
   pos.xy += normalize(md + 1e-4) * fall * fall * 2.4 * uPointerStrength * live * (1.0 - uReturn);
 
-  pos.x = clamp(pos.x, -uHalfW * 1.02, uHalfW * 1.95);
-  pos.y = clamp(pos.y, -uHalfH * 1.12, uHalfH * 1.15);
+  pos.x = clamp(pos.x, -uHalfW * 1.06, uHalfW * 1.2);
+  pos.y = clamp(pos.y, -uHalfH * 0.92, uHalfH * 2.85);
   pos = mix(pos, home, uFinalLock);
 
   vec4 mv = modelViewMatrix * vec4(pos, 1.0);
@@ -383,8 +384,11 @@ export function ParticleWhere({
       camera.position.set(0, 0, dist);
       camera.updateProjectionMatrix();
       if (points) {
-        const mw = Math.max(1, measure.offsetWidth);
-        points.position.set(mw * 0.5 - w * 0.5, 0, 0);
+        const measureBox = measure.getBoundingClientRect();
+        const stageBox = stage.getBoundingClientRect();
+        const originX = measureBox.left + measureBox.width * 0.5 - (stageBox.left + stageBox.width * 0.5);
+        const originY = stageBox.top + stageBox.height * 0.5 - (measureBox.top + measureBox.height * 0.5);
+        points.position.set(originX, originY, 0);
       }
       if (material) {
         material.uniforms.uCameraZ.value = dist;

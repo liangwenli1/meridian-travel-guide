@@ -218,10 +218,10 @@
 
 .hero-ask {
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   width: 100%;
-  align-items: baseline;
-  flex-wrap: nowrap;
-  white-space: nowrap;
+  gap: 0.08em;
   letter-spacing: -0.03em;
   overflow: visible;
 }
@@ -230,10 +230,10 @@
   position: relative;
   display: inline-block;
   overflow: visible;
-  font-size: clamp(3.15rem, 16.2cqi, 7.2rem);
+  font-size: clamp(4.6rem, 22cqi, 9.4rem);
   font-weight: 500;
   color: var(--color-accent);
-  line-height: 0.95;
+  line-height: 0.88;
 }
 
 .hero-ask-measure {
@@ -248,14 +248,16 @@
 
 .hero-ask-stage {
   position: absolute;
-  left: 0;
-  top: 50%;
+  left: -4%;
+  right: auto;
+  top: auto;
+  bottom: -10%;
   z-index: 1;
-  width: 360%;
-  height: 220%;
+  width: 150%;
+  height: 320%;
   overflow: visible;
   pointer-events: none;
-  transform: translate(0, -50%);
+  transform: none;
 }
 
 .hero-ask-stage canvas {
@@ -267,12 +269,13 @@
 .hero-ask-rest {
   position: relative;
   z-index: 2;
-  margin-left: 0.28em;
+  margin-left: 0.02em;
   flex-shrink: 0;
-  font-size: clamp(1.6rem, 6.4cqi, 3.15rem);
+  font-size: clamp(1.7rem, 6.6cqi, 3.2rem);
   font-weight: 400;
   color: var(--color-fg);
   line-height: 1;
+  white-space: nowrap;
 }
 
 .guide-shell {
