@@ -1,0 +1,29 @@
+{
+  "site": {
+    "origin": "https://tapzm.com",
+    "port": 3000
+  },
+  "admin": {
+    "email": "admin@tapzm.com",
+    "password": "CHANGE_ME_ADMIN_PASSWORD",
+    "name": "Meridian Desk"
+  },
+  "auth": {
+    "secret": "CHANGE_ME_BETTER_AUTH_SECRET_32_CHARS_MIN"
+  },
+  "database": {
+    "host": "db",
+    "port": 5432,
+    "name": "meridian",
+    "user": "meridian",
+    "password": "CHANGE_ME_POSTGRES_PASSWORD"
+  },
+  "smtp": {
+    "host": "smtp.resend.com",
+    "port": 465,
+    "username": "resend",
+    "password": "CHANGE_ME_RESEND_API_KEY",
+    "fromEmail": "hello@tapzm.com",
+    "fromName": "Meridian"
+  }
+}

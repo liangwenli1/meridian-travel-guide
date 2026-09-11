@@ -7,6 +7,8 @@ import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 
 const fetchSessionUser = createServerFn({ method: "GET" }).handler(async () => {
+  const { ensureBuiltInAdmin } = await import("@/lib/server/seed-admin");
+  await ensureBuiltInAdmin();
   const { getSessionUser } = await import("@/lib/auth/verify.server");
   const user = await getSessionUser();
   return user ? { id: user.id, email: user.email } : null;

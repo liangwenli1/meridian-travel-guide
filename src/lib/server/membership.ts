@@ -40,36 +40,3 @@ export const getMembership = createServerFn({ method: "GET" })
     const row = rows[0];
     return row ? toMembership(row) : null;
   });
-
-export const startFieldPass = createServerFn({ method: "POST" })
-  .middleware([authMiddleware])
-  .handler(async ({ context }): Promise<Membership> => {
-    const { getSql } = await import("@/lib/db");
-    const sql = await getSql();
-    const existing = await sql.query<MembershipRow>(MEMBERSHIP_SELECT, [context.userId]);
-    if (existing[0]?.status === "active") {
-      return toMembership(existing[0]);
-    }
-    const expires = new Date();
-    expires.setUTCFullYear(expires.getUTCFullYear() + 1);
-    const expiresIso = expires.toISOString();
-    await sql`
-      insert into memberships (user_id, plan, status, started_at, expires_at)
-      values (
-        ${context.userId},
-        'field-pass',
-        'active',
-        now(),
-        ${expiresIso}::timestamptz
-      )
-      on conflict (user_id) do update
-      set plan = excluded.plan,
-          status = excluded.status,
-          started_at = excluded.started_at,
-          expires_at = excluded.expires_at
-    `;
-    const rows = await sql.query<MembershipRow>(MEMBERSHIP_SELECT, [context.userId]);
-    const row = rows[0];
-    if (!row) throw new Error("Could not start Field Pass");
-    return toMembership(row);
-  });

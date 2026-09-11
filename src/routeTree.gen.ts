@@ -12,11 +12,19 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CountryRouteImport } from './routes/$country'
 import { Route as AccountRouteImport } from './routes/account'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PassRouteImport } from './routes/pass'
+import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as CountryIndexRouteImport } from './routes/$country.index'
 import { Route as CountryCityRouteImport } from './routes/$country.$city'
+import { Route as PayOrderIdRouteImport } from './routes/pay.$orderId'
+import { Route as PayReturnRouteImport } from './routes/pay.return'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiPaymentWebhookAlipayRouteImport } from './routes/api/payment/webhook/alipay'
+import { Route as ApiPaymentWebhookEasypayRouteImport } from './routes/api/payment/webhook/easypay'
+import { Route as ApiPaymentWebhookStripeRouteImport } from './routes/api/payment/webhook/stripe'
+import { Route as ApiPaymentWebhookWxpayRouteImport } from './routes/api/payment/webhook/wxpay'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -33,6 +41,11 @@ const AccountRoute = AccountRouteImport.update({
   path: '/account',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -41,6 +54,11 @@ const LoginRoute = LoginRouteImport.update({
 const PassRoute = PassRouteImport.update({
   id: '/pass',
   path: '/pass',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerifyEmailRoute = VerifyEmailRouteImport.update({
+  id: '/verify-email',
+  path: '/verify-email',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CountryIndexRoute = CountryIndexRouteImport.update({
@@ -53,9 +71,40 @@ const CountryCityRoute = CountryCityRouteImport.update({
   path: '/$city',
   getParentRoute: () => CountryRoute,
 } as any)
+const PayOrderIdRoute = PayOrderIdRouteImport.update({
+  id: '/pay/$orderId',
+  path: '/pay/$orderId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PayReturnRoute = PayReturnRouteImport.update({
+  id: '/pay/return',
+  path: '/pay/return',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPaymentWebhookAlipayRoute = ApiPaymentWebhookAlipayRouteImport.update({
+  id: '/api/payment/webhook/alipay',
+  path: '/api/payment/webhook/alipay',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPaymentWebhookEasypayRoute =
+  ApiPaymentWebhookEasypayRouteImport.update({
+    id: '/api/payment/webhook/easypay',
+    path: '/api/payment/webhook/easypay',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPaymentWebhookStripeRoute = ApiPaymentWebhookStripeRouteImport.update({
+  id: '/api/payment/webhook/stripe',
+  path: '/api/payment/webhook/stripe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPaymentWebhookWxpayRoute = ApiPaymentWebhookWxpayRouteImport.update({
+  id: '/api/payment/webhook/wxpay',
+  path: '/api/payment/webhook/wxpay',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -63,31 +112,55 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$country': typeof CountryRouteWithChildren
   '/account': typeof AccountRoute
+  '/admin': typeof AdminRoute
   '/login': typeof LoginRoute
   '/pass': typeof PassRoute
+  '/verify-email': typeof VerifyEmailRoute
   '/$country/$city': typeof CountryCityRoute
+  '/pay/$orderId': typeof PayOrderIdRoute
+  '/pay/return': typeof PayReturnRoute
   '/$country/': typeof CountryIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/payment/webhook/alipay': typeof ApiPaymentWebhookAlipayRoute
+  '/api/payment/webhook/easypay': typeof ApiPaymentWebhookEasypayRoute
+  '/api/payment/webhook/stripe': typeof ApiPaymentWebhookStripeRoute
+  '/api/payment/webhook/wxpay': typeof ApiPaymentWebhookWxpayRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/admin': typeof AdminRoute
   '/login': typeof LoginRoute
   '/pass': typeof PassRoute
+  '/verify-email': typeof VerifyEmailRoute
   '/$country/$city': typeof CountryCityRoute
+  '/pay/$orderId': typeof PayOrderIdRoute
+  '/pay/return': typeof PayReturnRoute
   '/$country': typeof CountryIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/payment/webhook/alipay': typeof ApiPaymentWebhookAlipayRoute
+  '/api/payment/webhook/easypay': typeof ApiPaymentWebhookEasypayRoute
+  '/api/payment/webhook/stripe': typeof ApiPaymentWebhookStripeRoute
+  '/api/payment/webhook/wxpay': typeof ApiPaymentWebhookWxpayRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$country': typeof CountryRouteWithChildren
   '/account': typeof AccountRoute
+  '/admin': typeof AdminRoute
   '/login': typeof LoginRoute
   '/pass': typeof PassRoute
+  '/verify-email': typeof VerifyEmailRoute
   '/$country/$city': typeof CountryCityRoute
+  '/pay/$orderId': typeof PayOrderIdRoute
+  '/pay/return': typeof PayReturnRoute
   '/$country/': typeof CountryIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/payment/webhook/alipay': typeof ApiPaymentWebhookAlipayRoute
+  '/api/payment/webhook/easypay': typeof ApiPaymentWebhookEasypayRoute
+  '/api/payment/webhook/stripe': typeof ApiPaymentWebhookStripeRoute
+  '/api/payment/webhook/wxpay': typeof ApiPaymentWebhookWxpayRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -95,39 +168,71 @@ export interface FileRouteTypes {
     | '/'
     | '/$country'
     | '/account'
+    | '/admin'
     | '/login'
     | '/pass'
+    | '/verify-email'
     | '/$country/$city'
+    | '/pay/$orderId'
+    | '/pay/return'
     | '/$country/'
     | '/api/auth/$'
+    | '/api/payment/webhook/alipay'
+    | '/api/payment/webhook/easypay'
+    | '/api/payment/webhook/stripe'
+    | '/api/payment/webhook/wxpay'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/account'
+    | '/admin'
     | '/login'
     | '/pass'
+    | '/verify-email'
     | '/$country/$city'
+    | '/pay/$orderId'
+    | '/pay/return'
     | '/$country'
     | '/api/auth/$'
+    | '/api/payment/webhook/alipay'
+    | '/api/payment/webhook/easypay'
+    | '/api/payment/webhook/stripe'
+    | '/api/payment/webhook/wxpay'
   id:
     | '__root__'
     | '/'
     | '/$country'
     | '/account'
+    | '/admin'
     | '/login'
     | '/pass'
+    | '/verify-email'
     | '/$country/$city'
+    | '/pay/$orderId'
+    | '/pay/return'
     | '/$country/'
     | '/api/auth/$'
+    | '/api/payment/webhook/alipay'
+    | '/api/payment/webhook/easypay'
+    | '/api/payment/webhook/stripe'
+    | '/api/payment/webhook/wxpay'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CountryRoute: typeof CountryRouteWithChildren
   AccountRoute: typeof AccountRoute
+  AdminRoute: typeof AdminRoute
   LoginRoute: typeof LoginRoute
   PassRoute: typeof PassRoute
+  VerifyEmailRoute: typeof VerifyEmailRoute
+  PayOrderIdRoute: typeof PayOrderIdRoute
+  PayReturnRoute: typeof PayReturnRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiPaymentWebhookAlipayRoute: typeof ApiPaymentWebhookAlipayRoute
+  ApiPaymentWebhookEasypayRoute: typeof ApiPaymentWebhookEasypayRoute
+  ApiPaymentWebhookStripeRoute: typeof ApiPaymentWebhookStripeRoute
+  ApiPaymentWebhookWxpayRoute: typeof ApiPaymentWebhookWxpayRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -153,6 +258,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -165,6 +277,13 @@ declare module '@tanstack/react-router' {
       path: '/pass'
       fullPath: '/pass'
       preLoaderRoute: typeof PassRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verify-email': {
+      id: '/verify-email'
+      path: '/verify-email'
+      fullPath: '/verify-email'
+      preLoaderRoute: typeof VerifyEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$country/': {
@@ -181,11 +300,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CountryCityRouteImport
       parentRoute: typeof CountryRoute
     }
+    '/pay/$orderId': {
+      id: '/pay/$orderId'
+      path: '/pay/$orderId'
+      fullPath: '/pay/$orderId'
+      preLoaderRoute: typeof PayOrderIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pay/return': {
+      id: '/pay/return'
+      path: '/pay/return'
+      fullPath: '/pay/return'
+      preLoaderRoute: typeof PayReturnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/payment/webhook/alipay': {
+      id: '/api/payment/webhook/alipay'
+      path: '/api/payment/webhook/alipay'
+      fullPath: '/api/payment/webhook/alipay'
+      preLoaderRoute: typeof ApiPaymentWebhookAlipayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/payment/webhook/easypay': {
+      id: '/api/payment/webhook/easypay'
+      path: '/api/payment/webhook/easypay'
+      fullPath: '/api/payment/webhook/easypay'
+      preLoaderRoute: typeof ApiPaymentWebhookEasypayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/payment/webhook/stripe': {
+      id: '/api/payment/webhook/stripe'
+      path: '/api/payment/webhook/stripe'
+      fullPath: '/api/payment/webhook/stripe'
+      preLoaderRoute: typeof ApiPaymentWebhookStripeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/payment/webhook/wxpay': {
+      id: '/api/payment/webhook/wxpay'
+      path: '/api/payment/webhook/wxpay'
+      fullPath: '/api/payment/webhook/wxpay'
+      preLoaderRoute: typeof ApiPaymentWebhookWxpayRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -208,9 +369,17 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CountryRoute: CountryRouteWithChildren,
   AccountRoute: AccountRoute,
+  AdminRoute: AdminRoute,
   LoginRoute: LoginRoute,
   PassRoute: PassRoute,
+  VerifyEmailRoute: VerifyEmailRoute,
+  PayOrderIdRoute: PayOrderIdRoute,
+  PayReturnRoute: PayReturnRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiPaymentWebhookAlipayRoute: ApiPaymentWebhookAlipayRoute,
+  ApiPaymentWebhookEasypayRoute: ApiPaymentWebhookEasypayRoute,
+  ApiPaymentWebhookStripeRoute: ApiPaymentWebhookStripeRoute,
+  ApiPaymentWebhookWxpayRoute: ApiPaymentWebhookWxpayRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
