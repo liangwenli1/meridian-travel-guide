@@ -227,18 +227,46 @@
 }
 
 .hero-ask-where {
+  position: relative;
+  display: inline-block;
+  overflow: visible;
   font-size: clamp(3.15rem, 16.2cqi, 7.2rem);
   font-weight: 500;
   color: var(--color-accent);
   line-height: 0.95;
 }
 
+.hero-ask-measure {
+  visibility: hidden;
+  display: inline-block;
+}
+
+.hero-ask-stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 1;
+  width: 215%;
+  height: 275%;
+  overflow: hidden;
+  pointer-events: none;
+  transform: translate(-50%, -52%);
+}
+
+.hero-ask-stage canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .hero-ask-rest {
-  margin-left: 0.95em;
+  margin-left: 0.28em;
   flex-shrink: 0;
   font-size: clamp(1.6rem, 6.4cqi, 3.15rem);
   font-weight: 400;
   color: var(--color-fg);
+  line-height: 1;
+}
   line-height: 1;
 }
 
