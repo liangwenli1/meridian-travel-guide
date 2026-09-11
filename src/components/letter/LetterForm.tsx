@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
-import { recordIntent } from "@/lib/server/catalog";
+import { subscribeLetter } from "@/lib/server/letter";
 import { t, useI18n } from "@/lib/i18n";
 
 const STORAGE_KEY = "meridian-letter";
@@ -29,10 +29,22 @@ export function LetterForm({ citySlug, compact = false }: { citySlug?: string; c
     }
     setPending(true);
     try {
-      window.localStorage.setItem(STORAGE_KEY, "1");
-      await recordIntent({ data: { kind: "letter", citySlug: citySlug ?? null } }).catch(() => undefined);
+      const result = await subscribeLetter({
+        data: { email, locale, citySlug: citySlug ?? null },
+      });
+      if (!result.ok) {
+        toast.error(strings.letterInvalid);
+        return;
+      }
+      try {
+        window.localStorage.setItem(STORAGE_KEY, "1");
+      } catch {
+        /* ignore */
+      }
       setDone(true);
       toast.success(strings.letterThanks);
+    } catch {
+      toast.error(strings.authFailed);
     } finally {
       setPending(false);
     }
