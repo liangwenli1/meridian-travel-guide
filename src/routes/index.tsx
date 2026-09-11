@@ -106,9 +106,9 @@ function Home() {
                 heroBand={false}
               />
             </div>
-            <div className="relative z-20 flex h-full w-full max-w-[46rem] flex-col justify-center overflow-visible px-6 py-8 md:pl-12 lg:pl-16">
+            <div className="hero-copy relative z-20 flex h-full w-full max-w-[42rem] flex-col items-center justify-center overflow-visible px-6 py-8 md:px-0">
               <TypingTitle reducedMotion={reduced} ready={ready} align="left" />
-              <div id="search" className="pointer-events-auto mt-12 w-full md:mt-14">
+              <div id="search" className="pointer-events-auto mt-16 w-full md:mt-24">
                 <SearchBar
                   cities={cities}
                   countries={countries}
