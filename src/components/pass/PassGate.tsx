@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
+import { Card, CardDescription, CardMeta } from "@/components/ui/Card";
 import { t, useI18n } from "@/lib/i18n";
 
 type PassGateProps = {
@@ -24,17 +25,15 @@ export function PassGate({
   if (active) return <>{children}</>;
 
   return (
-    <div className={className ?? "rounded-3xl bg-card px-5 py-4 shadow-border"}>
-      <p className="kicker text-muted">{strings.passMembersOnly}</p>
-      <p className="mt-2 text-base font-medium text-fg">
-        {teaserTitle ?? strings.passTeaser}
-      </p>
-      {teaserBody ? <p className="mt-1 text-sm text-muted">{teaserBody}</p> : null}
-      <div className="mt-3">
+    <Card className={className} padding="md">
+      <CardMeta>{strings.passMembersOnly}</CardMeta>
+      <p className="mt-2 text-base font-medium text-fg">{teaserTitle ?? strings.passTeaser}</p>
+      {teaserBody ? <CardDescription>{teaserBody}</CardDescription> : null}
+      <div className="mt-4">
         <Button asChild size="sm">
           <Link to="/pass">{strings.passCta}</Link>
         </Button>
       </div>
-    </div>
+    </Card>
   );
 }

@@ -2,8 +2,8 @@ import { cn } from "@/lib/utils";
 import { useI18n, type Locale } from "@/lib/i18n";
 
 const OPTIONS: { id: Locale; label: string }[] = [
-  { id: "zh", label: "简体中文" },
-  { id: "en", label: "English" },
+  { id: "zh", label: "中" },
+  { id: "en", label: "EN" },
 ];
 
 export function LanguageToggle({ className }: { className?: string }) {
@@ -12,10 +12,7 @@ export function LanguageToggle({ className }: { className?: string }) {
 
   return (
     <div
-      className={cn(
-        "inline-flex items-center rounded-full bg-void-elevated p-1 shadow-border",
-        className,
-      )}
+      className={cn("inline-flex items-center rounded-full bg-void-elevated p-1 shadow-border", className)}
       role="group"
       aria-label="Language"
     >
@@ -24,20 +21,13 @@ export function LanguageToggle({ className }: { className?: string }) {
           key={option.id}
           type="button"
           className={cn(
-            "rounded-full px-3 py-1.5 text-sm transition-colors duration-150",
+            "min-h-9 min-w-9 rounded-full px-2.5 text-sm transition-colors duration-150",
             locale === option.id ? "bg-accent font-medium text-void" : "text-muted hover:text-fg",
           )}
           aria-pressed={locale === option.id}
           onClick={() => setLocale(option.id)}
         >
-            {option.id === "zh" ? (
-              <span>
-                <span className="md:hidden">中文</span>
-                <span className="hidden md:inline">{option.label}</span>
-              </span>
-            ) : (
-              option.label
-            )}
+          {option.label}
         </button>
       ))}
     </div>

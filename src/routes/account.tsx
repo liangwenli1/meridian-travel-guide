@@ -123,7 +123,6 @@ function AccountPage() {
       nav={[
         { to: "/account", label: strings.account, current: true },
         { to: "/pass", label: strings.passTitle },
-        ...(isAdmin ? [{ to: "/admin", label: strings.accountTools }] : []),
         { to: "/", label: strings.globe },
         { to: "/feedback", label: strings.feedbackTitle },
       ]}
@@ -233,6 +232,25 @@ function AccountPage() {
           </ul>
         )}
       </div>
+      {isAdmin ? (
+        <div className="mt-10">
+          <p className="kicker text-muted">{strings.account}</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button asChild variant="outline" size="sm">
+              <Link to="/admin">{strings.opsOverview}</Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/admin">{strings.tabMail}</Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/admin">{strings.tabPay}</Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/admin">{strings.opsMembers}</Link>
+            </Button>
+          </div>
+        </div>
+      ) : null}
     </DeskFrame>
   );
 }

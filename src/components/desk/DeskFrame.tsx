@@ -1,6 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { SiteHeader } from "@/components/site/SiteHeader";
+import { Button } from "@/components/ui/Button";
+import { Card, CardDescription, CardMeta, CardTitle } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
 
 export type DeskLink = {
@@ -16,7 +18,6 @@ export function DeskFrame({
   dek,
   nav,
   children,
-  tone = "traveler",
 }: {
   kicker: string;
   title: string;
@@ -26,7 +27,7 @@ export function DeskFrame({
   tone?: "traveler" | "ops";
 }) {
   return (
-    <main className={cn("min-h-dvh bg-void text-fg", tone === "ops" && "bg-void")}>
+    <main className="min-h-dvh bg-void text-fg">
       <SiteHeader />
       <div className="mx-auto grid max-w-6xl gap-8 px-6 py-10 md:grid-cols-[13.5rem_minmax(0,1fr)] md:py-14 lg:px-10">
         <aside className="md:pt-2">
@@ -36,32 +37,20 @@ export function DeskFrame({
           <nav className="mt-8 flex gap-2 overflow-x-auto md:flex-col md:gap-1">
             {nav.map((item) =>
               item.onClick ? (
-                <button
+                <Button
                   key={item.label}
                   type="button"
+                  variant={item.current ? "default" : "ghost"}
+                  size="sm"
+                  className="justify-start"
                   onClick={item.onClick}
-                  className={cn(
-                    "shrink-0 rounded-full px-4 py-2 text-left text-sm transition-colors",
-                    item.current
-                      ? "bg-accent text-void"
-                      : "text-muted hover:bg-void-elevated hover:text-fg",
-                  )}
                 >
                   {item.label}
-                </button>
+                </Button>
               ) : (
-                <Link
-                  key={item.to + item.label}
-                  to={item.to ?? "/"}
-                  className={cn(
-                    "shrink-0 rounded-full px-4 py-2 text-sm transition-colors",
-                    item.current
-                      ? "bg-accent text-void"
-                      : "text-muted hover:bg-void-elevated hover:text-fg",
-                  )}
-                >
-                  {item.label}
-                </Link>
+                <Button key={item.to + item.label} asChild variant={item.current ? "default" : "ghost"} size="sm" className="justify-start">
+                  <Link to={item.to ?? "/"}>{item.label}</Link>
+                </Button>
               ),
             )}
           </nav>
@@ -84,20 +73,20 @@ export function DeskCard({
   action?: ReactNode;
 }) {
   return (
-    <article className="rounded-3xl bg-card p-6 shadow-border">
-      {meta ? <p className="kicker text-muted">{meta}</p> : null}
-      <h2 className={cn("text-lg font-medium tracking-tight", meta && "mt-2")}>{title}</h2>
-      {children ? <div className="mt-3 text-sm leading-relaxed text-muted">{children}</div> : null}
+    <Card padding="lg">
+      {meta ? <CardMeta>{meta}</CardMeta> : null}
+      <CardTitle className={cn(meta && "mt-2")}>{title}</CardTitle>
+      {children ? <CardDescription>{children}</CardDescription> : null}
       {action ? <div className="mt-5">{action}</div> : null}
-    </article>
+    </Card>
   );
 }
 
 export function DeskStat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-3xl bg-card px-5 py-4 shadow-border">
-      <p className="kicker text-muted">{label}</p>
+    <Card variant="stat" padding="md">
+      <CardMeta>{label}</CardMeta>
       <p className="mt-2 font-mono text-2xl tabular-nums text-fg">{value}</p>
-    </div>
+    </Card>
   );
 }
