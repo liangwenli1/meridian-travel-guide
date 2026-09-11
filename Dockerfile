@@ -9,8 +9,7 @@ COPY . .
 ENV NITRO_PRESET=node-server
 ENV VITE_AUTH_ENABLED=true
 # Image build has no Postgres yet — migrate at container start instead.
-RUN node scripts/with-app-env.mjs vite build \
-  && npm prune --omit=dev
+RUN npm run build:node && npm prune --omit=dev
 
 FROM node:22-bookworm-slim AS runner
 WORKDIR /app
