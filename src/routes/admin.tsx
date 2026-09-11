@@ -1,14 +1,18 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { toast } from "sonner";
 import { PaymentDesk } from "@/components/admin/PaymentDesk";
 import { DeskFrame, DeskStat } from "@/components/desk/DeskFrame";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { cities } from "@/data/cities";
+import { listDispatches } from "@/data/dispatches";
 import { RedirectToSignIn } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
-import { t, useI18n } from "@/lib/i18n";
+import { t, useI18n, type Locale } from "@/lib/i18n";
 import { sendTestEmail } from "@/lib/server/email-verify";
 import { getOpsOverview, listMembers, type MemberRow, type OpsOverview } from "@/lib/server/desk";
+import { listLetterSubscribers, type LetterSubscriber } from "@/lib/server/letter";
 import {
   claimAdmin,
   getAdminState,
@@ -17,6 +21,7 @@ import {
   type SmtpPublic,
 } from "@/lib/server/ops";
 import { SITE } from "@/lib/site";
+import type { ContentStatus } from "@/types/catalog";
 
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
@@ -28,7 +33,9 @@ export const Route = createFileRoute("/admin")({
 const fieldClass =
   "h-12 w-full rounded-2xl bg-void-elevated px-4 text-sm text-fg shadow-border outline-none placeholder:text-muted focus-visible:shadow-border-hover";
 
-type Tab = "overview" | "mail" | "pay" | "members";
+type Tab = "overview" | "cities" | "dispatches" | "letter" | "mail" | "pay" | "members";
+type CityFilter = "all" | ContentStatus;
+type LetterFilter = "all" | "active" | "unsubscribed";
 
 function AdminPage() {
   const locale = useI18n((s) => s.locale);
@@ -43,6 +50,17 @@ function AdminPage() {
   const [saving, setSaving] = useState(false);
   const [overview, setOverview] = useState<OpsOverview | null>(null);
   const [members, setMembers] = useState<MemberRow[]>([]);
+  const [letterRows, setLetterRows] = useState<LetterSubscriber[]>([]);
+  const [cityFilter, setCityFilter] = useState<CityFilter>("all");
+  const [letterFilter, setLetterFilter] = useState<LetterFilter>("all");
+
+  const loadAdminData = () =>
+    Promise.all([
+      getSmtpSettings().then(setSmtp),
+      getOpsOverview().then(setOverview),
+      listMembers().then(setMembers),
+      listLetterSubscribers().then(setLetterRows).catch(() => setLetterRows([])),
+    ]);
 
   useEffect(() => {
     if (isPending || !userId) return;
@@ -50,16 +68,25 @@ function AdminPage() {
       .then((state) => {
         if (state.isAdmin) {
           setGate("admin");
-          return Promise.all([
-            getSmtpSettings().then(setSmtp),
-            getOpsOverview().then(setOverview),
-            listMembers().then(setMembers),
-          ]);
+          return loadAdminData();
         }
         setGate(state.canClaim ? "claim" : "denied");
       })
       .catch(() => setGate("denied"));
   }, [isPending, userId]);
+
+  const filteredCities = useMemo(() => {
+    const rows = [...cities].sort((a, b) => b.tourismPriority - a.tourismPriority || a.name.localeCompare(b.name));
+    if (cityFilter === "all") return rows;
+    return rows.filter((city) => city.contentStatus === cityFilter);
+  }, [cityFilter]);
+
+  const dispatches = useMemo(() => listDispatches(), []);
+
+  const filteredLetter = useMemo(() => {
+    if (letterFilter === "all") return letterRows;
+    return letterRows.filter((row) => row.status === letterFilter);
+  }, [letterFilter, letterRows]);
 
   if (isPending) {
     return (
@@ -101,6 +128,21 @@ function AdminPage() {
     }
   };
 
+  const filterChip = (label: string, on: boolean, onClick: () => void) => (
+    <button
+      key={label}
+      type="button"
+      onClick={onClick}
+      className={
+        on
+          ? "rounded-full bg-accent px-3.5 py-1.5 text-xs font-medium text-void"
+          : "rounded-full border border-line px-3.5 py-1.5 text-xs text-muted hover:border-line-strong hover:text-fg"
+      }
+    >
+      {label}
+    </button>
+  );
+
   return (
     <DeskFrame
       tone="ops"
@@ -109,6 +151,9 @@ function AdminPage() {
       dek={strings.opsDek}
       nav={[
         { label: strings.opsOverview, current: tab === "overview", onClick: () => setTab("overview") },
+        { label: strings.opsCities, current: tab === "cities", onClick: () => setTab("cities") },
+        { label: strings.opsDispatches, current: tab === "dispatches", onClick: () => setTab("dispatches") },
+        { label: strings.opsLetter, current: tab === "letter", onClick: () => setTab("letter") },
         { label: strings.tabMail, current: tab === "mail", onClick: () => setTab("mail") },
         { label: strings.tabPay, current: tab === "pay", onClick: () => setTab("pay") },
         { label: strings.opsMembers, current: tab === "members", onClick: () => setTab("members") },
@@ -122,11 +167,7 @@ function AdminPage() {
               .then((state) => {
                 if (!state.isAdmin) return;
                 setGate("admin");
-                return Promise.all([
-                  getSmtpSettings().then(setSmtp),
-                  getOpsOverview().then(setOverview),
-                  listMembers().then(setMembers),
-                ]);
+                return loadAdminData();
               })
               .catch(() => toast.error(strings.authFailed));
           }}
@@ -145,6 +186,141 @@ function AdminPage() {
           <DeskStat label={strings.opsPaid} value={overview.paidOrders} />
           <DeskStat label={strings.tabMail} value={overview.smtpOn ? strings.opsOn : strings.opsOff} />
           <DeskStat label={strings.tabPay} value={overview.payOn ? strings.opsOn : strings.opsOff} />
+          <DeskStat label={strings.opsLetter} value={letterRows.length} />
+          <DeskStat label={strings.opsCities} value={cities.length} />
+          <DeskStat label={strings.opsDispatches} value={dispatches.length} />
+        </div>
+      ) : null}
+
+      {gate === "admin" && tab === "cities" ? (
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center gap-2">
+            {filterChip(strings.opsFilterAll, cityFilter === "all", () => setCityFilter("all"))}
+            {filterChip(strings.opsFilterPublished, cityFilter === "published", () => setCityFilter("published"))}
+            {filterChip(strings.opsFilterComing, cityFilter === "coming-soon", () => setCityFilter("coming-soon"))}
+          </div>
+          <p className="text-xs text-muted">
+            {filteredCities.length} {strings.opsCitiesCount} · {strings.opsCitiesReadOnly}
+          </p>
+          {filteredCities.length === 0 ? (
+            <EmptyState title={strings.opsCitiesEmpty} />
+          ) : (
+            <div className="overflow-x-auto rounded-3xl bg-card shadow-border">
+              <table className="w-full min-w-[40rem] text-left text-sm">
+                <thead className="text-xs tracking-wide text-muted uppercase">
+                  <tr>
+                    <th className="px-5 py-3 font-medium">{strings.opsCityCol}</th>
+                    <th className="px-5 py-3 font-medium">{strings.opsCountryCol}</th>
+                    <th className="px-5 py-3 font-medium">{strings.opsStatusCol}</th>
+                    <th className="px-5 py-3 font-medium">{strings.opsPriorityCol}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredCities.map((city) => (
+                    <tr key={city.id} className="border-t border-line">
+                      <td className="px-5 py-3 font-medium text-fg">{city.name}</td>
+                      <td className="px-5 py-3 text-muted">{city.country}</td>
+                      <td className="px-5 py-3">
+                        <Badge variant={city.contentStatus === "published" ? "accent" : "muted"}>
+                          {city.contentStatus === "published" ? strings.opsPublished : strings.opsComingSoon}
+                        </Badge>
+                      </td>
+                      <td className="px-5 py-3 font-mono text-xs tabular-nums text-muted">
+                        {city.tourismPriority}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      ) : null}
+
+      {gate === "admin" && tab === "dispatches" ? (
+        dispatches.length === 0 ? (
+          <EmptyState title={strings.opsDispatchesEmpty} />
+        ) : (
+          <div className="overflow-x-auto rounded-3xl bg-card shadow-border">
+            <table className="w-full min-w-[36rem] text-left text-sm">
+              <thead className="text-xs tracking-wide text-muted uppercase">
+                <tr>
+                  <th className="px-5 py-3 font-medium">{strings.opsDispatchDate}</th>
+                  <th className="px-5 py-3 font-medium">{strings.opsDispatchTitle}</th>
+                  <th className="px-5 py-3 font-medium">{strings.opsDispatchTier}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dispatches.map((item) => (
+                  <tr key={item.slug} className="border-t border-line">
+                    <td className="px-5 py-3 font-mono text-xs text-muted">{item.date}</td>
+                    <td className="px-5 py-3">
+                      <Link
+                        to="/desk/$slug"
+                        params={{ slug: item.slug }}
+                        className="font-medium text-fg hover:text-accent"
+                      >
+                        {item.title[locale as Locale]}
+                      </Link>
+                      <p className="mt-1 text-xs text-muted">{item.kicker[locale as Locale]}</p>
+                    </td>
+                    <td className="px-5 py-3">
+                      <Badge variant={item.tier === "pass-briefing" ? "accent" : "muted"}>
+                        {item.tier === "pass-briefing" ? strings.deskPassOnly : strings.deskLetterFree}
+                      </Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+      ) : null}
+
+      {gate === "admin" && tab === "letter" ? (
+        <div className="space-y-4">
+          <div className="rounded-2xl border border-line bg-void-elevated px-4 py-3 text-sm text-muted">
+            {strings.opsLetterBanner}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {filterChip(strings.opsFilterAll, letterFilter === "all", () => setLetterFilter("all"))}
+            {filterChip(strings.opsFilterActive, letterFilter === "active", () => setLetterFilter("active"))}
+            {filterChip(strings.opsFilterUnsubscribed, letterFilter === "unsubscribed", () =>
+              setLetterFilter("unsubscribed"),
+            )}
+          </div>
+          {filteredLetter.length === 0 ? (
+            <EmptyState title={strings.opsLetterEmpty} />
+          ) : (
+            <div className="overflow-x-auto rounded-3xl bg-card shadow-border">
+              <table className="w-full min-w-[44rem] text-left text-sm">
+                <thead className="text-xs tracking-wide text-muted uppercase">
+                  <tr>
+                    <th className="px-5 py-3 font-medium">{strings.email}</th>
+                    <th className="px-5 py-3 font-medium">{strings.opsLetterLocale}</th>
+                    <th className="px-5 py-3 font-medium">{strings.opsLetterCity}</th>
+                    <th className="px-5 py-3 font-medium">{strings.opsLetterStatus}</th>
+                    <th className="px-5 py-3 font-medium">{strings.opsLetterCreated}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredLetter.map((row) => (
+                    <tr key={row.id} className="border-t border-line">
+                      <td className="px-5 py-3 font-mono text-xs text-fg">{row.email}</td>
+                      <td className="px-5 py-3 text-muted">{row.locale}</td>
+                      <td className="px-5 py-3 text-muted">{row.citySlug ?? "—"}</td>
+                      <td className="px-5 py-3">
+                        <Badge variant={row.status === "active" ? "ok" : "muted"}>{row.status}</Badge>
+                      </td>
+                      <td className="px-5 py-3 font-mono text-xs text-muted">
+                        {row.createdAt.slice(0, 10)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       ) : null}
 
@@ -285,6 +461,14 @@ function AdminPage() {
         )
       ) : null}
     </DeskFrame>
+  );
+}
+
+function EmptyState({ title }: { title: string }) {
+  return (
+    <div className="rounded-3xl border border-dashed border-line bg-card/40 px-6 py-16 text-center">
+      <p className="text-sm text-muted">{title}</p>
+    </div>
   );
 }
 
