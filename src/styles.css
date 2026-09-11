@@ -241,16 +241,21 @@
   display: inline-block;
 }
 
+.hero-ask-measure.is-fallback {
+  visibility: visible;
+  color: var(--color-accent);
+}
+
 .hero-ask-stage {
   position: absolute;
   left: 50%;
   top: 50%;
   z-index: 1;
-  width: 215%;
-  height: 275%;
-  overflow: hidden;
+  width: 245%;
+  height: 340%;
+  overflow: visible;
   pointer-events: none;
-  transform: translate(-50%, -52%);
+  transform: translate(-38%, -58%);
 }
 
 .hero-ask-stage canvas {
