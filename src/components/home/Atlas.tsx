@@ -66,7 +66,11 @@ export function Atlas({ published }: { published: City[] }) {
         <ol className="scene-item mt-10 divide-y divide-line border-y border-line">
           {dispatches.map((item) => (
             <li key={item.slug}>
-              <article className="grid gap-3 py-6 md:grid-cols-[8rem_1fr_auto] md:items-baseline md:gap-8">
+              <Link
+                to="/desk/$slug"
+                params={{ slug: item.slug }}
+                className="grid gap-3 py-6 md:grid-cols-[8rem_1fr_auto] md:items-baseline md:gap-8"
+              >
                 <p className="kicker text-muted">{item.date}</p>
                 <div>
                   <p className="kicker text-accent">{item.kicker[locale]}</p>
@@ -74,7 +78,7 @@ export function Atlas({ published }: { published: City[] }) {
                   <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted">{item.dek[locale]}</p>
                 </div>
                 <span className="hidden text-sm text-muted md:inline">{strings.readingNote}</span>
-              </article>
+              </Link>
             </li>
           ))}
         </ol>

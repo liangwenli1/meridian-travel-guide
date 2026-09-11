@@ -16,9 +16,12 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as FeedbackRouteImport } from './routes/feedback'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PassRouteImport } from './routes/pass'
+import { Route as DeskRouteImport } from './routes/desk'
 import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as CountryIndexRouteImport } from './routes/$country.index'
 import { Route as CountryCityRouteImport } from './routes/$country.$city'
+import { Route as DeskIndexRouteImport } from './routes/desk.index'
+import { Route as DeskSlugRouteImport } from './routes/desk.$slug'
 import { Route as PayOrderIdRouteImport } from './routes/pay.$orderId'
 import { Route as PayReturnRouteImport } from './routes/pay.return'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -62,6 +65,11 @@ const PassRoute = PassRouteImport.update({
   path: '/pass',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DeskRoute = DeskRouteImport.update({
+  id: '/desk',
+  path: '/desk',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
   path: '/verify-email',
@@ -76,6 +84,16 @@ const CountryCityRoute = CountryCityRouteImport.update({
   id: '/$city',
   path: '/$city',
   getParentRoute: () => CountryRoute,
+} as any)
+const DeskIndexRoute = DeskIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DeskRoute,
+} as any)
+const DeskSlugRoute = DeskSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => DeskRoute,
 } as any)
 const PayOrderIdRoute = PayOrderIdRouteImport.update({
   id: '/pay/$orderId',
@@ -122,7 +140,10 @@ export interface FileRoutesByFullPath {
   '/feedback': typeof FeedbackRoute
   '/login': typeof LoginRoute
   '/pass': typeof PassRoute
+  '/desk': typeof DeskRouteWithChildren
   '/verify-email': typeof VerifyEmailRoute
+  '/desk/$slug': typeof DeskSlugRoute
+  '/desk/': typeof DeskIndexRoute
   '/$country/$city': typeof CountryCityRoute
   '/pay/$orderId': typeof PayOrderIdRoute
   '/pay/return': typeof PayReturnRoute
@@ -140,8 +161,10 @@ export interface FileRoutesByTo {
   '/feedback': typeof FeedbackRoute
   '/login': typeof LoginRoute
   '/pass': typeof PassRoute
+  '/desk': typeof DeskIndexRoute
   '/verify-email': typeof VerifyEmailRoute
   '/$country/$city': typeof CountryCityRoute
+  '/desk/$slug': typeof DeskSlugRoute
   '/pay/$orderId': typeof PayOrderIdRoute
   '/pay/return': typeof PayReturnRoute
   '/$country': typeof CountryIndexRoute
@@ -160,9 +183,12 @@ export interface FileRoutesById {
   '/feedback': typeof FeedbackRoute
   '/login': typeof LoginRoute
   '/pass': typeof PassRoute
+  '/desk': typeof DeskRouteWithChildren
   '/verify-email': typeof VerifyEmailRoute
   '/$country/$city': typeof CountryCityRoute
+  '/desk/$slug': typeof DeskSlugRoute
   '/pay/$orderId': typeof PayOrderIdRoute
+  '/desk/': typeof DeskIndexRoute
   '/pay/return': typeof PayReturnRoute
   '/$country/': typeof CountryIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -181,11 +207,14 @@ export interface FileRouteTypes {
     | '/feedback'
     | '/login'
     | '/pass'
+    | '/desk'
     | '/verify-email'
     | '/$country/$city'
+    | '/desk/$slug'
     | '/pay/$orderId'
     | '/pay/return'
     | '/$country/'
+    | '/desk/'
     | '/api/auth/$'
     | '/api/payment/webhook/alipay'
     | '/api/payment/webhook/easypay'
@@ -199,8 +228,10 @@ export interface FileRouteTypes {
     | '/feedback'
     | '/login'
     | '/pass'
+    | '/desk'
     | '/verify-email'
     | '/$country/$city'
+    | '/desk/$slug'
     | '/pay/$orderId'
     | '/pay/return'
     | '/$country'
@@ -218,11 +249,14 @@ export interface FileRouteTypes {
     | '/feedback'
     | '/login'
     | '/pass'
+    | '/desk'
     | '/verify-email'
     | '/$country/$city'
+    | '/desk/$slug'
     | '/pay/$orderId'
     | '/pay/return'
     | '/$country/'
+    | '/desk/'
     | '/api/auth/$'
     | '/api/payment/webhook/alipay'
     | '/api/payment/webhook/easypay'
@@ -238,6 +272,7 @@ export interface RootRouteChildren {
   FeedbackRoute: typeof FeedbackRoute
   LoginRoute: typeof LoginRoute
   PassRoute: typeof PassRoute
+  DeskRoute: typeof DeskRouteWithChildren
   VerifyEmailRoute: typeof VerifyEmailRoute
   PayOrderIdRoute: typeof PayOrderIdRoute
   PayReturnRoute: typeof PayReturnRoute
@@ -299,6 +334,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PassRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/desk': {
+      id: '/desk'
+      path: '/desk'
+      fullPath: '/desk'
+      preLoaderRoute: typeof DeskRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/verify-email': {
       id: '/verify-email'
       path: '/verify-email'
@@ -319,6 +361,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/$country/$city'
       preLoaderRoute: typeof CountryCityRouteImport
       parentRoute: typeof CountryRoute
+    }
+    '/desk/': {
+      id: '/desk/'
+      path: '/'
+      fullPath: '/desk/'
+      preLoaderRoute: typeof DeskIndexRouteImport
+      parentRoute: typeof DeskRoute
+    }
+    '/desk/$slug': {
+      id: '/desk/$slug'
+      path: '/$slug'
+      fullPath: '/desk/$slug'
+      preLoaderRoute: typeof DeskSlugRouteImport
+      parentRoute: typeof DeskRoute
     }
     '/pay/$orderId': {
       id: '/pay/$orderId'
@@ -385,6 +441,18 @@ const CountryRouteChildren: CountryRouteChildren = {
 const CountryRouteWithChildren =
   CountryRoute._addFileChildren(CountryRouteChildren)
 
+interface DeskRouteChildren {
+  DeskSlugRoute: typeof DeskSlugRoute
+  DeskIndexRoute: typeof DeskIndexRoute
+}
+
+const DeskRouteChildren: DeskRouteChildren = {
+  DeskSlugRoute: DeskSlugRoute,
+  DeskIndexRoute: DeskIndexRoute,
+}
+
+const DeskRouteWithChildren = DeskRoute._addFileChildren(DeskRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CountryRoute: CountryRouteWithChildren,
@@ -393,6 +461,7 @@ const rootRouteChildren: RootRouteChildren = {
   FeedbackRoute: FeedbackRoute,
   LoginRoute: LoginRoute,
   PassRoute: PassRoute,
+  DeskRoute: DeskRouteWithChildren,
   VerifyEmailRoute: VerifyEmailRoute,
   PayOrderIdRoute: PayOrderIdRoute,
   PayReturnRoute: PayReturnRoute,

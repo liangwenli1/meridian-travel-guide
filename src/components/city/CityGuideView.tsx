@@ -19,6 +19,7 @@ import { Section } from "./Section";
 import { StickyNav } from "./StickyNav";
 import { LetterForm } from "@/components/letter/LetterForm";
 import { PassGate } from "@/components/pass/PassGate";
+import { listOffseasonTables } from "@/data/pass";
 import { getMembership } from "@/lib/server/membership";
 import { downloadPassItinerary } from "@/lib/server/pass-locker";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
@@ -393,6 +394,33 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
             </Card>
           ))}
         </Grid>
+        <div className="mt-10">
+          <h3 className="kicker text-muted">{strings.deskOffseasonTitle}</h3>
+          {passActive ? (
+            <div className="mt-4 space-y-4">
+              {listOffseasonTables()
+                .filter((table) => table.citySlug === guide.citySlug)
+                .map((table) => (
+                  <Card key={table.name.en} padding="sm">
+                    <CardTitle className="text-base">{table.name[locale]}</CardTitle>
+                    <p className="mt-1 text-xs text-muted">{table.neighborhood[locale]} · {table.seasonWindow[locale]}</p>
+                    <CardDescription className="mt-2">{table.why[locale]}</CardDescription>
+                    <p className="mt-2 text-sm text-fg">{table.howToGetIn[locale]}</p>
+                    {table.watchOut ? <p className="mt-2 text-sm text-warn">{table.watchOut[locale]}</p> : null}
+                  </Card>
+                ))}
+              {listOffseasonTables().filter((table) => table.citySlug === guide.citySlug).length === 0 ? (
+                <p className="mt-3 text-sm text-muted">{strings.passLockerEmpty}</p>
+              ) : null}
+            </div>
+          ) : (
+            <div className="mt-4">
+              <PassGate active={false} teaserTitle={strings.deskOffseasonTeaser}>
+                {null}
+              </PassGate>
+            </div>
+          )}
+        </div>
       </Section>
 
       <Section id="stay" show={section === "stay"} eyebrow="Where to sleep" title="Where to stay" intro={guide.stayIntro}>
@@ -742,36 +770,56 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           ))}
         </Grid>
         <div className="space-y-8">
-          {guide.itineraries.map((plan) => (
-            <Card key={plan.title} padding="lg">
-              <CardMeta>
-                {plan.days} day · {plan.pace}
-              </CardMeta>
-              <CardTitle className="mt-1 text-2xl">{plan.title}</CardTitle>
-              <CardDescription className="max-w-2xl">{plan.summary}</CardDescription>
-              <div className="mt-5 space-y-4">
-                {plan.daysPlan.map((day) => (
-                  <div key={day.label} className="surface-inner">
-                    <h4 className="text-sm font-medium">
-                      {day.label} — {day.theme}
-                    </h4>
-                    <ol className="mt-2 space-y-2">
-                      {day.stops.map((stop) => (
-                        <li key={`${day.label}-${stop.title}`} className="grid grid-cols-[4.5rem_1fr] gap-3 text-sm">
-                          <span className="text-muted tabular-nums">{stop.time}</span>
-                          <span>
-                            <span className="font-medium">{stop.title}. </span>
-                            <span className="text-muted">{stop.detail}</span>
-                          </span>
-                        </li>
-                      ))}
-                    </ol>
-                    <p className="mt-2 text-sm text-muted">If it rains: {day.rainPlan}</p>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          ))}
+          {guide.itineraries.map((plan, planIndex) => {
+            const freeDays = passActive || planIndex > 0 ? [] : plan.daysPlan.slice(0, 1);
+            const lockedDays =
+              passActive ? [] : planIndex === 0 ? plan.daysPlan.slice(1) : plan.daysPlan;
+            const visibleDays = passActive ? plan.daysPlan : freeDays;
+
+            return (
+              <Card key={plan.title} padding="lg">
+                <CardMeta>
+                  {plan.days} day · {plan.pace}
+                </CardMeta>
+                <CardTitle className="mt-1 text-2xl">{plan.title}</CardTitle>
+                <CardDescription className="max-w-2xl">{plan.summary}</CardDescription>
+                <div className="mt-5 space-y-4">
+                  {visibleDays.map((day) => (
+                    <div key={day.label} className="surface-inner">
+                      <h4 className="text-sm font-medium">
+                        {day.label} — {day.theme}
+                      </h4>
+                      <ol className="mt-2 space-y-2">
+                        {day.stops.map((stop) => (
+                          <li key={`${day.label}-${stop.title}`} className="grid grid-cols-[4.5rem_1fr] gap-3 text-sm">
+                            <span className="text-muted tabular-nums">{stop.time}</span>
+                            <span>
+                              <span className="font-medium">{stop.title}. </span>
+                              <span className="text-muted">{stop.detail}</span>
+                            </span>
+                          </li>
+                        ))}
+                      </ol>
+                      <p className="mt-2 text-sm text-muted">If it rains: {day.rainPlan}</p>
+                    </div>
+                  ))}
+                  {!passActive && lockedDays.length > 0 ? (
+                    <PassGate
+                      active={false}
+                      teaserTitle={strings.deskItineraryTeaser}
+                      teaserBody={
+                        planIndex === 0
+                          ? `${lockedDays.length} more day${lockedDays.length === 1 ? "" : "s"} in this plan`
+                          : plan.title
+                      }
+                    >
+                      {null}
+                    </PassGate>
+                  ) : null}
+                </div>
+              </Card>
+            );
+          })}
         </div>
       </Section>
 
