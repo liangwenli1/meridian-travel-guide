@@ -3,15 +3,23 @@ import { useEffect, useRef } from "react";
 type Particle = {
   hx: number;
   hy: number;
+  sx: number;
+  sy: number;
   x: number;
   y: number;
   vx: number;
   vy: number;
   size: number;
-  phase: number;
+  delay: number;
 };
 
 const ACCENT = "rgb(212 240 60)";
+const GATHER_S = 2.55;
+
+function easeOut(u: number) {
+  const t = Math.min(1, Math.max(0, u));
+  return 1 - (1 - t) ** 3;
+}
 
 export function ParticleWhere({
   text,
@@ -37,10 +45,10 @@ export function ParticleWhere({
     let w = 1;
     let h = 1;
     let dpr = 1;
-    let glyphW = 1;
-    let glyphH = 1;
-    const padX = 48;
-    const padY = 90;
+    let glyphW = 0;
+    let glyphH = 0;
+    const padX = 260;
+    const padY = 200;
     let start = 0;
     let last = 0;
     const mouse = { x: -9999, y: -9999, down: false, inside: false };
@@ -63,38 +71,44 @@ export function ParticleWhere({
       ox.fillStyle = "#fff";
       ox.fillText(text, 0, fontPx * 0.82);
       const data = ox.getImageData(0, 0, width, height).data;
-      const step = 1;
       const pts: Particle[] = [];
-      for (let y = 0; y < height; y += step) {
-        for (let x = 0; x < width; x += step) {
+      for (let y = 0; y < height; y += 1) {
+        for (let x = 0; x < width; x += 1) {
           if (data[(y * width + x) * 4 + 3] < 90) continue;
           if (Math.random() > 0.72) continue;
-          const hx = x + Math.random() * 0.6 + 48;
-          const hy = y + Math.random() * 0.6 + 90;
+          const hx = x + Math.random() * 0.5 + padX;
+          const hy = y + Math.random() * 0.5 + padY;
           const angle = Math.random() * Math.PI * 2;
-          const dist = 80 + Math.random() * 280;
+          const dist = 240 + Math.random() * 560;
+          const sx = hx + Math.cos(angle) * dist;
+          const sy = hy + Math.sin(angle) * dist;
           pts.push({
             hx,
             hy,
-            x: hx + Math.cos(angle) * dist,
-            y: hy + Math.sin(angle) * dist,
+            sx,
+            sy,
+            x: sx,
+            y: sy,
             vx: 0,
             vy: 0,
             size: 0.95 + Math.random() * 0.7,
-            phase: Math.random() * Math.PI * 2,
+            delay: Math.random() * 0.7,
           });
         }
       }
       return { pts, width, height };
     };
 
-    const resize = () => {
+    const resize = (force = false) => {
       const next = sample();
+      if (!force && Math.abs(next.width - glyphW) < 2 && Math.abs(next.height - glyphH) < 2 && particles.length) {
+        return;
+      }
       particles = next.pts;
       glyphW = next.width;
       glyphH = next.height;
-      w = next.width + padX + 720;
-      h = next.height + padY + 56;
+      w = next.width + padX + 280;
+      h = next.height + padY + 160;
       dpr = Math.min(2, window.devicePixelRatio || 1);
       canvas.width = Math.floor(w * dpr);
       canvas.height = Math.floor(h * dpr);
@@ -103,6 +117,7 @@ export function ParticleWhere({
       canvas.style.left = `-${padX}px`;
       canvas.style.top = `-${padY}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      start = 0;
     };
 
     const localPoint = (event: PointerEvent) => {
@@ -147,44 +162,50 @@ export function ParticleWhere({
       const dt = Math.min(0.033, last ? (ts - last) / 1000 : 0.016);
       last = ts;
       const t = (ts - start) / 1000;
-      const gather = Math.min(1, t / 1.05);
 
       ctx.clearRect(0, 0, w, h);
       ctx.fillStyle = ACCENT;
-      const formed = gather >= 1;
       const active = mouse.inside || mouse.down;
       const radius = mouse.down ? 78 : active ? 42 : 0;
       const push = mouse.down ? 2600 : 720;
-      const spring = mouse.down ? 3.2 : formed ? 9.5 : 34 + gather * 24;
-      const damp = mouse.down ? 0.9 : 0.84;
 
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
-        const mdx = p.hx - mouse.x;
-        const mdy = p.hy - mouse.y;
-        const near = active && mdx * mdx + mdy * mdy < 52 * 52;
-        const tremble = 0.22 + (near ? 0.28 : 0);
-        const tx = p.hx + Math.sin(t * 5.4 + p.phase) * tremble;
-        const ty = p.hy + Math.cos(t * 4.6 + p.phase) * tremble * 0.75;
-        let ax = (tx - p.x) * spring;
-        let ay = (ty - p.y) * spring;
-        if (radius > 0) {
-          const dx = p.x - mouse.x;
-          const dy = p.y - mouse.y;
-          const d2 = dx * dx + dy * dy;
-          if (d2 < radius * radius && d2 > 0.2) {
-            const d = Math.sqrt(d2);
-            const falloff = 1 - d / radius;
-            const f = (push * falloff * falloff) / d;
-            ax += dx * f;
-            ay += dy * f;
+        const u = easeOut((t - p.delay) / GATHER_S);
+        const arriving = u < 1 && !active;
+
+        if (arriving) {
+          p.x = p.sx + (p.hx - p.sx) * u;
+          p.y = p.sy + (p.hy - p.sy) * u;
+          p.vx = 0;
+          p.vy = 0;
+        } else if (!active && u >= 1) {
+          p.x = p.hx;
+          p.y = p.hy;
+          p.vx = 0;
+          p.vy = 0;
+        } else {
+          let ax = (p.hx - p.x) * (mouse.down ? 2.6 : 8);
+          let ay = (p.hy - p.y) * (mouse.down ? 2.6 : 8);
+          if (radius > 0) {
+            const dx = p.x - mouse.x;
+            const dy = p.y - mouse.y;
+            const d2 = dx * dx + dy * dy;
+            if (d2 < radius * radius && d2 > 0.2) {
+              const d = Math.sqrt(d2);
+              const falloff = 1 - d / radius;
+              const f = (push * falloff * falloff) / d;
+              ax += dx * f;
+              ay += dy * f;
+            }
           }
+          p.vx = (p.vx + ax * dt) * 0.86;
+          p.vy = (p.vy + ay * dt) * 0.86;
+          p.x += p.vx * dt * 60;
+          p.y += p.vy * dt * 60;
         }
-        p.vx = (p.vx + ax * dt) * damp;
-        p.vy = (p.vy + ay * dt) * damp;
-        p.x += p.vx * dt * 60;
-        p.y += p.vy * dt * 60;
-        ctx.globalAlpha = 0.7 + gather * 0.3;
+
+        ctx.globalAlpha = 0.55 + u * 0.45;
         ctx.fillRect(p.x, p.y, p.size, p.size);
       }
       ctx.globalAlpha = 1;
@@ -193,13 +214,9 @@ export function ParticleWhere({
     let ro: ResizeObserver | null = null;
     void document.fonts.ready.then(() => {
       if (disposed) return;
-      resize();
-      start = 0;
+      resize(true);
       raf = requestAnimationFrame(tick);
-      ro = new ResizeObserver(() => {
-        start = 0;
-        resize();
-      });
+      ro = new ResizeObserver(() => resize(false));
       ro.observe(wrap);
     });
 
