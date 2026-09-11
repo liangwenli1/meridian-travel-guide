@@ -223,6 +223,7 @@
   flex-wrap: nowrap;
   white-space: nowrap;
   letter-spacing: -0.03em;
+  overflow: visible;
 }
 
 .hero-ask-where {

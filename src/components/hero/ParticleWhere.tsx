@@ -65,10 +65,10 @@ export function ParticleWhere({
         for (let x = 0; x < width; x += step) {
           if (data[(y * width + x) * 4 + 3] < 90) continue;
           if (Math.random() > 0.72) continue;
-          const hx = x + Math.random() * 0.6;
-          const hy = y + Math.random() * 0.6;
+          const hx = x + Math.random() * 0.6 + 48;
+          const hy = y + Math.random() * 0.6 + 90;
           const angle = Math.random() * Math.PI * 2;
-          const dist = 24 + Math.random() * 160;
+          const dist = 80 + Math.random() * 280;
           pts.push({
             hx,
             hy,
@@ -87,13 +87,15 @@ export function ParticleWhere({
     const resize = () => {
       const next = sample();
       particles = next.pts;
-      w = next.width;
-      h = next.height;
+      w = next.width + 48 + 720;
+      h = next.height + 90 + 56;
       dpr = Math.min(2, window.devicePixelRatio || 1);
       canvas.width = Math.floor(w * dpr);
       canvas.height = Math.floor(h * dpr);
-      canvas.style.width = "100%";
-      canvas.style.height = "100%";
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      canvas.style.left = "-48px";
+      canvas.style.top = "-90px";
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
 
@@ -138,32 +140,38 @@ export function ParticleWhere({
 
       ctx.clearRect(0, 0, w, h);
       ctx.fillStyle = ACCENT;
-      const radius = mouse.down ? 110 : 64;
-      const push = mouse.down ? 2100 : 860;
+      const formed = gather >= 1;
+      const radius = mouse.down ? 280 : mouse.inside ? 190 : 0;
+      const push = mouse.down ? 9800 : 4200;
+      const spring = mouse.down ? 0.55 : formed ? 2.05 : 32 + gather * 28;
+      const damp = mouse.down ? 0.985 : formed ? 0.965 : 0.78;
 
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
-        const tremble = 0.35 + (mouse.inside ? 0.55 : 0);
-        const tx = p.hx + Math.sin(t * 8.2 + p.phase) * tremble;
-        const ty = p.hy + Math.cos(t * 6.8 + p.phase) * tremble * 0.8;
-        const spring = 22 + gather * 52;
+        const tremble = 0.4 + (mouse.inside ? 1.1 : 0);
+        const tx = p.hx + Math.sin(t * 7.6 + p.phase) * tremble;
+        const ty = p.hy + Math.cos(t * 6.2 + p.phase) * tremble * 0.8;
         let ax = (tx - p.x) * spring;
         let ay = (ty - p.y) * spring;
-        const dx = p.x - mouse.x;
-        const dy = p.y - mouse.y;
-        const d2 = dx * dx + dy * dy;
-        if (d2 < radius * radius && d2 > 0.25) {
-          const d = Math.sqrt(d2);
-          const falloff = 1 - d / radius;
-          const f = (push * falloff * falloff) / d;
-          ax += dx * f;
-          ay += dy * f;
+        if (radius > 0) {
+          const dx = p.x - mouse.x;
+          const dy = p.y - mouse.y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < radius * radius && d2 > 0.2) {
+            const d = Math.sqrt(d2);
+            const falloff = 1 - d / radius;
+            const f = (push * falloff * falloff) / d;
+            ax += dx * f;
+            ay += dy * f;
+            ax += falloff * (mouse.down ? 1400 : 420);
+            ay += falloff * (Math.sin(p.phase) * (mouse.down ? 900 : 240));
+          }
         }
-        p.vx = (p.vx + ax * dt) * 0.76;
-        p.vy = (p.vy + ay * dt) * 0.76;
+        p.vx = (p.vx + ax * dt) * damp;
+        p.vy = (p.vy + ay * dt) * damp;
         p.x += p.vx * dt * 60;
         p.y += p.vy * dt * 60;
-        ctx.globalAlpha = 0.72 + gather * 0.28;
+        ctx.globalAlpha = 0.7 + gather * 0.3;
         ctx.fillRect(p.x, p.y, p.size, p.size);
       }
       ctx.globalAlpha = 1;
@@ -201,14 +209,18 @@ export function ParticleWhere({
   }, [text, reducedMotion]);
 
   return (
-    <span ref={wrapRef} className="hero-ask-where relative inline-block shrink-0 align-baseline" aria-label={text}>
+    <span
+      ref={wrapRef}
+      className="hero-ask-where relative z-10 inline-block shrink-0 overflow-visible align-baseline"
+      aria-label={text}
+    >
       <span className="invisible select-none" aria-hidden="true">
         {text}
       </span>
       {reducedMotion ? null : (
         <canvas
           ref={canvasRef}
-          className="absolute inset-0 size-full cursor-pointer touch-none"
+          className="pointer-events-auto absolute cursor-pointer touch-none"
           aria-hidden="true"
         />
       )}
