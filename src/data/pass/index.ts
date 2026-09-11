@@ -1,7 +1,9 @@
 import { tokyoGuide } from "@/data/guides/tokyo";
 import { briefing202609 } from "@/data/pass/briefings/2026-09";
+import { bangkokNeighborhoodPreview } from "@/data/pass/neighborhood-previews/bangkok";
 import { kyotoNeighborhoodPreview } from "@/data/pass/neighborhood-previews/kyoto";
 import { taipeiNeighborhoodPreview } from "@/data/pass/neighborhood-previews/taipei";
+import { parisOffseasonTables } from "@/data/pass/offseason-tables/paris";
 import { tokyoOffseasonTables } from "@/data/pass/offseason-tables/tokyo";
 import type {
   MonthlyBriefing,
@@ -11,11 +13,11 @@ import type {
 } from "@/types/pass";
 
 export function listOffseasonTables(): OffseasonTable[] {
-  return [...tokyoOffseasonTables];
+  return [...tokyoOffseasonTables, ...parisOffseasonTables];
 }
 
 export function listNeighborhoodPreviews(): NeighborhoodPreview[] {
-  return [kyotoNeighborhoodPreview, taipeiNeighborhoodPreview];
+  return [kyotoNeighborhoodPreview, taipeiNeighborhoodPreview, bangkokNeighborhoodPreview];
 }
 
 export function listBriefings(): MonthlyBriefing[] {

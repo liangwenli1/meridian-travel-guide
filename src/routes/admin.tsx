@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { toast } from "sonner";
 import { PaymentDesk } from "@/components/admin/PaymentDesk";
@@ -25,7 +25,7 @@ import { SITE } from "@/lib/site";
 import type { City, ContentStatus } from "@/types/catalog";
 
 export const Route = createFileRoute("/admin")({
-  component: AdminPage,
+  component: () => <Navigate to="/account" search={{ tab: "tools" }} />,
   head: () => ({
     meta: [{ title: `Account · ${SITE.name}` }],
   }),
@@ -38,7 +38,7 @@ type Tab = "overview" | "cities" | "dispatches" | "letter" | "mail" | "pay" | "m
 type CityFilter = "all" | ContentStatus;
 type LetterFilter = "all" | "active" | "unsubscribed";
 
-function AdminPage() {
+export function AdminWorkspace({ embedded = false }: { embedded?: boolean }) {
   const locale = useI18n((s) => s.locale);
   const strings = t(locale);
   const { user, isPending } = useCurrentUserState();
@@ -94,6 +94,7 @@ function AdminPage() {
   }, [letterFilter, letterRows]);
 
   if (isPending) {
+    if (embedded) return <div className="h-10 w-40 animate-pulse rounded-3xl bg-void-elevated" />;
     return (
       <main className="min-h-dvh bg-void text-fg">
         <div className="mx-auto max-w-xl px-6 py-24">
@@ -148,22 +149,33 @@ function AdminPage() {
     </button>
   );
 
-  return (
-    <DeskFrame
-      kicker={strings.account}
-      title={strings.account}
-      dek={strings.opsDek}
-      nav={[
-        { to: "/account", label: strings.account },
-        { label: strings.opsOverview, current: tab === "overview", onClick: () => setTab("overview") },
-        { label: strings.opsCities, current: tab === "cities", onClick: () => setTab("cities") },
-        { label: strings.opsDispatches, current: tab === "dispatches", onClick: () => setTab("dispatches") },
-        { label: strings.opsLetter, current: tab === "letter", onClick: () => setTab("letter") },
-        { label: strings.tabMail, current: tab === "mail", onClick: () => setTab("mail") },
-        { label: strings.tabPay, current: tab === "pay", onClick: () => setTab("pay") },
-        { label: strings.opsMembers, current: tab === "members", onClick: () => setTab("members") },
-      ]}
-    >
+  const inner = (
+    <>
+      {embedded && gate === "admin" ? (
+        <div className="mb-6 flex flex-wrap gap-2">
+          {(
+            [
+              ["overview", strings.opsOverview],
+              ["cities", strings.opsCities],
+              ["dispatches", strings.opsDispatches],
+              ["letter", strings.opsLetter],
+              ["mail", strings.tabMail],
+              ["pay", strings.tabPay],
+              ["members", strings.opsMembers],
+            ] as const
+          ).map(([id, label]) => (
+            <Button
+              key={id}
+              type="button"
+              size="sm"
+              variant={tab === id ? "default" : "outline"}
+              onClick={() => setTab(id)}
+            >
+              {label}
+            </Button>
+          ))}
+        </div>
+      ) : null}
       {gate === "claim" ? (
         <Button
           size="lg"
@@ -526,6 +538,28 @@ function AdminPage() {
           </div>
         )
       ) : null}
+    </>
+  );
+
+  if (embedded) return inner;
+
+  return (
+    <DeskFrame
+      kicker={strings.account}
+      title={strings.account}
+      dek={strings.opsDek}
+      nav={[
+        { to: "/account", label: strings.account },
+        { label: strings.opsOverview, current: tab === "overview", onClick: () => setTab("overview") },
+        { label: strings.opsCities, current: tab === "cities", onClick: () => setTab("cities") },
+        { label: strings.opsDispatches, current: tab === "dispatches", onClick: () => setTab("dispatches") },
+        { label: strings.opsLetter, current: tab === "letter", onClick: () => setTab("letter") },
+        { label: strings.tabMail, current: tab === "mail", onClick: () => setTab("mail") },
+        { label: strings.tabPay, current: tab === "pay", onClick: () => setTab("pay") },
+        { label: strings.opsMembers, current: tab === "members", onClick: () => setTab("members") },
+      ]}
+    >
+      {inner}
     </DeskFrame>
   );
 }

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { getDispatch } from "@/data/dispatches";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { t, useI18n } from "@/lib/i18n";
+import { isActivePass } from "@/lib/pass/access";
 import { getMembership } from "@/lib/server/membership";
 import { SITE } from "@/lib/site";
 
@@ -42,7 +43,7 @@ function DeskArticlePage() {
       return;
     }
     void getMembership()
-      .then((m) => setPassActive(m?.status === "active"))
+      .then((m) => setPassActive(isActivePass(m)))
       .catch(() => setPassActive(false));
   }, [authPending, user]);
 

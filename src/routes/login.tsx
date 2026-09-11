@@ -3,6 +3,8 @@ import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { LanguageToggle } from "@/components/site/LanguageToggle";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
 import { authClient, authEnabled, signOut } from "@/lib/auth/client";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { t, useI18n } from "@/lib/i18n";
@@ -20,9 +22,6 @@ export const Route = createFileRoute("/login")({
     meta: [{ title: `Sign in · ${SITE.name}` }],
   }),
 });
-
-const fieldClass =
-  "h-12 w-full rounded-full bg-void-elevated px-5 text-base text-fg shadow-border outline-none placeholder:text-muted focus-visible:shadow-border-hover";
 
 function Login() {
   const locale = useI18n((s) => s.locale);
@@ -133,6 +132,7 @@ function Login() {
         </div>
       </header>
       <div className="relative z-10 mx-auto flex min-h-[calc(100dvh-4.5rem)] w-full max-w-md flex-col justify-center px-6 pb-16">
+        <Card padding="lg">
         {checkEmail ? (
           <>
             <p className="kicker text-accent">{strings.authKicker}</p>
@@ -174,31 +174,29 @@ function Login() {
                   {mode === "signup" ? (
                     <label className="block">
                       <span className="sr-only">{strings.name}</span>
-                      <input
+                      <Input
                         type="text"
                         autoComplete="name"
                         value={name}
                         onChange={(event) => setName(event.target.value)}
                         placeholder={strings.name}
-                        className={fieldClass}
                       />
                     </label>
                   ) : null}
                   <label className="block">
                     <span className="sr-only">{strings.email}</span>
-                    <input
+                    <Input
                       type="email"
                       autoComplete="email"
                       required
                       value={email}
                       onChange={(event) => setEmail(event.target.value)}
                       placeholder={strings.email}
-                      className={fieldClass}
                     />
                   </label>
                   <label className="block">
                     <span className="sr-only">{strings.password}</span>
-                    <input
+                    <Input
                       type="password"
                       autoComplete={mode === "signup" ? "new-password" : "current-password"}
                       required
@@ -206,10 +204,9 @@ function Login() {
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}
                       placeholder={strings.password}
-                      className={fieldClass}
                     />
                     {mode === "signup" ? (
-                      <span className="mt-2 block px-5 text-xs text-muted">{strings.passwordHint}</span>
+                      <span className="mt-2 block px-1 text-xs text-muted">{strings.passwordHint}</span>
                     ) : null}
                   </label>
                   <Button type="submit" size="lg" className="w-full" disabled={pending}>
@@ -234,6 +231,7 @@ function Login() {
             )}
           </>
         )}
+        </Card>
       </div>
     </main>
   );

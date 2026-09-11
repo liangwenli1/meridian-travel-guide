@@ -1,12 +1,15 @@
 import type { City } from "@/types/catalog";
 import { AmbientParticles } from "@/components/fx/AmbientParticles";
+import { LetterForm } from "@/components/letter/LetterForm";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteHeader } from "@/components/site/SiteHeader";
+import { Card, CardDescription, CardMeta, CardTitle } from "@/components/ui/Card";
 import { StatCell, StatGrid } from "@/components/ui/Grid";
 import { t, useI18n } from "@/lib/i18n";
 
 export function ComingSoon({ city }: { city: City }) {
   const locale = useI18n((s) => s.locale);
+  const strings = t(locale);
   return (
     <main className="page-enter relative min-h-dvh bg-void text-fg">
       <AmbientParticles />
@@ -14,7 +17,7 @@ export function ComingSoon({ city }: { city: City }) {
         <SiteHeader />
         <div className="mx-auto max-w-2xl px-4 py-16 md:px-8">
           <p className="kicker text-accent">
-            {city.country} · {t(locale).comingSoon}
+            {city.country} · {strings.comingSoon}
           </p>
           <h1 className="mt-3 text-5xl font-medium tracking-tight md:text-6xl">{city.name}</h1>
           <p className="mt-4 text-lg leading-relaxed text-muted">{city.shortDescription}</p>
@@ -27,6 +30,14 @@ export function ComingSoon({ city }: { city: City }) {
             <StatCell label="Currency" value={`${city.currency} (${city.currencyCode})`} />
             <StatCell label="Airports" value={city.airportCodes.join(", ") || "—"} />
           </StatGrid>
+          <Card className="mt-10" padding="lg">
+            <CardMeta>{strings.waitlistKicker}</CardMeta>
+            <CardTitle className="mt-2">{strings.waitlistTitle}</CardTitle>
+            <CardDescription>{strings.waitlistDek}</CardDescription>
+            <div className="mt-6">
+              <LetterForm citySlug={city.slug} compact />
+            </div>
+          </Card>
         </div>
         <SiteFooter />
       </div>

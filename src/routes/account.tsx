@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { AdminWorkspace } from "@/routes/admin";
 import { DeskCard, DeskFrame } from "@/components/desk/DeskFrame";
 import { PassGate } from "@/components/pass/PassGate";
 import { Button } from "@/components/ui/Button";
@@ -21,11 +22,13 @@ import type { City } from "@/types/catalog";
 import type { Localized, PassLockerItem } from "@/types/pass";
 
 export const Route = createFileRoute("/account")({
+  validateSearch: (search: Record<string, unknown>): { tab?: "tools" } =>
+    search.tab === "tools" ? { tab: "tools" } : {},
   component: AccountPage,
   head: () => ({
     meta: [{ title: `Account · ${SITE.name}` }],
   }),
-})
+});
 
 function loc(value: Localized, locale: Locale) {
   return value[locale] || value.en;
@@ -61,12 +64,14 @@ function triggerMarkdownDownload(filename: string, markdown: string) {
 function AccountPage() {
   const locale = useI18n((s) => s.locale);
   const strings = t(locale);
+  const { tab: initialTab } = Route.useSearch();
   const { user, isPending } = useCurrentUserState();
   const [desk, setDesk] = useState<TravelerDesk | null>(null);
   const [cities, setCities] = useState<City[]>([]);
   const [locker, setLocker] = useState<PassLockerResult | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [pane, setPane] = useState<"you" | "tools">(initialTab === "tools" ? "tools" : "you");
 
   useEffect(() => {
     if (isPending || !user) return;
@@ -121,12 +126,29 @@ function AccountPage() {
       title={user.displayName ?? strings.account}
       dek={user.primaryEmail ?? strings.myDeskDek}
       nav={[
-        { to: "/account", label: strings.account, current: true },
+        {
+          label: strings.account,
+          current: pane === "you",
+          onClick: () => setPane("you"),
+        },
         { to: "/pass", label: strings.passTitle },
+        ...(isAdmin
+          ? [
+              {
+                label: strings.accountTools,
+                current: pane === "tools",
+                onClick: () => setPane("tools"),
+              },
+            ]
+          : []),
         { to: "/", label: strings.globe },
         { to: "/feedback", label: strings.feedbackTitle },
       ]}
     >
+      {isAdmin && pane === "tools" ? (
+        <AdminWorkspace embedded />
+      ) : (
+        <>
       <div className="grid gap-4 md:grid-cols-2">
         <DeskCard
           meta={strings.passKicker}
@@ -232,25 +254,8 @@ function AccountPage() {
           </ul>
         )}
       </div>
-      {isAdmin ? (
-        <div className="mt-10">
-          <p className="kicker text-muted">{strings.account}</p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Button asChild variant="outline" size="sm">
-              <Link to="/admin">{strings.opsOverview}</Link>
-            </Button>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/admin">{strings.tabMail}</Link>
-            </Button>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/admin">{strings.tabPay}</Link>
-            </Button>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/admin">{strings.opsMembers}</Link>
-            </Button>
-          </div>
-        </div>
-      ) : null}
+        </>
+      )}
     </DeskFrame>
   );
 }
