@@ -7,8 +7,9 @@ import { createServerFn } from "@tanstack/react-start";
  */
 
 export const getHomeCatalog = createServerFn({ method: "GET" }).handler(async () => {
+  const { cachedJson } = await import("./redis");
   const { getHomeCatalogData } = await import("./catalog.server");
-  return getHomeCatalogData();
+  return cachedJson("catalog:home", 60, getHomeCatalogData);
 });
 
 export const getCountryPage = createServerFn({ method: "GET" })
@@ -49,8 +50,9 @@ export const recordSearch = createServerFn({ method: "POST" })
   });
 
 export const listPublishedCities = createServerFn({ method: "GET" }).handler(async () => {
+  const { cachedJson } = await import("./redis");
   const { listPublishedData } = await import("./catalog.server");
-  return listPublishedData();
+  return cachedJson("catalog:published", 60, listPublishedData);
 });
 
 export const recordIntent = createServerFn({ method: "POST" })

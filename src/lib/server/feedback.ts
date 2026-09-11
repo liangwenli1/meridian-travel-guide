@@ -17,6 +17,12 @@ export const sendFeedback = createServerFn({ method: "POST" })
     if (!email.includes("@") || email.length < 5) return { ok: false, error: "invalid" };
     if (message.length < 8) return { ok: false, error: "short" };
 
+    const { rateLimit, visitorIp } = await import("@/lib/server/redis");
+    const ip = await visitorIp();
+    if (!(await rateLimit(`feedback:ip:${ip}`, 5, 3600)) || !(await rateLimit(`feedback:email:${email}`, 3, 3600))) {
+      return { ok: false, error: "rate-limited" };
+    }
+
     const config = loadSiteConfig();
     const inbox = (config.smtp.inbox || config.admin.email || "").trim().toLowerCase();
     if (!inbox.includes("@") || isPlaceholder(inbox)) return { ok: false, error: "inbox" };

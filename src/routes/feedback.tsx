@@ -35,7 +35,9 @@ function FeedbackPage() {
         toast.error(
           result.error === "short"
             ? strings.feedbackShort
-            : result.error === "inbox" || result.error === "smtp-not-ready"
+            : result.error === "rate-limited"
+              ? strings.rateLimited
+              : result.error === "inbox" || result.error === "smtp-not-ready"
               ? strings.smtpNotReady
               : strings.letterInvalid,
         );

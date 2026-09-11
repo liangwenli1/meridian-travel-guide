@@ -21,6 +21,7 @@ export type SiteConfig = {
     fromName: string;
     inbox: string;
   };
+  redis: { url: string };
 };
 
 const FALLBACK: SiteConfig = {
@@ -47,6 +48,7 @@ const FALLBACK: SiteConfig = {
     fromName: "Meridian",
     inbox: "CHANGE_ME_INBOX_EMAIL",
   },
+  redis: { url: "redis://redis:6379" },
 };
 
 export function isPlaceholder(value: string | undefined) {
@@ -67,5 +69,6 @@ export function loadSiteConfig(): SiteConfig {
     auth: { ...FALLBACK.auth, ...parsed.auth },
     database: { ...FALLBACK.database, ...parsed.database },
     smtp: { ...FALLBACK.smtp, ...parsed.smtp },
+    redis: { ...FALLBACK.redis, ...parsed.redis },
   };
 }

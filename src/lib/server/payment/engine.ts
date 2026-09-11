@@ -420,6 +420,10 @@ async function createCharge(opts: {
 }
 
 export async function createCheckout(userId: string, data: CheckoutRequest): Promise<OrderRecord> {
+    const { rateLimit } = await import("@/lib/server/redis");
+    if (!(await rateLimit(`pay:user:${userId}`, 10, 600))) {
+      throw new Error("rate-limited");
+    }
     const settings = await readPayment();
     if (!settings.enabled) throw new Error("Payments are not enabled");
     const sql = await getSql();

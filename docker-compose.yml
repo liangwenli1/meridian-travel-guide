@@ -16,11 +16,25 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
 
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
   app:
     build: .
     restart: unless-stopped
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     ports:
       - "${APP_PORT:-3000}:3000"
@@ -47,3 +61,4 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:

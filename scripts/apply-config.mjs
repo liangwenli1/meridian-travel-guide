@@ -13,6 +13,7 @@ const config = JSON.parse(readFileSync(path, "utf8"));
 const database = config.database ?? {};
 const site = config.site ?? {};
 const auth = config.auth ?? {};
+const redis = config.redis ?? {};
 const host = process.env.DATABASE_HOST || database.host || "db";
 const user = encodeURIComponent(database.user || "meridian");
 const password = encodeURIComponent(database.password || "");
@@ -26,6 +27,7 @@ const env = {
   BETTER_AUTH_URL: String(site.origin || "").replace(/\/$/, ""),
   PORT: String(site.port || process.env.PORT || 3000),
   HOST: process.env.HOST || "0.0.0.0",
+  REDIS_URL: redis.url || "redis://redis:6379",
   CONFIG_PATH: path,
 };
 

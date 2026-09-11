@@ -26,5 +26,8 @@
     "fromEmail": "CHANGE_ME_FROM_EMAIL",
     "fromName": "Meridian",
     "inbox": "CHANGE_ME_INBOX_EMAIL"
+  },
+  "redis": {
+    "url": "redis://redis:6379"
   }
 }

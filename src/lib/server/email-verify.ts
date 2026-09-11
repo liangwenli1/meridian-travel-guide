@@ -102,6 +102,12 @@ export const startSignup = createServerFn({ method: "POST" })
       return { ok: false, error: "invalid" };
     }
 
+    const { rateLimit, visitorIp } = await import("@/lib/server/redis");
+    const ip = await visitorIp();
+    if (!(await rateLimit(`signup:ip:${ip}`, 20, 3600)) || !(await rateLimit(`signup:email:${email}`, 5, 3600))) {
+      return { ok: false, error: "rate-limited" };
+    }
+
     const existing = await findUserByEmail(email);
     if (existing?.emailVerified) return { ok: false, error: "already-registered" };
 
@@ -150,6 +156,11 @@ export const resendSignup = createServerFn({ method: "POST" })
   .validator((data: { email: string }) => data)
   .handler(async ({ data }): Promise<StartSignupResult> => {
     const email = normalizeEmail(data.email);
+    const { rateLimit, visitorIp } = await import("@/lib/server/redis");
+    const ip = await visitorIp();
+    if (!(await rateLimit(`resend:ip:${ip}`, 10, 3600)) || !(await rateLimit(`resend:email:${email}`, 3, 3600))) {
+      return { ok: false, error: "rate-limited" };
+    }
     const smtp = await readSmtp();
     if (!smtp.enabled) return { ok: false, error: "smtp-not-ready" };
     const sql = await getSql();

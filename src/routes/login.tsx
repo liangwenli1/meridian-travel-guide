@@ -60,9 +60,11 @@ function Login() {
               ? strings.alreadyRegistered
               : result.error === "smtp-not-ready"
                 ? strings.smtpNotReady
-                : result.error === "invalid"
-                  ? strings.authFailed
-                  : result.error;
+                : result.error === "rate-limited"
+                  ? strings.rateLimited
+                  : result.error === "invalid"
+                    ? strings.authFailed
+                    : result.error;
           toast.error(message);
           return;
         }
@@ -102,7 +104,13 @@ function Login() {
     try {
       const result = await resendSignup({ data: { email: checkEmail } });
       if (!result.ok) {
-        toast.error(result.error === "smtp-not-ready" ? strings.smtpNotReady : result.error);
+        toast.error(
+          result.error === "smtp-not-ready"
+            ? strings.smtpNotReady
+            : result.error === "rate-limited"
+              ? strings.rateLimited
+              : result.error,
+        );
         return;
       }
       toast.success(strings.letterSent);

@@ -68,7 +68,8 @@ function PassPage() {
       }
       await navigate({ to: "/pay/$orderId", params: { orderId: order.id } });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : strings.authFailed);
+      const message = error instanceof Error ? error.message : "";
+      toast.error(message === "rate-limited" ? strings.rateLimited : message || strings.authFailed);
     } finally {
       setWorking(null);
     }
