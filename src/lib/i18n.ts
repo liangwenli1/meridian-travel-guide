@@ -73,8 +73,8 @@ export const copy = {
     onThisPage: "On this page",
   },
   zh: {
-    where: "你",
-    rest: "想去哪儿",
+    where: "Where",
+    rest: "do you want to go",
     search: "搜索城市或国家",
     skip: "跳到搜索",
     globe: "地球",
