@@ -56,4 +56,4 @@ Don't bounce. Don't animate layout. Don't keep the hero sticky over later scenes
 Do: let photography and the globe dominate.  
 Do: treat each homepage fold as a finished poster.  
 Don't: listicle density on the cinema track.  
-Don't: blue atmosphere, particle glitter, or a second accent.
+Don't: blue atmosphere, glow, or a second accent. The headline particles stay a single flat lime — no bloom, no gradient.
