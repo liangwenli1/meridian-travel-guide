@@ -109,7 +109,7 @@ export const cities: City[] = [
     languages: ["Japanese"],
     airportCodes: ["KIX", "ITM"],
     shortDescription: "Temples, wooden streets, and a slower civic rhythm than Tokyo.",
-    contentStatus: "coming-soon",
+    contentStatus: "published",
   },
   {
     id: "osaka",
@@ -263,7 +263,7 @@ export const cities: City[] = [
     languages: ["English"],
     airportCodes: ["LHR", "LGW", "STN", "LTN", "LCY"],
     shortDescription: "A spread-out capital of theatre, parks, and neighbourhoods that feel like separate towns.",
-    contentStatus: "coming-soon",
+    contentStatus: "published",
   },
   {
     id: "new-york",
@@ -395,7 +395,7 @@ export const cities: City[] = [
     languages: ["Catalan", "Spanish"],
     airportCodes: ["BCN"],
     shortDescription: "Sea, grid streets, and a city negotiating how many visitors a neighbourhood can hold.",
-    contentStatus: "coming-soon",
+    contentStatus: "published",
   },
   {
     id: "rome",
@@ -417,7 +417,7 @@ export const cities: City[] = [
     languages: ["Italian"],
     airportCodes: ["FCO", "CIA"],
     shortDescription: "Ancient stone under a living capital — exhausting, layered, and still a city people inhabit.",
-    contentStatus: "coming-soon",
+    contentStatus: "published",
   },
   {
     id: "sydney",
@@ -483,7 +483,7 @@ export const cities: City[] = [
     languages: ["Korean"],
     airportCodes: ["ICN", "GMP"],
     shortDescription: "A late-night capital of palaces, river highways, and neighbourhoods that restyle themselves quickly.",
-    contentStatus: "coming-soon",
+    contentStatus: "published",
   },
   {
     id: "dubai",
@@ -571,7 +571,7 @@ export const cities: City[] = [
     languages: ["Portuguese"],
     airportCodes: ["LIS"],
     shortDescription: "Hills, trams, Atlantic light, and a city still adjusting to its own popularity.",
-    contentStatus: "coming-soon",
+    contentStatus: "published",
   },
   {
     id: "berlin",
@@ -813,7 +813,7 @@ export const cities: City[] = [
     languages: ["Spanish"],
     airportCodes: ["MEX", "NLU"],
     shortDescription: "A high-altitude capital of museums, markets, and neighbourhoods with very different hours.",
-    contentStatus: "coming-soon",
+    contentStatus: "published",
   },
   {
     id: "cairo",

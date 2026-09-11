@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { authMiddleware } from "@/lib/auth/middleware";
-import { buildPassLockerItems, getTokyoItineraryMarkdown } from "@/data/pass";
+import { buildPassLockerItems, getItineraryMarkdown } from "@/data/pass";
 import { isActivePass, hasMaxPass, requireActivePass } from "@/lib/pass/access";
 import type { Membership } from "@/lib/server/membership";
 import type { PassLockerItem } from "@/types/pass";
@@ -50,10 +50,14 @@ export const getPassLocker = createServerFn({ method: "GET" })
 
 export const downloadPassItinerary = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .handler(async ({ context }): Promise<{ filename: string; markdown: string }> => {
+  .validator((input?: { citySlug?: string }) => ({
+    citySlug: String(input?.citySlug ?? "tokyo").slice(0, 80),
+  }))
+  .handler(async ({ context, data }): Promise<{ filename: string; markdown: string }> => {
     await requireActivePass(context.userId);
+    const slug = data.citySlug || "tokyo";
     return {
-      filename: "tokyo-3-day-itinerary.md",
-      markdown: getTokyoItineraryMarkdown(),
+      filename: `${slug}-3-day-itinerary.md`,
+      markdown: getItineraryMarkdown(slug),
     };
   });

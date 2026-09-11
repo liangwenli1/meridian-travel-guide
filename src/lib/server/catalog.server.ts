@@ -122,7 +122,8 @@ async function seedCatalog() {
        )
        on conflict (id) do update set
          short_description = excluded.short_description,
-         tourism_priority = excluded.tourism_priority`,
+         tourism_priority = excluded.tourism_priority,
+         content_status = excluded.content_status`,
       [
         city.id,
         city.name,
@@ -209,9 +210,10 @@ export async function getCityPageData(countrySlug: string, citySlug: string) {
     select payload from city_guides where city_slug = ${city.slug} limit 1
   `;
   const fromDb = guideRows[0] ? asGuide(guideRows[0].payload) : null;
+  const published = city.contentStatus === "published";
   return {
     city,
-    guide: fromDb ?? getGuide(city.slug) ?? null,
+    guide: published ? (fromDb ?? getGuide(city.slug) ?? null) : null,
   };
 }
 

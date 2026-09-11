@@ -26,6 +26,7 @@ import { Route as LetterUnsubscribeRouteImport } from './routes/letter.unsubscri
 import { Route as PayOrderIdRouteImport } from './routes/pay.$orderId'
 import { Route as PayReturnRouteImport } from './routes/pay.return'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as PassPrintCityRouteImport } from './routes/pass.print.$city'
 import { Route as ApiPaymentWebhookAlipayRouteImport } from './routes/api/payment/webhook/alipay'
 import { Route as ApiPaymentWebhookEasypayRouteImport } from './routes/api/payment/webhook/easypay'
 import { Route as ApiPaymentWebhookStripeRouteImport } from './routes/api/payment/webhook/stripe'
@@ -116,6 +117,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PassPrintCityRoute = PassPrintCityRouteImport.update({
+  id: '/print/$city',
+  path: '/print/$city',
+  getParentRoute: () => PassRoute,
+} as any)
 const ApiPaymentWebhookAlipayRoute = ApiPaymentWebhookAlipayRouteImport.update({
   id: '/api/payment/webhook/alipay',
   path: '/api/payment/webhook/alipay',
@@ -146,7 +152,7 @@ export interface FileRoutesByFullPath {
   '/desk': typeof DeskRouteWithChildren
   '/feedback': typeof FeedbackRoute
   '/login': typeof LoginRoute
-  '/pass': typeof PassRoute
+  '/pass': typeof PassRouteWithChildren
   '/verify-email': typeof VerifyEmailRoute
   '/$country/$city': typeof CountryCityRoute
   '/desk/$slug': typeof DeskSlugRoute
@@ -156,6 +162,7 @@ export interface FileRoutesByFullPath {
   '/$country/': typeof CountryIndexRoute
   '/desk/': typeof DeskIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/pass/print/$city': typeof PassPrintCityRoute
   '/api/payment/webhook/alipay': typeof ApiPaymentWebhookAlipayRoute
   '/api/payment/webhook/easypay': typeof ApiPaymentWebhookEasypayRoute
   '/api/payment/webhook/stripe': typeof ApiPaymentWebhookStripeRoute
@@ -167,7 +174,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/feedback': typeof FeedbackRoute
   '/login': typeof LoginRoute
-  '/pass': typeof PassRoute
+  '/pass': typeof PassRouteWithChildren
   '/verify-email': typeof VerifyEmailRoute
   '/$country/$city': typeof CountryCityRoute
   '/desk/$slug': typeof DeskSlugRoute
@@ -177,6 +184,7 @@ export interface FileRoutesByTo {
   '/$country': typeof CountryIndexRoute
   '/desk': typeof DeskIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/pass/print/$city': typeof PassPrintCityRoute
   '/api/payment/webhook/alipay': typeof ApiPaymentWebhookAlipayRoute
   '/api/payment/webhook/easypay': typeof ApiPaymentWebhookEasypayRoute
   '/api/payment/webhook/stripe': typeof ApiPaymentWebhookStripeRoute
@@ -191,7 +199,7 @@ export interface FileRoutesById {
   '/desk': typeof DeskRouteWithChildren
   '/feedback': typeof FeedbackRoute
   '/login': typeof LoginRoute
-  '/pass': typeof PassRoute
+  '/pass': typeof PassRouteWithChildren
   '/verify-email': typeof VerifyEmailRoute
   '/$country/$city': typeof CountryCityRoute
   '/desk/$slug': typeof DeskSlugRoute
@@ -201,6 +209,7 @@ export interface FileRoutesById {
   '/$country/': typeof CountryIndexRoute
   '/desk/': typeof DeskIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/pass/print/$city': typeof PassPrintCityRoute
   '/api/payment/webhook/alipay': typeof ApiPaymentWebhookAlipayRoute
   '/api/payment/webhook/easypay': typeof ApiPaymentWebhookEasypayRoute
   '/api/payment/webhook/stripe': typeof ApiPaymentWebhookStripeRoute
@@ -226,6 +235,7 @@ export interface FileRouteTypes {
     | '/$country/'
     | '/desk/'
     | '/api/auth/$'
+    | '/pass/print/$city'
     | '/api/payment/webhook/alipay'
     | '/api/payment/webhook/easypay'
     | '/api/payment/webhook/stripe'
@@ -247,6 +257,7 @@ export interface FileRouteTypes {
     | '/$country'
     | '/desk'
     | '/api/auth/$'
+    | '/pass/print/$city'
     | '/api/payment/webhook/alipay'
     | '/api/payment/webhook/easypay'
     | '/api/payment/webhook/stripe'
@@ -270,6 +281,7 @@ export interface FileRouteTypes {
     | '/$country/'
     | '/desk/'
     | '/api/auth/$'
+    | '/pass/print/$city'
     | '/api/payment/webhook/alipay'
     | '/api/payment/webhook/easypay'
     | '/api/payment/webhook/stripe'
@@ -284,7 +296,7 @@ export interface RootRouteChildren {
   DeskRoute: typeof DeskRouteWithChildren
   FeedbackRoute: typeof FeedbackRoute
   LoginRoute: typeof LoginRoute
-  PassRoute: typeof PassRoute
+  PassRoute: typeof PassRouteWithChildren
   VerifyEmailRoute: typeof VerifyEmailRoute
   LetterUnsubscribeRoute: typeof LetterUnsubscribeRoute
   PayOrderIdRoute: typeof PayOrderIdRoute
@@ -417,6 +429,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pass/print/$city': {
+      id: '/pass/print/$city'
+      path: '/print/$city'
+      fullPath: '/pass/print/$city'
+      preLoaderRoute: typeof PassPrintCityRouteImport
+      parentRoute: typeof PassRoute
+    }
     '/api/payment/webhook/alipay': {
       id: '/api/payment/webhook/alipay'
       path: '/api/payment/webhook/alipay'
@@ -473,6 +492,16 @@ const DeskRouteChildren: DeskRouteChildren = {
 
 const DeskRouteWithChildren = DeskRoute._addFileChildren(DeskRouteChildren)
 
+interface PassRouteChildren {
+  PassPrintCityRoute: typeof PassPrintCityRoute
+}
+
+const PassRouteChildren: PassRouteChildren = {
+  PassPrintCityRoute: PassPrintCityRoute,
+}
+
+const PassRouteWithChildren = PassRoute._addFileChildren(PassRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CountryRoute: CountryRouteWithChildren,
@@ -481,7 +510,7 @@ const rootRouteChildren: RootRouteChildren = {
   DeskRoute: DeskRouteWithChildren,
   FeedbackRoute: FeedbackRoute,
   LoginRoute: LoginRoute,
-  PassRoute: PassRoute,
+  PassRoute: PassRouteWithChildren,
   VerifyEmailRoute: VerifyEmailRoute,
   LetterUnsubscribeRoute: LetterUnsubscribeRoute,
   PayOrderIdRoute: PayOrderIdRoute,

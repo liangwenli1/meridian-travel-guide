@@ -44,6 +44,8 @@ function kindLabel(kind: PassLockerItem["kind"], strings: ReturnType<typeof t>) 
       return strings.passLockerItemPreview;
     case "briefing":
       return strings.passLockerItemBriefing;
+    case "arrival-card":
+      return strings.passLockerItemArrival;
     default:
       return kind;
   }
@@ -108,10 +110,10 @@ function AccountPage() {
   const items = locker?.items ?? [];
   const planLabel = plan === "max" ? strings.planMax : plan === "pro" ? strings.planPro : strings.planFree;
 
-  const onDownloadTokyo = async () => {
+  const onDownload = async (citySlug: string) => {
     setDownloading(true);
     try {
-      const file = await downloadPassItinerary();
+      const file = await downloadPassItinerary({ data: { citySlug } });
       triggerMarkdownDownload(file.filename, file.markdown);
     } catch {
       toast.error(strings.passDownloadFailed);
@@ -186,16 +188,24 @@ function AccountPage() {
                     <p className="mt-1 truncate text-fg">{loc(item.title, locale)}</p>
                     <p className="mt-1 text-muted">{loc(item.summary, locale)}</p>
                   </div>
-                  {item.downloadable && item.id === "tokyo-3-day" ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="shrink-0"
-                      disabled={downloading}
-                      onClick={() => void onDownloadTokyo()}
-                    >
-                      {downloading ? strings.passDownloading : strings.passDownloadItinerary}
-                    </Button>
+                  {item.downloadable ? (
+                    <div className="flex shrink-0 flex-col items-end gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={downloading}
+                        onClick={() => void onDownload(item.citySlug)}
+                      >
+                        {downloading ? strings.passDownloading : strings.passDownloadItinerary}
+                      </Button>
+                      <Link
+                        to="/pass/print/$city"
+                        params={{ city: item.citySlug }}
+                        className="text-xs text-accent hover:underline"
+                      >
+                        {strings.passPrintPdf}
+                      </Link>
+                    </div>
                   ) : null}
                 </li>
               ))}

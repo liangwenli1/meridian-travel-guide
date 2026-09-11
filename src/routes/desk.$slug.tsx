@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { PassGate } from "@/components/pass/PassGate";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { Badge } from "@/components/ui/Badge";
-import { getDispatch } from "@/data/dispatches";
+import { getLiveDispatch } from "@/lib/server/editorial";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { t, useI18n } from "@/lib/i18n";
 import { isActivePass } from "@/lib/pass/access";
@@ -11,8 +11,8 @@ import { getMembership } from "@/lib/server/membership";
 import { SITE } from "@/lib/site";
 
 export const Route = createFileRoute("/desk/$slug")({
-  loader: ({ params }) => {
-    const dispatch = getDispatch(params.slug);
+  loader: async ({ params }) => {
+    const dispatch = await getLiveDispatch({ data: { slug: params.slug } });
     if (!dispatch) throw notFound();
     return { dispatch };
   },

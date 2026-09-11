@@ -21,8 +21,10 @@ import { LetterForm } from "@/components/letter/LetterForm";
 import { PassGate } from "@/components/pass/PassGate";
 import { listOffseasonTables } from "@/data/pass";
 import { localizeGuide } from "@/lib/guide-locale";
+import { isActivePass } from "@/lib/pass/access";
 import { getMembership } from "@/lib/server/membership";
 import { downloadPassItinerary } from "@/lib/server/pass-locker";
+import { getChapterNotes } from "@/lib/server/editorial";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -51,6 +53,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
   const { user, isPending: authPending } = useCurrentUserState();
   const [passActive, setPassActive] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [chapterNote, setChapterNote] = useState("");
 
   useEffect(() => {
     if (authPending || !user) {
@@ -58,14 +61,23 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
       return;
     }
     void getMembership()
-      .then((m) => setPassActive(m?.status === "active"))
+      .then((m) => setPassActive(isActivePass(m)))
       .catch(() => setPassActive(false));
   }, [authPending, user]);
 
-  const downloadTokyoMd = async () => {
+  useEffect(() => {
+    void getChapterNotes({ data: { citySlug: city.slug } })
+      .then((rows) => {
+        const row = rows.find((item) => item.chapter === section && item.locale === locale);
+        setChapterNote(row?.markdown ?? "");
+      })
+      .catch(() => setChapterNote(""));
+  }, [city.slug, locale, section]);
+
+  const downloadItinerary = async () => {
     setDownloading(true);
     try {
-      const file = await downloadPassItinerary();
+      const file = await downloadPassItinerary({ data: { citySlug: city.slug } });
       const blob = new Blob([file.markdown], { type: "text/markdown;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -130,6 +142,15 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
       </section>
 
       <StickyNav />
+
+      {chapterNote ? (
+        <div className="guide-shell pt-8">
+          <Card padding="sm">
+            <CardMeta>{strings.fieldNote}</CardMeta>
+            <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-muted">{chapterNote}</p>
+          </Card>
+        </div>
+      ) : null}
 
       <section id="overview" className={`guide-panel scroll-mt-20 py-14 md:py-20 ${section === "overview" ? "" : "hidden"}`}>
         <div className="guide-shell">
@@ -749,20 +770,18 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
       </Section>
 
       <Section id="itinerary" show={section === "itinerary"} eyebrow="Time" title="Suggested itineraries">
-        {view.citySlug === "tokyo" ? (
-          <div className="mb-6">
-            <PassGate active={passActive} teaserTitle={strings.passTeaserShort}>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={downloading}
-                onClick={() => void downloadTokyoMd()}
-              >
-                {downloading ? strings.passDownloading : strings.passDownloadItinerary}
-              </Button>
-            </PassGate>
-          </div>
-        ) : null}
+        <div className="mb-6 flex flex-wrap gap-2">
+          <PassGate active={passActive} teaserTitle={strings.passTeaserShort}>
+            <Button variant="outline" size="sm" disabled={downloading} onClick={() => void downloadItinerary()}>
+              {downloading ? strings.passDownloading : strings.passDownloadItinerary}
+            </Button>
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/pass/print/$city" params={{ city: city.slug }}>
+                {strings.passPrintPdf}
+              </Link>
+            </Button>
+          </PassGate>
+        </div>
         <Grid min="md" className="mb-6">
           {view.timePlanning.map((item) => (
             <Card key={item.title} padding="sm">

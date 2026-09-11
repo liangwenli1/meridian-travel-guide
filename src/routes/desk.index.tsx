@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { Badge } from "@/components/ui/Badge";
-import { listDispatches } from "@/data/dispatches";
+import { listLiveDispatches } from "@/lib/server/editorial";
 import { t, useI18n } from "@/lib/i18n";
 import { SITE } from "@/lib/site";
 
 export const Route = createFileRoute("/desk/")({
+  loader: () => listLiveDispatches(),
   component: DeskIndexPage,
   head: () => ({
     meta: [{ title: `Desk · ${SITE.name}` }],
@@ -15,7 +16,7 @@ export const Route = createFileRoute("/desk/")({
 function DeskIndexPage() {
   const locale = useI18n((s) => s.locale);
   const strings = t(locale);
-  const items = listDispatches();
+  const items = Route.useLoaderData();
 
   return (
     <main className="min-h-dvh bg-void text-fg">

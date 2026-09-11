@@ -28,7 +28,7 @@ export type MonthlyBriefing = {
 };
 
 export type PassLockerItem = {
-  kind: "itinerary" | "offseason-table" | "neighborhood-preview" | "briefing";
+  kind: "itinerary" | "offseason-table" | "neighborhood-preview" | "briefing" | "arrival-card";
   id: string;
   citySlug: string;
   title: Localized;

@@ -1,10 +1,13 @@
 import { tokyoGuide } from "@/data/guides/tokyo";
+import { listGuides } from "@/data/guides";
+import { listArrivalCards } from "@/data/pass/arrival-cards";
 import { briefing202609 } from "@/data/pass/briefings/2026-09";
 import { bangkokNeighborhoodPreview } from "@/data/pass/neighborhood-previews/bangkok";
 import { kyotoNeighborhoodPreview } from "@/data/pass/neighborhood-previews/kyoto";
 import { taipeiNeighborhoodPreview } from "@/data/pass/neighborhood-previews/taipei";
 import { parisOffseasonTables } from "@/data/pass/offseason-tables/paris";
 import { tokyoOffseasonTables } from "@/data/pass/offseason-tables/tokyo";
+import { itineraryMarkdown } from "@/lib/itinerary-doc";
 import type {
   MonthlyBriefing,
   NeighborhoodPreview,
@@ -24,52 +27,46 @@ export function listBriefings(): MonthlyBriefing[] {
   return [briefing202609];
 }
 
-/** Render the Tokyo 3-day itinerary as clean Markdown (no PDF). */
+/** Render a city itinerary as Markdown. */
+export function getItineraryMarkdown(citySlug = "tokyo"): string {
+  const guide = listGuides().find((item) => item.citySlug === citySlug) ?? tokyoGuide;
+  return itineraryMarkdown(guide, 3);
+}
+
+/** @deprecated use getItineraryMarkdown */
 export function getTokyoItineraryMarkdown(): string {
-  const plan =
-    tokyoGuide.itineraries.find((item) => item.days === 3) ?? tokyoGuide.itineraries[0];
-  if (!plan) {
-    return "# Tokyo itinerary\n\nNo itinerary available.\n";
-  }
-
-  const lines: string[] = [
-    `# ${plan.title}`,
-    "",
-    `_${plan.days} day · ${plan.pace}_`,
-    "",
-    plan.summary,
-    "",
-  ];
-
-  for (const day of plan.daysPlan) {
-    lines.push(`## ${day.label} — ${day.theme}`, "");
-    for (const stop of day.stops) {
-      lines.push(`- **${stop.time} — ${stop.title}:** ${stop.detail}`);
-    }
-    lines.push("", `*If it rains:* ${day.rainPlan}`, "");
-  }
-
-  lines.push("---", "", `_Source: Meridian Field Pass · ${tokyoGuide.citySlug}_`, "");
-  return lines.join("\n");
+  return getItineraryMarkdown("tokyo");
 }
 
 export function buildPassLockerItems(): PassLockerItem[] {
-  const items: PassLockerItem[] = [
-    {
+  const items: PassLockerItem[] = [];
+
+  for (const guide of listGuides()) {
+    items.push({
       kind: "itinerary",
-      id: "tokyo-3-day",
-      citySlug: "tokyo",
+      id: `${guide.citySlug}-3-day`,
+      citySlug: guide.citySlug,
       title: {
-        en: "Tokyo 3-day itinerary (Markdown)",
-        zh: "东京三日行程（Markdown）",
+        en: `${guide.title.replace(" Travel Guide", "")} 3-day itinerary`,
+        zh: `${guide.zh?.title ?? guide.title} · 三日行程`,
       },
       summary: {
-        en: "Day-by-day west / east / food plan from the public guide, downloadable as .md.",
-        zh: "公开指南里的西城 / 东城 / 食物三日骨架，可下载为 .md。",
+        en: "Day-by-day plan with rain swaps. Download Markdown or print to PDF.",
+        zh: "带雨天替换的逐日骨架。可下载 Markdown，或打印为 PDF。",
       },
       downloadable: true,
-    },
-  ];
+    });
+  }
+
+  for (const card of listArrivalCards()) {
+    items.push({
+      kind: "arrival-card",
+      id: `${card.citySlug}-arrival`,
+      citySlug: card.citySlug,
+      title: card.title,
+      summary: card.minutes,
+    });
+  }
 
   for (const table of listOffseasonTables()) {
     items.push({

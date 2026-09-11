@@ -2,6 +2,7 @@ import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { toast } from "sonner";
 import { PaymentDesk } from "@/components/admin/PaymentDesk";
+import { ChapterEditor, DispatchEditor } from "@/components/admin/EditorialDesk";
 import { DeskFrame, DeskStat } from "@/components/desk/DeskFrame";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -34,7 +35,7 @@ export const Route = createFileRoute("/admin")({
 const fieldClass =
   "h-12 w-full rounded-2xl bg-void-elevated px-4 text-sm text-fg shadow-border outline-none placeholder:text-muted focus-visible:shadow-border-hover";
 
-type Tab = "overview" | "cities" | "dispatches" | "letter" | "mail" | "pay" | "members";
+type Tab = "overview" | "cities" | "dispatches" | "guides" | "letter" | "mail" | "pay" | "members";
 type CityFilter = "all" | ContentStatus;
 type LetterFilter = "all" | "active" | "unsubscribed";
 
@@ -158,6 +159,7 @@ export function AdminWorkspace({ embedded = false }: { embedded?: boolean }) {
               ["overview", strings.opsOverview],
               ["cities", strings.opsCities],
               ["dispatches", strings.opsDispatches],
+              ["guides", strings.opsGuides],
               ["letter", strings.opsLetter],
               ["mail", strings.tabMail],
               ["pay", strings.tabPay],
@@ -271,45 +273,9 @@ export function AdminWorkspace({ embedded = false }: { embedded?: boolean }) {
         </div>
       ) : null}
 
-      {gate === "admin" && tab === "dispatches" ? (
-        dispatches.length === 0 ? (
-          <EmptyState title={strings.opsDispatchesEmpty} />
-        ) : (
-          <div className="overflow-x-auto rounded-3xl bg-card shadow-border">
-            <table className="w-full min-w-[36rem] text-left text-sm">
-              <thead className="text-xs tracking-wide text-muted uppercase">
-                <tr>
-                  <th className="px-5 py-3 font-medium">{strings.opsDispatchDate}</th>
-                  <th className="px-5 py-3 font-medium">{strings.opsDispatchTitle}</th>
-                  <th className="px-5 py-3 font-medium">{strings.opsDispatchTier}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {dispatches.map((item) => (
-                  <tr key={item.slug} className="border-t border-line">
-                    <td className="px-5 py-3 font-mono text-xs text-muted">{item.date}</td>
-                    <td className="px-5 py-3">
-                      <Link
-                        to="/desk/$slug"
-                        params={{ slug: item.slug }}
-                        className="font-medium text-fg hover:text-accent"
-                      >
-                        {item.title[locale as Locale]}
-                      </Link>
-                      <p className="mt-1 text-xs text-muted">{item.kicker[locale as Locale]}</p>
-                    </td>
-                    <td className="px-5 py-3">
-                      <Badge variant={item.tier === "pass-briefing" ? "accent" : "muted"}>
-                        {item.tier === "pass-briefing" ? strings.deskPassOnly : strings.deskLetterFree}
-                      </Badge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )
-      ) : null}
+      {gate === "admin" && tab === "dispatches" ? <DispatchEditor /> : null}
+
+      {gate === "admin" && tab === "guides" ? <ChapterEditor /> : null}
 
       {gate === "admin" && tab === "letter" ? (
         <div className="space-y-4">
@@ -553,6 +519,7 @@ export function AdminWorkspace({ embedded = false }: { embedded?: boolean }) {
         { label: strings.opsOverview, current: tab === "overview", onClick: () => setTab("overview") },
         { label: strings.opsCities, current: tab === "cities", onClick: () => setTab("cities") },
         { label: strings.opsDispatches, current: tab === "dispatches", onClick: () => setTab("dispatches") },
+        { label: strings.opsGuides, current: tab === "guides", onClick: () => setTab("guides") },
         { label: strings.opsLetter, current: tab === "letter", onClick: () => setTab("letter") },
         { label: strings.tabMail, current: tab === "mail", onClick: () => setTab("mail") },
         { label: strings.tabPay, current: tab === "pay", onClick: () => setTab("pay") },
