@@ -348,6 +348,21 @@ export async function listOrdersAdmin(userId: string): Promise<OrderRecord[]> {
     return rows.map(mapOrder);
 }
 
+export async function listMyOrders(userId: string): Promise<OrderRecord[]> {
+    const sql = await getSql();
+    const rows = await sql.query<OrderRow>(
+      `select id, user_id, provider_id, provider_type, method, out_trade_no, trade_no,
+              amount::text as amount, currency, product, status, pay_url, qr_code, url_scheme,
+              paid_at::text as paid_at, expires_at::text as expires_at, created_at::text as created_at
+       from payment_orders
+       where user_id = $1
+       order by created_at desc
+       limit 20`,
+      [userId],
+    );
+    return rows.map(mapOrder);
+}
+
 export async function markOrderPaid(userId: string, outTradeNo: string): Promise<OrderRecord> {
     await requireAdmin(userId);
     await fulfillByOutTradeNo(outTradeNo, "manual");

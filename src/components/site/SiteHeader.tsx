@@ -60,14 +60,14 @@ export function SiteHeader({
                   to="/admin"
                   className="hidden text-sm text-muted transition-colors hover:text-fg sm:inline"
                 >
-                  {strings.admin}
+                  {strings.opsTitle}
                 </Link>
               ) : null}
               <Link
                 to="/account"
                 className="hidden text-sm text-muted transition-colors hover:text-fg sm:inline"
               >
-                {strings.account}
+                {strings.myDeskTitle}
               </Link>
               <div className="[&_span.grid]:bg-void-elevated [&_span.grid]:text-fg [&_button]:text-muted">
                 <UserButton />

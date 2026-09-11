@@ -58,6 +58,13 @@ export const listOrdersAdmin = createServerFn({ method: "GET" })
     return engine.listOrdersAdmin(context.userId);
   });
 
+export const listMyOrders = createServerFn({ method: "GET" })
+  .middleware([authMiddleware])
+  .handler(async ({ context }): Promise<OrderRecord[]> => {
+    const engine = await import("./engine");
+    return engine.listMyOrders(context.userId);
+  });
+
 export const markOrderPaid = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator((data: { outTradeNo: string }) => data)
