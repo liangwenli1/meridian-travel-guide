@@ -1,8 +1,12 @@
 import { easypaySign, easypayVerify, money2 } from "@/lib/server/payment/sign";
 import type { ChargeResult, EasyPayCredentials, PayMethod } from "@/lib/server/payment/types";
 
+/** Z-Pay (z-pay.cn) — default 易支付 host. Docs: https://z-pay.cn/doc.html */
+const ZPAY_BASE = "https://zpayz.cn";
+
 function apiRoot(base: string) {
-  return base.trim().replace(/\/$/, "");
+  const root = (base.trim() || ZPAY_BASE).replace(/\/$/, "");
+  return root || ZPAY_BASE;
 }
 
 function mapiUrl(base: string) {
@@ -43,7 +47,7 @@ export async function easypayCharge(opts: {
     device: opts.device,
     sign_type: "MD5",
   };
-  if (channel) params.channel = channel;
+  if (channel) params.cid = channel;
   params.sign = easypaySign(params, opts.creds.pkey);
 
   const body = new URLSearchParams(params);
@@ -57,17 +61,21 @@ export async function easypayCharge(opts: {
   try {
     json = JSON.parse(text) as Record<string, unknown>;
   } catch {
-    throw new Error(text.slice(0, 180) || "EasyPay did not return JSON");
+    throw new Error(text.slice(0, 180) || "Z-Pay did not return JSON");
   }
   const code = Number(json.code ?? json.status ?? 0);
   if (code !== 1) {
-    throw new Error(String(json.msg ?? json.message ?? "EasyPay charge failed"));
+    throw new Error(String(json.msg ?? json.message ?? "Z-Pay charge failed"));
   }
+  const payUrl =
+    String(json.payurl ?? json.payUrl ?? json.payurl2 ?? json.urlscheme ?? "") || undefined;
+  const qrCode =
+    String(json.qrcode ?? json.qrCode ?? json.img ?? json.code_url ?? "") || undefined;
   return {
-    payUrl: String(json.payurl ?? json.payUrl ?? json.urlscheme ?? "") || undefined,
-    qrCode: String(json.qrcode ?? json.qrCode ?? json.code_url ?? "") || undefined,
+    payUrl,
+    qrCode,
     urlScheme: String(json.urlscheme ?? "") || undefined,
-    tradeNo: String(json.trade_no ?? "") || undefined,
+    tradeNo: String(json.trade_no ?? json.O_id ?? "") || undefined,
     raw: json,
   };
 }
@@ -99,4 +107,4 @@ export function easypayPaid(payload: Record<string, unknown>) {
   );
 }
 
-export { easypayVerify };
+export { easypayVerify, ZPAY_BASE };

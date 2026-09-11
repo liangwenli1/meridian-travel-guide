@@ -20,6 +20,7 @@ import { StickyNav } from "./StickyNav";
 import { LetterForm } from "@/components/letter/LetterForm";
 import { PassGate } from "@/components/pass/PassGate";
 import { listOffseasonTables } from "@/data/pass";
+import { localizeGuide } from "@/lib/guide-locale";
 import { getMembership } from "@/lib/server/membership";
 import { downloadPassItinerary } from "@/lib/server/pass-locker";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
@@ -45,6 +46,7 @@ const TIER_VARIANT: Record<CityGuide["attractions"][number]["tier"], "accent" | 
 export function CityGuideView({ city, guide }: { city: City; guide: CityGuide }) {
   const locale = useI18n((s) => s.locale);
   const strings = t(locale);
+  const view = localizeGuide(guide, locale);
   const section = useSearch({ from: "/$country/$city" }).s ?? "overview";
   const { user, isPending: authPending } = useCurrentUserState();
   const [passActive, setPassActive] = useState(false);
@@ -80,25 +82,25 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
     }
   };
   const snapshotEntries = [
-    ["Country", guide.snapshot.country],
-    ["Language", guide.snapshot.languages],
-    ["Currency", guide.snapshot.currency],
-    ["Timezone", guide.snapshot.timezone],
-    ["Population", guide.snapshot.population],
-    ["Daily cost", guide.snapshot.dailyCost],
-    ["Best months", guide.snapshot.bestMonths],
-    ["Typical stay", guide.snapshot.typicalStay],
-    ["Airports", guide.snapshot.airports],
-    ["Stations", guide.snapshot.stations],
-    ["Visa", guide.snapshot.visaSummary],
-    ["Plug / voltage", `${guide.snapshot.plugType} · ${guide.snapshot.voltage}`],
-    ["Emergency", guide.snapshot.emergency],
-    ["Tipping", guide.snapshot.tipping],
-    ["Cash vs card", guide.snapshot.cashVsCard],
-    ["Dining hours", guide.snapshot.diningHours],
-    ["Walkability", guide.snapshot.walkability],
-    ["Transit", guide.snapshot.transitQuality],
-    ["Travel style", guide.snapshot.travelStyle],
+    ["Country", view.snapshot.country],
+    ["Language", view.snapshot.languages],
+    ["Currency", view.snapshot.currency],
+    ["Timezone", view.snapshot.timezone],
+    ["Population", view.snapshot.population],
+    ["Daily cost", view.snapshot.dailyCost],
+    ["Best months", view.snapshot.bestMonths],
+    ["Typical stay", view.snapshot.typicalStay],
+    ["Airports", view.snapshot.airports],
+    ["Stations", view.snapshot.stations],
+    ["Visa", view.snapshot.visaSummary],
+    ["Plug / voltage", `${view.snapshot.plugType} · ${view.snapshot.voltage}`],
+    ["Emergency", view.snapshot.emergency],
+    ["Tipping", view.snapshot.tipping],
+    ["Cash vs card", view.snapshot.cashVsCard],
+    ["Dining hours", view.snapshot.diningHours],
+    ["Walkability", view.snapshot.walkability],
+    ["Transit", view.snapshot.transitQuality],
+    ["Travel style", view.snapshot.travelStyle],
   ] as const;
 
   return (
@@ -110,8 +112,8 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
 
       <section className="relative isolate min-h-[72vh] overflow-hidden">
         <img
-          src={guide.hero.url}
-          alt={guide.hero.alt}
+          src={view.hero.url}
+          alt={view.hero.alt}
           referrerPolicy="no-referrer"
           className="content-img absolute inset-0 size-full object-cover"
         />
@@ -121,9 +123,9 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
             {city.country} · Travel guide
           </p>
           <h1 className="mt-3 max-w-3xl text-5xl leading-[0.95] font-medium tracking-tight text-fg md:text-7xl">
-            {guide.title}
+            {view.title}
           </h1>
-          <p className="mt-4 max-w-xl text-base text-fg/80 md:text-lg">{guide.subtitle}</p>
+          <p className="mt-4 max-w-xl text-base text-fg/80 md:text-lg">{view.subtitle}</p>
         </div>
       </section>
 
@@ -144,13 +146,13 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           <div className="mt-12 grid gap-4 md:grid-cols-2">
             <Card>
               <CardTitle>Why go</CardTitle>
-              <CardDescription>{guide.whyGo}</CardDescription>
+              <CardDescription>{view.whyGo}</CardDescription>
             </Card>
             <div className="grid gap-4">
               <Card>
                 <CardMeta>Who will love it</CardMeta>
                 <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted">
-                  {guide.whoWillLoveIt.map((item) => (
+                  {view.whoWillLoveIt.map((item) => (
                     <li key={item}>{item}</li>
                   ))}
                 </ul>
@@ -158,7 +160,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
               <Card>
                 <CardMeta>Who may struggle</CardMeta>
                 <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted">
-                  {guide.whoMayStruggle.map((item) => (
+                  {view.whoMayStruggle.map((item) => (
                     <li key={item}>{item}</li>
                   ))}
                 </ul>
@@ -169,14 +171,14 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           <Grid min="md" className="mt-10">
             <Callout kind="good-to-know" title="The short version">
               <ol className="list-decimal space-y-1 pl-4">
-                {guide.shortVersion.map((item) => (
+                {view.shortVersion.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
               </ol>
             </Callout>
             <Callout kind="watch-out" title="Reality check">
               <ul className="list-disc space-y-1 pl-4">
-                {guide.realityCheck.map((item) => (
+                {view.realityCheck.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
               </ul>
@@ -184,7 +186,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           </Grid>
 
           <Grid min="md" className="mt-12">
-            {guide.beforeYouGo.map((item) => (
+            {view.beforeYouGo.map((item) => (
               <Card key={item.title}>
                 <CardTitle className="text-base">{item.title}</CardTitle>
                 <CardDescription>{item.body}</CardDescription>
@@ -196,7 +198,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
 
       <Section id="neighborhoods" show={section === "neighborhoods"} eyebrow="Urban grain" title="Neighborhoods at a glance">
         <Grid min="md">
-          {guide.neighborhoods.map((area) => (
+          {view.neighborhoods.map((area) => (
             <Card key={area.name}>
               <CardHeader>
                 <CardTitle className="text-xl">{area.name}</CardTitle>
@@ -253,7 +255,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
             </tr>
           </THead>
           <tbody>
-            {guide.bestAreaFor.map((row) => (
+            {view.bestAreaFor.map((row) => (
               <Tr key={row.persona}>
                 <Td className="font-medium">{row.persona}</Td>
                 <Td>{row.area}</Td>
@@ -266,7 +268,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
 
       <Section id="things-to-do" show={section === "things-to-do"} eyebrow="Time well spent" title="Attractions and things to do">
         <div className="space-y-4">
-          {guide.attractions.map((place) => (
+          {view.attractions.map((place) => (
             <Card key={place.name} padding="lg">
               <CardHeader>
                 <CardTitle className="text-xl">{place.name}</CardTitle>
@@ -300,7 +302,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           ))}
         </div>
         <Grid min="md" className="mt-8">
-          {guide.thingsToDo.map((item) => (
+          {view.thingsToDo.map((item) => (
             <Card key={item.title}>
               <CardTitle>{item.title}</CardTitle>
               <CardDescription>{item.body}</CardDescription>
@@ -311,7 +313,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           ))}
         </Grid>
         <Grid min="md" className="mt-8">
-          {guide.hiddenGems.map((item) => (
+          {view.hiddenGems.map((item) => (
             <Card key={item.title}>
               <CardTitle>{item.title}</CardTitle>
               <CardDescription>{item.body}</CardDescription>
@@ -320,7 +322,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           ))}
         </Grid>
         <Grid min="md" className="mt-8">
-          {guide.localExperiences.map((item) => (
+          {view.localExperiences.map((item) => (
             <Card key={item.title} padding="sm">
               <CardTitle className="text-base">{item.title}</CardTitle>
               <CardDescription>{item.body}</CardDescription>
@@ -328,7 +330,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           ))}
         </Grid>
         <div className="mt-10 space-y-4">
-          {guide.everydayLife.map((item) => (
+          {view.everydayLife.map((item) => (
             <p key={item.title} className="text-sm leading-relaxed text-muted">
               <span className="font-medium text-fg">{item.title}. </span>
               {item.body}
@@ -337,9 +339,9 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
         </div>
       </Section>
 
-      <Section id="food" show={section === "food"} eyebrow="What to eat" title="Food and drinks" intro={guide.foodIntro}>
+      <Section id="food" show={section === "food"} eyebrow="What to eat" title="Food and drinks" intro={view.foodIntro}>
         <Grid min="md">
-          {guide.dishes.map((dish) => (
+          {view.dishes.map((dish) => (
             <Card key={dish.name}>
               <CardTitle className="text-xl">{dish.name}</CardTitle>
               {dish.localName ? <p className="text-xs text-muted">{dish.localName}</p> : null}
@@ -356,7 +358,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           ))}
         </Grid>
         <div className="mt-8 space-y-4">
-          {guide.foodThemes.map((theme) => (
+          {view.foodThemes.map((theme) => (
             <Card key={theme.title} padding="sm">
               <CardTitle>{theme.title}</CardTitle>
               <CardDescription className="max-w-3xl">{theme.body}</CardDescription>
@@ -373,7 +375,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
             </tr>
           </THead>
           <tbody>
-            {guide.venues.map((venue) => (
+            {view.venues.map((venue) => (
               <Tr key={venue.name}>
                 <Td>
                   <p className="font-medium">{venue.name}</p>
@@ -387,7 +389,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           </tbody>
         </Table>
         <Grid min="md" className="mt-8">
-          {guide.shopping.map((item) => (
+          {view.shopping.map((item) => (
             <Card key={item.title}>
               <CardTitle className="text-base">{item.title}</CardTitle>
               <CardDescription>{item.body}</CardDescription>
@@ -399,7 +401,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           {passActive ? (
             <div className="mt-4 space-y-4">
               {listOffseasonTables()
-                .filter((table) => table.citySlug === guide.citySlug)
+                .filter((table) => table.citySlug === view.citySlug)
                 .map((table) => (
                   <Card key={table.name.en} padding="sm">
                     <CardTitle className="text-base">{table.name[locale]}</CardTitle>
@@ -409,7 +411,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
                     {table.watchOut ? <p className="mt-2 text-sm text-warn">{table.watchOut[locale]}</p> : null}
                   </Card>
                 ))}
-              {listOffseasonTables().filter((table) => table.citySlug === guide.citySlug).length === 0 ? (
+              {listOffseasonTables().filter((table) => table.citySlug === view.citySlug).length === 0 ? (
                 <p className="mt-3 text-sm text-muted">{strings.passLockerEmpty}</p>
               ) : null}
             </div>
@@ -423,9 +425,9 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
         </div>
       </Section>
 
-      <Section id="stay" show={section === "stay"} eyebrow="Where to sleep" title="Where to stay" intro={guide.stayIntro}>
+      <Section id="stay" show={section === "stay"} eyebrow="Where to sleep" title="Where to stay" intro={view.stayIntro}>
         <Grid min="md">
-          {guide.stayAreas.map((area) => (
+          {view.stayAreas.map((area) => (
             <Card key={area.name}>
               <CardTitle className="text-xl">{area.name}</CardTitle>
               <p className="mt-1 text-xs text-muted">Best for {area.bestFor.join(", ")}</p>
@@ -439,7 +441,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           ))}
         </Grid>
         <ul className="mt-6 list-disc space-y-2 pl-5 text-sm text-muted">
-          {guide.stayNotes.map((note) => (
+          {view.stayNotes.map((note) => (
             <li key={note}>{note}</li>
           ))}
         </ul>
@@ -457,7 +459,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
             </tr>
           </THead>
           <tbody>
-            {guide.arrival.map((row) => (
+            {view.arrival.map((row) => (
               <Tr key={row.name}>
                 <Td>
                   <p className="font-medium">{row.name}</p>
@@ -472,7 +474,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           </tbody>
         </Table>
         <Grid min="md" className="mt-8">
-          {guide.gettingAround.map((item) => (
+          {view.gettingAround.map((item) => (
             <Card key={item.title}>
               <CardTitle className="text-base">{item.title}</CardTitle>
               <CardDescription>{item.body}</CardDescription>
@@ -481,7 +483,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
         </Grid>
         <h3 className="mt-10 mb-3 kicker text-muted">Day trips</h3>
         <Grid min="md">
-          {guide.dayTrips.map((trip) => (
+          {view.dayTrips.map((trip) => (
             <Card key={trip.name}>
               <CardTitle>{trip.name}</CardTitle>
               <p className="mt-1 text-xs text-muted">{trip.time}</p>
@@ -494,10 +496,10 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
 
       <Section id="money" show={section === "money"} eyebrow="Costs" title="Budget and payments">
         <p className="mb-4 text-sm text-muted">
-          {guide.budget.currency} · {guide.budget.asOf}
+          {view.budget.currency} · {view.budget.asOf}
         </p>
         <Grid min="sm">
-          {guide.budget.bands.map((band) => (
+          {view.budget.bands.map((band) => (
             <Card key={band.name} variant="stat">
               <CardMeta>{band.name}</CardMeta>
               <p className="mt-2 text-2xl font-medium tracking-tight text-fg tabular-nums">{band.daily}</p>
@@ -506,7 +508,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           ))}
         </Grid>
         <div className="mt-6">
-          <BudgetChart budget={guide.budget} />
+          <BudgetChart budget={view.budget} />
         </div>
         <Table className="mt-6">
           <THead>
@@ -518,7 +520,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
             </tr>
           </THead>
           <tbody>
-            {guide.budget.breakdown.map((row) => (
+            {view.budget.breakdown.map((row) => (
               <Tr key={row.item}>
                 <Td>{row.item}</Td>
                 <Td className="tabular-nums">{row.budget}</Td>
@@ -531,28 +533,28 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
         <Grid min="md" className="mt-6">
           <Callout kind="watch-out" title="Easy to miss">
             <ul className="list-disc pl-4">
-              {guide.budget.hidden.map((item) => (
+              {view.budget.hidden.map((item) => (
                 <li key={item}>{item}</li>
               ))}
             </ul>
           </Callout>
           <Callout kind="worth-it" title="Spend here">
             <ul className="list-disc pl-4">
-              {guide.budget.worthSpending.map((item) => (
+              {view.budget.worthSpending.map((item) => (
                 <li key={item}>{item}</li>
               ))}
             </ul>
           </Callout>
           <Callout kind="local-tip" title="Save here">
             <ul className="list-disc pl-4">
-              {guide.budget.worthSaving.map((item) => (
+              {view.budget.worthSaving.map((item) => (
                 <li key={item}>{item}</li>
               ))}
             </ul>
           </Callout>
         </Grid>
         <Grid min="md" className="mt-8">
-          {guide.payments.map((item) => (
+          {view.payments.map((item) => (
             <Card key={item.title}>
               <CardTitle className="text-base">{item.title}</CardTitle>
               <CardDescription>{item.body}</CardDescription>
@@ -563,15 +565,15 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
 
       <Section id="connectivity" show={section === "connectivity"} eyebrow="Before you fly" title="Visa, SIM, and weather">
         <Callout kind="watch-out" title="Visa and entry">
-          {guide.visa.summary}
+          {view.visa.summary}
         </Callout>
         <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-muted">
-          {guide.visa.details.map((item) => (
+          {view.visa.details.map((item) => (
             <li key={item}>{item}</li>
           ))}
         </ul>
         <a
-          href={guide.visa.officialUrl}
+          href={view.visa.officialUrl}
           className="mt-3 inline-flex items-center gap-1 text-sm text-fg"
           target="_blank"
           rel="noreferrer"
@@ -579,7 +581,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           Official source <ArrowUpRight className="size-3.5" />
         </a>
         <Grid min="md" className="mt-8">
-          {guide.connectivity.map((item) => (
+          {view.connectivity.map((item) => (
             <Card key={item.title}>
               <CardTitle className="text-base">{item.title}</CardTitle>
               <CardDescription>{item.body}</CardDescription>
@@ -587,7 +589,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           ))}
         </Grid>
         <Grid min="sm" className="mt-8">
-          {guide.seasons.map((season) => (
+          {view.seasons.map((season) => (
             <Card key={season.name}>
               <CardTitle>{season.name}</CardTitle>
               <p className="mt-1 text-xs text-muted">{season.forWhom}</p>
@@ -598,14 +600,14 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           ))}
         </Grid>
         <Grid min="md" className="mt-6">
-          {guide.weatherTips.map((item) => (
+          {view.weatherTips.map((item) => (
             <Callout key={item.title} kind="good-to-know" title={item.title}>
               {item.body}
             </Callout>
           ))}
         </Grid>
         <ul className="mt-6 space-y-2 text-sm text-muted">
-          {guide.festivals.map((fest) => (
+          {view.festivals.map((fest) => (
             <li key={fest.name}>
               <span className="font-medium text-fg">{fest.name}</span> · {fest.when}. {fest.note}
             </li>
@@ -615,7 +617,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
 
       <Section id="apps" show={section === "apps"} eyebrow="Phone" title="Essential apps">
         <Grid min="md">
-          {guide.apps.map((app) => (
+          {view.apps.map((app) => (
             <Card key={app.name} padding="sm">
               <CardHeader>
                 <div>
@@ -640,7 +642,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
 
       <Section id="culture" show={section === "culture"} eyebrow="How the city behaves" title="Culture and etiquette">
         <div className="space-y-4">
-          {guide.culture.map((item) => (
+          {view.culture.map((item) => (
             <Card key={item.title} padding="sm">
               <CardTitle>{item.title}</CardTitle>
               <CardDescription className="max-w-3xl">{item.body}</CardDescription>
@@ -656,7 +658,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
             </tr>
           </THead>
           <tbody>
-            {guide.etiquette.map((row) => (
+            {view.etiquette.map((row) => (
               <Tr key={row.do}>
                 <Td>{row.do}</Td>
                 <Td>{row.dont}</Td>
@@ -666,12 +668,12 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           </tbody>
         </Table>
         <ul className="mt-6 list-disc space-y-1 pl-5 text-sm text-muted">
-          {guide.taboos.map((item) => (
+          {view.taboos.map((item) => (
             <li key={item}>{item}</li>
           ))}
         </ul>
         <Grid min="md" className="mt-8">
-          {guide.phrases.map((phrase) => (
+          {view.phrases.map((phrase) => (
             <Card key={phrase.original} padding="sm">
               <p className="text-xl font-medium tracking-tight text-fg">{phrase.original}</p>
               <p className="text-sm text-muted">{phrase.romanized}</p>
@@ -682,7 +684,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           ))}
         </Grid>
         <div className="mt-8 space-y-3">
-          {guide.localModules.map((item) => (
+          {view.localModules.map((item) => (
             <Card key={item.title} padding="sm">
               <CardTitle className="text-base">{item.title}</CardTitle>
               <CardDescription>{item.body}</CardDescription>
@@ -693,7 +695,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
 
       <Section id="safety" show={section === "safety"} eyebrow="Keep it specific" title="Safety, scams, and access">
         <Grid min="md">
-          {guide.safety.map((item) => (
+          {view.safety.map((item) => (
             <Card key={item.title}>
               <CardTitle className="text-base">{item.title}</CardTitle>
               <CardDescription>{item.body}</CardDescription>
@@ -701,7 +703,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           ))}
         </Grid>
         <div className="mt-6 space-y-3">
-          {guide.scams.map((scam) => (
+          {view.scams.map((scam) => (
             <Card key={scam.name}>
               <CardTitle className="text-base">{scam.name}</CardTitle>
               <p className="mt-2 text-sm text-muted">Look for: {scam.lookFor}</p>
@@ -711,12 +713,12 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           ))}
         </div>
         <StatGrid className="mt-6">
-          {guide.emergency.map((item) => (
+          {view.emergency.map((item) => (
             <StatCell key={item.label} label={item.label} value={item.value} />
           ))}
         </StatGrid>
         <Grid min="md" className="mt-6">
-          {guide.accessibility.map((item) => (
+          {view.accessibility.map((item) => (
             <Card key={item.title} padding="sm">
               <CardTitle className="text-base">{item.title}</CardTitle>
               <CardDescription>{item.body}</CardDescription>
@@ -724,7 +726,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           ))}
         </Grid>
         <Grid min="md" className="mt-8">
-          {guide.byTraveler.map((item) => (
+          {view.byTraveler.map((item) => (
             <Card key={item.persona}>
               <CardTitle className="text-base">{item.persona}</CardTitle>
               <ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-muted">
@@ -738,7 +740,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
         <div className="mt-6">
           <Callout kind="watch-out" title="Things visitors often get wrong">
             <ul className="list-disc pl-4">
-              {guide.touristsGetWrong.map((item) => (
+              {view.touristsGetWrong.map((item) => (
                 <li key={item}>{item}</li>
               ))}
             </ul>
@@ -747,7 +749,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
       </Section>
 
       <Section id="itinerary" show={section === "itinerary"} eyebrow="Time" title="Suggested itineraries">
-        {guide.citySlug === "tokyo" ? (
+        {view.citySlug === "tokyo" ? (
           <div className="mb-6">
             <PassGate active={passActive} teaserTitle={strings.passTeaserShort}>
               <Button
@@ -762,7 +764,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           </div>
         ) : null}
         <Grid min="md" className="mb-6">
-          {guide.timePlanning.map((item) => (
+          {view.timePlanning.map((item) => (
             <Card key={item.title} padding="sm">
               <CardTitle className="text-base">{item.title}</CardTitle>
               <CardDescription>{item.body}</CardDescription>
@@ -770,7 +772,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           ))}
         </Grid>
         <div className="space-y-8">
-          {guide.itineraries.map((plan, planIndex) => {
+          {view.itineraries.map((plan, planIndex) => {
             const freeDays = passActive || planIndex > 0 ? [] : plan.daysPlan.slice(0, 1);
             const lockedDays =
               passActive ? [] : planIndex === 0 ? plan.daysPlan.slice(1) : plan.daysPlan;
@@ -825,7 +827,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
 
       <Section id="faq" show={section === "faq"} eyebrow="Direct answers" title="FAQ">
         <Card padding="none" className="divide-y divide-line">
-          {guide.faq.map((item) => (
+          {view.faq.map((item) => (
             <details key={item.q} className="group px-5 py-4">
               <summary className="cursor-pointer list-none text-base font-medium marker:content-none">
                 {item.q}
@@ -837,7 +839,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
         <div className="mt-10 border-t border-line pt-8">
           <h3 className="kicker text-muted">Sources</h3>
           <ul className="mt-3 space-y-1 text-sm">
-            {guide.sources.map((source) => (
+            {view.sources.map((source) => (
               <li key={source.url}>
                 <a href={source.url} className="text-fg underline-offset-2 hover:underline" target="_blank" rel="noreferrer">
                   {source.name}
@@ -847,7 +849,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
             ))}
           </ul>
           <p className="mt-4 text-xs text-muted">
-            Last updated: {guide.lastUpdated}. Hero photo: {guide.hero.author} / {guide.hero.license}.
+            Last updated: {view.lastUpdated}. Hero photo: {view.hero.author} / {view.hero.license}.
           </p>
         </div>
       </Section>

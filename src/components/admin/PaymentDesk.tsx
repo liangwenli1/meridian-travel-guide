@@ -23,13 +23,13 @@ import type { ProviderType } from "@/lib/server/payment/types";
 const fieldClass =
   "h-12 w-full rounded-2xl bg-void-elevated px-4 text-sm text-fg shadow-border outline-none placeholder:text-muted focus-visible:shadow-border-hover";
 
-const CRED_FIELDS: Record<ProviderType, { key: string; label: string; secret?: boolean }[]> = {
+const CRED_FIELDS: Record<ProviderType, { key: string; label: string; secret?: boolean; placeholder?: string }[]> = {
   easypay: [
-    { key: "pid", label: "PID" },
-    { key: "pkey", label: "PKey", secret: true },
-    { key: "apiBase", label: "API" },
-    { key: "alipayChannel", label: "Alipay channel" },
-    { key: "wechatChannel", label: "WeChat channel" },
+    { key: "pid", label: "PID / 商户 ID" },
+    { key: "pkey", label: "商户密钥", secret: true },
+    { key: "apiBase", label: "API", placeholder: "https://zpayz.cn" },
+    { key: "alipayChannel", label: "支付宝 CID（可选）" },
+    { key: "wechatChannel", label: "微信 CID（可选）" },
   ],
   alipay: [
     { key: "appId", label: "App ID" },
@@ -60,8 +60,8 @@ export function PaymentDesk() {
   const [providers, setProviders] = useState<ProviderPublic[]>([]);
   const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [type, setType] = useState<ProviderType>("easypay");
-  const [name, setName] = useState("EasyPay");
-  const [creds, setCreds] = useState<Record<string, string>>({});
+  const [name, setName] = useState("Z-Pay");
+  const [creds, setCreds] = useState<Record<string, string>>({ apiBase: "https://zpayz.cn" });
   const [saving, setSaving] = useState(false);
 
   const reload = () => {
@@ -104,6 +104,15 @@ export function PaymentDesk() {
         <Field label={strings.payOrigin}>
           <input className={fieldClass} value={origin} onChange={(event) => setOrigin(event.target.value)} />
         </Field>
+        {origin ? (
+          <p className="text-xs leading-relaxed text-muted">
+            {strings.payNotifyHint}
+            <br />
+            <span className="font-mono text-fg">{origin.replace(/\/$/, "")}/api/payment/webhook/easypay</span>
+            <br />
+            <span className="font-mono text-fg">{origin.replace(/\/$/, "")}/pay/return</span>
+          </p>
+        ) : null}
         <Field label={strings.payPriceCny}>
           <input
             className={fieldClass}
@@ -211,11 +220,11 @@ export function PaymentDesk() {
               onChange={(event) => {
                 const next = event.target.value as ProviderType;
                 setType(next);
-                setName(next === "easypay" ? "EasyPay" : next);
-                setCreds({});
+                setName(next === "easypay" ? "Z-Pay" : next);
+                setCreds(next === "easypay" ? { apiBase: "https://zpayz.cn" } : {});
               }}
             >
-              <option value="easypay">EasyPay</option>
+              <option value="easypay">Z-Pay / 易支付</option>
               <option value="alipay">{strings.payViaOfficial} Alipay</option>
               <option value="wxpay">{strings.payViaOfficial} WeChat</option>
               <option value="stripe">Stripe</option>
@@ -230,6 +239,7 @@ export function PaymentDesk() {
                 className={fieldClass}
                 type={field.secret ? "password" : "text"}
                 autoComplete="off"
+                placeholder={field.placeholder}
                 value={creds[field.key] ?? ""}
                 onChange={(event) => setCreds({ ...creds, [field.key]: event.target.value })}
               />
@@ -239,7 +249,13 @@ export function PaymentDesk() {
             type="button"
             onClick={() => {
               void saveProvider({
-                data: { type, name, enabled: true, credentials: creds },
+                data: {
+                  type,
+                  name,
+                  enabled: true,
+                  credentials:
+                    type === "easypay" ? { ...creds, apiBase: creds.apiBase || "https://zpayz.cn" } : creds,
+                },
               })
                 .then(() => {
                   toast.success(strings.paySaved);

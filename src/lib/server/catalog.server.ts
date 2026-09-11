@@ -122,7 +122,6 @@ async function seedCatalog() {
        )
        on conflict (id) do update set
          short_description = excluded.short_description,
-         content_status = excluded.content_status,
          tourism_priority = excluded.tourism_priority`,
       [
         city.id,
@@ -245,4 +244,10 @@ export async function recordIntentData(kind: string, citySlug: string | null) {
   await ensureSeeded();
   const sql = await getSql();
   await sql.query(`insert into intents (kind, city_slug) values ($1, $2)`, [kind, citySlug]);
+}
+
+export async function setCityStatusData(slug: string, status: "published" | "coming-soon") {
+  await ensureSeeded();
+  const sql = await getSql();
+  await sql.query(`update cities set content_status = $1 where slug = $2`, [status, slug]);
 }

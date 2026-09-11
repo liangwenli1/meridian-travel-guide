@@ -298,6 +298,9 @@ export async function saveProvider(userId: string, data: ProviderInput): Promise
     const id = data.id || newId("p_");
     const existing = data.id ? await loadProvider(data.id) : null;
     const credentials = mergeCreds(existing?.credentials ?? {}, data.credentials ?? {});
+    if (data.type === "easypay" && !credentials.apiBase) {
+      credentials.apiBase = "https://zpayz.cn";
+    }
     const minAmount = data.minAmount?.trim() || null;
     const maxAmount = data.maxAmount?.trim() || null;
     const dailyLimit = data.dailyLimit?.trim() || null;
@@ -381,7 +384,8 @@ async function createCharge(opts: {
   origin: string;
 }): Promise<ChargeResult> {
   const notify = `${opts.origin}/api/payment/webhook/${opts.provider.type}`;
-  const ret = `${opts.origin}/pay/return?out_trade_no=${opts.outTradeNo}`;
+  // Z-Pay forbids query strings on notify_url / return_url.
+  const ret = `${opts.origin}/pay/return`;
   const creds = opts.provider.credentials ?? {};
   if (opts.provider.type === "easypay") {
     return easypayCharge({

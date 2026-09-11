@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { authMiddleware } from "@/lib/auth/middleware";
 
 /**
  * Catalog API (auth off).
@@ -63,4 +64,20 @@ export const recordIntent = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { recordIntentData } = await import("./catalog.server");
     await recordIntentData(data.kind, data.citySlug);
+  });
+
+export const setCityStatus = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator((input: { slug: string; status: "published" | "coming-soon" }) => ({
+    slug: String(input.slug).slice(0, 80),
+    status: input.status === "published" ? ("published" as const) : ("coming-soon" as const),
+  }))
+  .handler(async ({ data, context }) => {
+    const { requireAdmin } = await import("./ops");
+    await requireAdmin(context.userId);
+    const { setCityStatusData } = await import("./catalog.server");
+    await setCityStatusData(data.slug, data.status);
+    const { bustCache } = await import("./redis");
+    await bustCache(["catalog:home", "catalog:published"]);
+    return { ok: true as const, slug: data.slug, status: data.status };
   });

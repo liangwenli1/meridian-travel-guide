@@ -132,6 +132,19 @@ export type CityGuide = {
   whoMayStruggle: string[];
   shortVersion: string[];
   realityCheck: string[];
+  /** Optional Chinese overlay — whole-page language switch, not dual subtitles. */
+  zh?: {
+    title?: string;
+    subtitle?: string;
+    seoTitle?: string;
+    seoDescription?: string;
+    whyGo?: string;
+    whoWillLoveIt?: string[];
+    whoMayStruggle?: string[];
+    shortVersion?: string[];
+    realityCheck?: string[];
+    snapshot?: Partial<Snapshot>;
+  };
   beforeYouGo: { title: string; body: string }[];
   neighborhoods: Neighborhood[];
   bestAreaFor: { persona: string; area: string; why: string }[];

@@ -5,14 +5,15 @@ import { PaymentDesk } from "@/components/admin/PaymentDesk";
 import { DeskFrame, DeskStat } from "@/components/desk/DeskFrame";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { cities } from "@/data/cities";
+import { cities as seedCities } from "@/data/cities";
 import { listDispatches } from "@/data/dispatches";
 import { RedirectToSignIn } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { t, useI18n, type Locale } from "@/lib/i18n";
 import { sendTestEmail } from "@/lib/server/email-verify";
+import { getHomeCatalog, setCityStatus } from "@/lib/server/catalog";
 import { getOpsOverview, listMembers, type MemberRow, type OpsOverview } from "@/lib/server/desk";
-import { listLetterSubscribers, type LetterSubscriber } from "@/lib/server/letter";
+import { listLetterSubscribers, sendLetterIssue, type LetterSubscriber } from "@/lib/server/letter";
 import {
   claimAdmin,
   getAdminState,
@@ -21,7 +22,7 @@ import {
   type SmtpPublic,
 } from "@/lib/server/ops";
 import { SITE } from "@/lib/site";
-import type { ContentStatus } from "@/types/catalog";
+import type { City, ContentStatus } from "@/types/catalog";
 
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
@@ -51,6 +52,7 @@ function AdminPage() {
   const [overview, setOverview] = useState<OpsOverview | null>(null);
   const [members, setMembers] = useState<MemberRow[]>([]);
   const [letterRows, setLetterRows] = useState<LetterSubscriber[]>([]);
+  const [cityRows, setCityRows] = useState<City[]>(seedCities);
   const [cityFilter, setCityFilter] = useState<CityFilter>("all");
   const [letterFilter, setLetterFilter] = useState<LetterFilter>("all");
 
@@ -60,6 +62,9 @@ function AdminPage() {
       getOpsOverview().then(setOverview),
       listMembers().then(setMembers),
       listLetterSubscribers().then(setLetterRows).catch(() => setLetterRows([])),
+      getHomeCatalog()
+        .then((data) => setCityRows(data.cities))
+        .catch(() => setCityRows(seedCities)),
     ]);
 
   useEffect(() => {
@@ -76,10 +81,10 @@ function AdminPage() {
   }, [isPending, userId]);
 
   const filteredCities = useMemo(() => {
-    const rows = [...cities].sort((a, b) => b.tourismPriority - a.tourismPriority || a.name.localeCompare(b.name));
+    const rows = [...cityRows].sort((a, b) => b.tourismPriority - a.tourismPriority || a.name.localeCompare(b.name));
     if (cityFilter === "all") return rows;
     return rows.filter((city) => city.contentStatus === cityFilter);
-  }, [cityFilter]);
+  }, [cityFilter, cityRows]);
 
   const dispatches = useMemo(() => listDispatches(), []);
 
@@ -187,7 +192,7 @@ function AdminPage() {
           <DeskStat label={strings.tabMail} value={overview.smtpOn ? strings.opsOn : strings.opsOff} />
           <DeskStat label={strings.tabPay} value={overview.payOn ? strings.opsOn : strings.opsOff} />
           <DeskStat label={strings.opsLetter} value={letterRows.length} />
-          <DeskStat label={strings.opsCities} value={cities.length} />
+          <DeskStat label={strings.opsCities} value={cityRows.length} />
           <DeskStat label={strings.opsDispatches} value={dispatches.length} />
         </div>
       ) : null}
@@ -200,7 +205,7 @@ function AdminPage() {
             {filterChip(strings.opsFilterComing, cityFilter === "coming-soon", () => setCityFilter("coming-soon"))}
           </div>
           <p className="text-xs text-muted">
-            {filteredCities.length} {strings.opsCitiesCount} · {strings.opsCitiesReadOnly}
+            {filteredCities.length} {strings.opsCitiesCount}
           </p>
           {filteredCities.length === 0 ? (
             <EmptyState title={strings.opsCitiesEmpty} />
@@ -221,9 +226,26 @@ function AdminPage() {
                       <td className="px-5 py-3 font-medium text-fg">{city.name}</td>
                       <td className="px-5 py-3 text-muted">{city.country}</td>
                       <td className="px-5 py-3">
-                        <Badge variant={city.contentStatus === "published" ? "accent" : "muted"}>
-                          {city.contentStatus === "published" ? strings.opsPublished : strings.opsComingSoon}
-                        </Badge>
+                        <button
+                          type="button"
+                          className="text-left"
+                          onClick={() => {
+                            const next = city.contentStatus === "published" ? "coming-soon" : "published";
+                            void setCityStatus({ data: { slug: city.slug, status: next } })
+                              .then(() => {
+                                setCityRows((rows) =>
+                                  rows.map((row) =>
+                                    row.slug === city.slug ? { ...row, contentStatus: next } : row,
+                                  ),
+                                );
+                              })
+                              .catch(() => toast.error(strings.authFailed));
+                          }}
+                        >
+                          <Badge variant={city.contentStatus === "published" ? "accent" : "muted"}>
+                            {city.contentStatus === "published" ? strings.opsPublished : strings.opsComingSoon}
+                          </Badge>
+                        </button>
                       </td>
                       <td className="px-5 py-3 font-mono text-xs tabular-nums text-muted">
                         {city.tourismPriority}
@@ -288,6 +310,50 @@ function AdminPage() {
             {filterChip(strings.opsFilterUnsubscribed, letterFilter === "unsubscribed", () =>
               setLetterFilter("unsubscribed"),
             )}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                const header = "email,locale,city,status,createdAt\n";
+                const body = filteredLetter
+                  .map((row) =>
+                    [row.email, row.locale, row.citySlug ?? "", row.status, row.createdAt.slice(0, 10)].join(","),
+                  )
+                  .join("\n");
+                const blob = new Blob([header + body], { type: "text/csv;charset=utf-8" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "letter-subscribers.csv";
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+            >
+              {strings.opsLetterCsv}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                void sendLetterIssue({ data: { testOnly: true } }).then((result) => {
+                  if (result.error && !result.sent) toast.error(result.error);
+                  else toast.success(`${strings.opsLetterSent} ${result.sent}`);
+                });
+              }}
+            >
+              {strings.opsLetterTest}
+            </Button>
+            <Button
+              type="button"
+              onClick={() => {
+                void sendLetterIssue({ data: { testOnly: false } }).then((result) => {
+                  if (result.error && !result.sent) toast.error(result.error);
+                  else toast.success(`${strings.opsLetterSent} ${result.sent}`);
+                });
+              }}
+            >
+              {strings.opsLetterSend}
+            </Button>
           </div>
           {filteredLetter.length === 0 ? (
             <EmptyState title={strings.opsLetterEmpty} />

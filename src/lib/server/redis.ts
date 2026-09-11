@@ -70,3 +70,9 @@ export async function cachedJson<T>(key: string, ttlSec: number, load: () => Pro
   if (redis) await redis.set(key, JSON.stringify(value), "EX", ttlSec);
   return value;
 }
+
+export async function bustCache(keys: string[]) {
+  const redis = await getRedis();
+  if (!redis || keys.length === 0) return;
+  await redis.del(...keys);
+}
