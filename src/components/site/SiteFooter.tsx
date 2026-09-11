@@ -17,14 +17,14 @@ export function SiteFooter() {
 
   return (
     <footer className="relative z-10 border-t border-line bg-void">
-      <div className="grid gap-10 px-6 py-12 md:grid-cols-[minmax(0,18rem)_1fr_auto] md:items-start md:gap-16 md:px-10 lg:px-14 lg:py-16">
-        <div>
+      <div className="flex flex-col gap-10 px-6 py-12 md:flex-row md:items-start md:justify-between md:gap-16 md:px-10 lg:px-14 lg:py-16">
+        <div className="shrink-0 md:max-w-xs">
           <p className="text-lg font-medium tracking-tight text-fg">{SITE.name}</p>
-          <p className="mt-2 max-w-xs text-sm leading-relaxed text-muted">{SITE.tagline}</p>
+          <p className="mt-2 text-sm leading-relaxed text-muted">{SITE.tagline}</p>
         </div>
-        <nav aria-label={t(locale).guidesKicker}>
+        <nav aria-label={t(locale).guidesKicker} className="min-w-0 md:pt-0.5">
           <p className="kicker text-muted">{t(locale).guidesKicker}</p>
-          <ul className="mt-4 grid grid-cols-2 gap-x-8 gap-y-2 sm:grid-cols-4">
+          <ul className="mt-4 flex max-w-xl flex-wrap gap-x-5 gap-y-2">
             {cities.map((city) => (
               <li key={city.id}>
                 <Link
@@ -37,13 +37,13 @@ export function SiteFooter() {
                 </Link>
               </li>
             ))}
+            <li>
+              <Link to="/" className="text-sm text-fg/80 transition-colors hover:text-accent">
+                {t(locale).globe}
+              </Link>
+            </li>
           </ul>
         </nav>
-        <div className="md:pt-6">
-          <Link to="/" className="text-sm text-fg/80 transition-colors hover:text-accent">
-            {t(locale).globe}
-          </Link>
-        </div>
       </div>
       <p className="px-6 pb-8 text-xs text-muted md:px-10 lg:px-14">
         © {new Date().getFullYear()} {SITE.name}. Land outlines: Natural Earth (public domain). City photos: Unsplash.
