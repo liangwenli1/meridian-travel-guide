@@ -1,17 +1,35 @@
 import type { Membership } from "@/lib/server/membership";
 
+export type PaidPlan = "pro" | "max";
+
+export function planTier(plan: string | undefined | null): 0 | 1 | 2 {
+  if (plan === "max") return 2;
+  if (plan === "pro" || plan === "field-pass") return 1;
+  return 0;
+}
+
+export function normalizePlan(plan: string | undefined | null): "free" | PaidPlan {
+  const tier = planTier(plan);
+  if (tier >= 2) return "max";
+  if (tier >= 1) return "pro";
+  return "free";
+}
+
 /**
- * True when the membership row is usable for Field Pass locker assets.
- * Mirrors the account / pass page check: status === "active".
- * If expiresAt is set and already past, treat as inactive.
+ * True when the membership row is a paid, unexpired plan (Pro or Max).
  */
 export function isActivePass(membership: Membership | null | undefined): boolean {
   if (!membership || membership.status !== "active") return false;
+  if (planTier(membership.plan) < 1) return false;
   if (membership.expiresAt) {
     const expires = Date.parse(membership.expiresAt);
     if (!Number.isNaN(expires) && expires < Date.now()) return false;
   }
   return true;
+}
+
+export function hasMaxPass(membership: Membership | null | undefined): boolean {
+  return isActivePass(membership) && planTier(membership?.plan) >= 2;
 }
 
 export async function requireActivePass(userId: string): Promise<Membership> {

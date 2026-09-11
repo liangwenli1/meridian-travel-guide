@@ -8,6 +8,8 @@ export type PaymentPublic = {
   enabled: boolean;
   priceCny: string;
   priceUsd: string;
+  priceMaxCny: string;
+  priceMaxUsd: string;
   helpText: string;
   methods: PayMethod[];
 };

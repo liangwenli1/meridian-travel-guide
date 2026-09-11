@@ -127,6 +127,20 @@ export function PaymentDesk() {
             onChange={(event) => setSettings({ ...settings, priceUsd: event.target.value })}
           />
         </Field>
+        <Field label={strings.payPriceMaxCny}>
+          <input
+            className={fieldClass}
+            value={settings.priceMaxCny ?? ""}
+            onChange={(event) => setSettings({ ...settings, priceMaxCny: event.target.value })}
+          />
+        </Field>
+        <Field label={strings.payPriceMaxUsd}>
+          <input
+            className={fieldClass}
+            value={settings.priceMaxUsd ?? ""}
+            onChange={(event) => setSettings({ ...settings, priceMaxUsd: event.target.value })}
+          />
+        </Field>
         <label className="flex items-center gap-3 text-sm">
           <input
             type="checkbox"

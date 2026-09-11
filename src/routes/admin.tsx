@@ -27,7 +27,7 @@ import type { City, ContentStatus } from "@/types/catalog";
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
   head: () => ({
-    meta: [{ title: `Operations · ${SITE.name}` }],
+    meta: [{ title: `Account · ${SITE.name}` }],
   }),
 });
 
@@ -150,11 +150,11 @@ function AdminPage() {
 
   return (
     <DeskFrame
-      tone="ops"
-      kicker={strings.opsKicker}
-      title={strings.opsTitle}
+      kicker={strings.account}
+      title={strings.account}
       dek={strings.opsDek}
       nav={[
+        { to: "/account", label: strings.account },
         { label: strings.opsOverview, current: tab === "overview", onClick: () => setTab("overview") },
         { label: strings.opsCities, current: tab === "cities", onClick: () => setTab("cities") },
         { label: strings.opsDispatches, current: tab === "dispatches", onClick: () => setTab("dispatches") },

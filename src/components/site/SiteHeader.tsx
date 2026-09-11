@@ -1,11 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 import { LanguageToggle } from "@/components/site/LanguageToggle";
 import { Button } from "@/components/ui/Button";
 import { SignedIn, SignedOut, UserButton } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { t, useI18n } from "@/lib/i18n";
-import { getAdminState } from "@/lib/server/ops";
 import { SITE } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
@@ -18,19 +16,7 @@ export function SiteHeader({
 }) {
   const locale = useI18n((s) => s.locale);
   const strings = t(locale);
-  const { user, isPending } = useCurrentUserState();
-  const userId = user?.id;
-  const [showAdmin, setShowAdmin] = useState(false);
-
-  useEffect(() => {
-    if (isPending || !userId) {
-      setShowAdmin(false);
-      return;
-    }
-    void getAdminState()
-      .then((state) => setShowAdmin(state.isAdmin || state.canClaim))
-      .catch(() => setShowAdmin(false));
-  }, [isPending, userId]);
+  const { isPending } = useCurrentUserState();
 
   return (
     <header
@@ -52,7 +38,7 @@ export function SiteHeader({
         </Link>
         <LanguageToggle />
         {isPending ? (
-          <div className="h-9 w-20 animate-pulse rounded-full bg-void-elevated" />
+          <div className="size-9 animate-pulse rounded-full bg-void-elevated" />
         ) : (
           <>
             <SignedOut>
@@ -61,23 +47,7 @@ export function SiteHeader({
               </Button>
             </SignedOut>
             <SignedIn>
-              {showAdmin ? (
-                <Link
-                  to="/admin"
-                  className="hidden text-sm text-muted transition-colors hover:text-fg sm:inline"
-                >
-                  {strings.opsTitle}
-                </Link>
-              ) : null}
-              <Link
-                to="/account"
-                className="hidden text-sm text-muted transition-colors hover:text-fg sm:inline"
-              >
-                {strings.myDeskTitle}
-              </Link>
-              <div className="[&_span.grid]:bg-void-elevated [&_span.grid]:text-fg [&_button]:text-muted">
-                <UserButton />
-              </div>
+              <UserButton />
             </SignedIn>
           </>
         )}

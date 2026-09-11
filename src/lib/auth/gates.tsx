@@ -1,5 +1,14 @@
 import { useState, useSyncExternalStore, type ReactNode } from "react";
-import { Navigate } from "@tanstack/react-router";
+import { Link, Navigate } from "@tanstack/react-router";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/DropdownMenu";
+import { t, useI18n } from "@/lib/i18n";
 import { GROK_PROVIDERS, authEnabled, signIn, signOut } from "./client";
 import { hasGateSessionMarker } from "./gate-session-marker";
 import { resolveSignInGateState } from "./sign-in-gate";
@@ -89,8 +98,8 @@ export function SignInButtons() {
  */
 export function UserButton() {
   const user = useCurrentUser();
-  // Sign-out can take a moment (and can fail when deployed), so the control
-  // shows it is working and cannot be fired twice.
+  const locale = useI18n((s) => s.locale);
+  const strings = t(locale);
   const [signingOut, setSigningOut] = useState(false);
   const gateSession = useSyncExternalStore(
     subscribeToNothing,
@@ -98,35 +107,45 @@ export function UserButton() {
     noGateSessionOnServer,
   );
   if (!user) return null;
-  const label = user.displayName ?? user.primaryEmail ?? "Account";
+  const label = user.displayName ?? user.primaryEmail ?? strings.account;
+  const initial = label.charAt(0).toUpperCase();
   return (
-    <div className="flex items-center gap-2">
-      {user.profileImageUrl ? (
-        <img
-          src={user.profileImageUrl}
-          alt=""
-          className="h-8 w-8 rounded-full object-cover"
-        />
-      ) : (
-        <span className="grid h-8 w-8 place-items-center rounded-full bg-black/10 text-sm font-medium dark:bg-white/20">
-          {label.charAt(0).toUpperCase()}
-        </span>
-      )}
-      <span className="text-sm font-medium">{label}</span>
-      {authEnabled && !gateSession && (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
         <button
           type="button"
-          disabled={signingOut}
-          onClick={() => {
-            setSigningOut(true);
-            // Success navigates away; on failure re-enable so it can be retried.
-            void signOut().catch(() => setSigningOut(false));
-          }}
-          className="cursor-pointer text-sm underline-offset-4 opacity-70 hover:underline disabled:cursor-wait disabled:no-underline"
+          className="rounded-full outline-none focus-visible:shadow-border-hover"
+          aria-label={strings.account}
         >
-          {signingOut ? "Signing out…" : "Sign out"}
+          <Avatar>
+            {user.profileImageUrl ? <AvatarImage src={user.profileImageUrl} alt="" /> : null}
+            <AvatarFallback>{initial}</AvatarFallback>
+          </Avatar>
         </button>
-      )}
-    </div>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <div className="px-3 py-2">
+          <p className="truncate text-sm font-medium text-fg">{label}</p>
+          {user.primaryEmail ? (
+            <p className="mt-0.5 truncate font-mono text-xs text-muted">{user.primaryEmail}</p>
+          ) : null}
+        </div>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link to="/account">{strings.account}</Link>
+        </DropdownMenuItem>
+        {authEnabled && !gateSession ? (
+          <DropdownMenuItem
+            disabled={signingOut}
+            onSelect={() => {
+              setSigningOut(true);
+              void signOut().catch(() => setSigningOut(false));
+            }}
+          >
+            {signingOut ? strings.working : strings.signOut}
+          </DropdownMenuItem>
+        ) : null}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

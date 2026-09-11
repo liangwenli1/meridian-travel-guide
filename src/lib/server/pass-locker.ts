@@ -1,12 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { buildPassLockerItems, getTokyoItineraryMarkdown } from "@/data/pass";
-import { isActivePass, requireActivePass } from "@/lib/pass/access";
+import { isActivePass, hasMaxPass, requireActivePass } from "@/lib/pass/access";
 import type { Membership } from "@/lib/server/membership";
 import type { PassLockerItem } from "@/types/pass";
 
 export type PassLockerResult = {
   active: boolean;
+  plan: "free" | "pro" | "max";
   items: PassLockerItem[];
 };
 
@@ -40,9 +41,11 @@ export const getPassLocker = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<PassLockerResult> => {
     const membership = await loadMembership(context.userId);
     if (!isActivePass(membership)) {
-      return { active: false, items: [] };
+      return { active: false, plan: "free", items: [] };
     }
-    return { active: true, items: buildPassLockerItems() };
+    const max = hasMaxPass(membership);
+    const items = buildPassLockerItems().filter((item) => max || item.kind !== "neighborhood-preview");
+    return { active: true, plan: max ? "max" : "pro", items };
   });
 
 export const downloadPassItinerary = createServerFn({ method: "POST" })

@@ -35,6 +35,8 @@ export type PaymentSettings = {
   stripeEnabled: boolean;
   priceCny: string;
   priceUsd: string;
+  priceMaxCny: string;
+  priceMaxUsd: string;
   helpText: string;
 };
 
@@ -72,6 +74,8 @@ export const DEFAULT_PAYMENT: PaymentSettings = {
   stripeEnabled: false,
   priceCny: "199.00",
   priceUsd: "49.00",
+  priceMaxCny: "399.00",
+  priceMaxUsd: "99.00",
   helpText: "",
 };
 

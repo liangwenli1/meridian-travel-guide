@@ -163,27 +163,31 @@ async function clientIp(): Promise<string> {
   }
 }
 
-export async function grantFieldPass(userId: string) {
+export async function grantFieldPass(userId: string, plan: "pro" | "max" = "pro") {
   const sql = await getSql();
   await sql.query(
     `insert into memberships (user_id, plan, status, started_at, expires_at)
-     values ($1, 'field-pass', 'active', now(), now() + interval '1 year')
+     values ($1, $2, 'active', now(), now() + interval '1 year')
      on conflict (user_id) do update set
        status = 'active',
-       plan = 'field-pass',
+       plan = case
+         when excluded.plan = 'max' then 'max'
+         when memberships.plan = 'max' then 'max'
+         else excluded.plan
+       end,
        expires_at = case
          when memberships.expires_at is not null and memberships.expires_at > now()
            then memberships.expires_at + interval '1 year'
          else now() + interval '1 year'
        end`,
-    [userId],
+    [userId, plan],
   );
 }
 
 export async function fulfillByOutTradeNo(outTradeNo: string, tradeNo?: string) {
   const sql = await getSql();
-  const rows = await sql.query<{ user_id: string; status: string }>(
-    `select user_id, status from payment_orders where out_trade_no = $1`,
+  const rows = await sql.query<{ user_id: string; status: string; product: string }>(
+    `select user_id, status, product from payment_orders where out_trade_no = $1`,
     [outTradeNo],
   );
   const row = rows[0];
@@ -197,7 +201,8 @@ export async function fulfillByOutTradeNo(outTradeNo: string, tradeNo?: string) 
      where out_trade_no = $1 and status = 'PENDING'`,
     [outTradeNo, tradeNo ?? null],
   );
-  await grantFieldPass(row.user_id);
+  const plan = row.product === "max" ? "max" : "pro";
+  await grantFieldPass(row.user_id, plan);
   return true;
 }
 
@@ -247,6 +252,8 @@ export type PaymentPublic = {
   enabled: boolean;
   priceCny: string;
   priceUsd: string;
+  priceMaxCny: string;
+  priceMaxUsd: string;
   helpText: string;
   methods: PayMethod[];
 };
@@ -270,6 +277,8 @@ export async function getPaymentPublic(): Promise<PaymentPublic> {
     enabled: settings.enabled && methods.length > 0,
     priceCny: settings.priceCny,
     priceUsd: settings.priceUsd,
+    priceMaxCny: settings.priceMaxCny,
+    priceMaxUsd: settings.priceMaxUsd,
     helpText: settings.helpText,
     methods,
   };
@@ -469,8 +478,17 @@ export async function createCheckout(userId: string, data: CheckoutRequest): Pro
     const provider = pickProvider(providers, providerType);
     if (!provider) throw new Error("No payment provider is configured");
 
+    const plan = data.plan === "max" ? "max" : "pro";
     const currency = data.method === "stripe" ? "USD" : "CNY";
-    const amount = money2(data.method === "stripe" ? settings.priceUsd : settings.priceCny);
+    const amount = money2(
+      data.method === "stripe"
+        ? plan === "max"
+          ? settings.priceMaxUsd
+          : settings.priceUsd
+        : plan === "max"
+          ? settings.priceMaxCny
+          : settings.priceCny,
+    );
     const min = Number(settings.minAmount || DEFAULT_PAYMENT.minAmount);
     const max = Number(settings.maxAmount || 999999);
     if (Number(amount) < min || Number(amount) > max) throw new Error("Amount is out of range");
@@ -478,7 +496,7 @@ export async function createCheckout(userId: string, data: CheckoutRequest): Pro
     const origin = await publicOrigin();
     const outTradeNo = newId("M");
     const id = newId("o_");
-    const subject = `${settings.productPrefix}${settings.productSuffix ? ` ${settings.productSuffix}` : ""}`.trim();
+    const subject = `${plan === "max" ? "Meridian Max" : "Meridian Pro"}`.trim();
     const timeout = Math.max(1, settings.orderTimeoutMin);
     const charge = await createCharge({
       provider,
@@ -505,7 +523,7 @@ export async function createCheckout(userId: string, data: CheckoutRequest): Pro
         charge.tradeNo ?? null,
         amount,
         currency,
-        "field-pass",
+        plan,
         charge.payUrl ?? null,
         charge.qrCode ?? null,
         charge.urlScheme ?? null,

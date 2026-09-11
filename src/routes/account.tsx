@@ -9,6 +9,8 @@ import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { t, useI18n, type Locale } from "@/lib/i18n";
 import { getTravelerDesk, type TravelerDesk } from "@/lib/server/desk";
 import { listPublishedCities } from "@/lib/server/catalog";
+import { getAdminState } from "@/lib/server/ops";
+import { normalizePlan } from "@/lib/pass/access";
 import {
   downloadPassItinerary,
   getPassLocker,
@@ -21,7 +23,7 @@ import type { Localized, PassLockerItem } from "@/types/pass";
 export const Route = createFileRoute("/account")({
   component: AccountPage,
   head: () => ({
-    meta: [{ title: `My desk · ${SITE.name}` }],
+    meta: [{ title: `Account · ${SITE.name}` }],
   }),
 })
 
@@ -64,6 +66,7 @@ function AccountPage() {
   const [cities, setCities] = useState<City[]>([]);
   const [locker, setLocker] = useState<PassLockerResult | null>(null);
   const [downloading, setDownloading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     if (isPending || !user) return;
@@ -75,7 +78,10 @@ function AccountPage() {
       .catch(() => setCities([]));
     void getPassLocker()
       .then(setLocker)
-      .catch(() => setLocker({ active: false, items: [] }));
+      .catch(() => setLocker({ active: false, plan: "free", items: [] }));
+    void getAdminState()
+      .then((state) => setIsAdmin(state.isAdmin))
+      .catch(() => setIsAdmin(false));
   }, [isPending, user]);
 
   if (isPending) {
@@ -91,9 +97,11 @@ function AccountPage() {
   if (!user) return <RedirectToSignIn />;
 
   const membership = desk?.membership;
-  const active = membership?.status === "active" || locker?.active === true;
+  const plan = locker?.plan ?? normalizePlan(membership?.plan);
+  const active = plan === "pro" || plan === "max";
   const orders = desk?.orders ?? [];
   const items = locker?.items ?? [];
+  const planLabel = plan === "max" ? strings.planMax : plan === "pro" ? strings.planPro : strings.planFree;
 
   const onDownloadTokyo = async () => {
     setDownloading(true);
@@ -109,13 +117,13 @@ function AccountPage() {
 
   return (
     <DeskFrame
-      tone="traveler"
-      kicker={strings.myDeskKicker}
-      title={user.displayName ?? strings.myDeskTitle}
+      kicker={strings.account}
+      title={user.displayName ?? strings.account}
       dek={user.primaryEmail ?? strings.myDeskDek}
       nav={[
-        { to: "/account", label: strings.myDeskTitle, current: true },
+        { to: "/account", label: strings.account, current: true },
         { to: "/pass", label: strings.passTitle },
+        ...(isAdmin ? [{ to: "/admin", label: strings.accountTools }] : []),
         { to: "/", label: strings.globe },
         { to: "/feedback", label: strings.feedbackTitle },
       ]}
@@ -123,17 +131,11 @@ function AccountPage() {
       <div className="grid gap-4 md:grid-cols-2">
         <DeskCard
           meta={strings.passKicker}
-          title={strings.passTitle}
+          title={planLabel}
           action={
-            active ? (
-              <Button asChild variant="outline">
-                <Link to="/">{strings.globe}</Link>
-              </Button>
-            ) : (
-              <Button asChild>
-                <Link to="/pass">{strings.passStart}</Link>
-              </Button>
-            )
+            <Button asChild variant={active ? "outline" : "default"}>
+              <Link to="/pass">{active ? strings.planChange : strings.passStart}</Link>
+            </Button>
           }
         >
           <p>{active ? strings.passActive : strings.passInactive}</p>

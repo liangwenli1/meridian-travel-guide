@@ -88,4 +88,5 @@ export type OrderRecord = {
 export type CheckoutRequest = {
   method: PayMethod;
   device?: "pc" | "mobile";
+  plan?: "pro" | "max";
 };
