@@ -251,11 +251,11 @@
   left: 50%;
   top: 50%;
   z-index: 1;
-  width: 245%;
-  height: 340%;
+  width: 320%;
+  height: 260%;
   overflow: visible;
   pointer-events: none;
-  transform: translate(-38%, -58%);
+  transform: translate(-50%, -50%);
 }
 
 .hero-ask-stage canvas {

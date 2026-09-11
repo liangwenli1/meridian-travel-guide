@@ -86,18 +86,18 @@ vec3 rotY(vec3 p, float a) { float c = cos(a); float s = sin(a); return vec3(c*p
 vec3 rotZ(vec3 p, float a) { float c = cos(a); float s = sin(a); return vec3(c*p.x - s*p.y, s*p.x + c*p.y, p.z); }
 
 vec3 ribbonCenter(float t) {
-  float x = mix(-uHalfW * 0.35, uHalfW * (3.05 * uRibbonLength), t);
-  float y = sin(t * 6.2831853 * 0.82 + 0.4) * uHalfH * 1.25 * uRibbonWave;
-  y += sin(t * 6.2831853 * 1.55 + 1.1) * uHalfH * 0.42 * uRibbonWave;
-  float coil = exp(-pow((t - 0.2) * 4.0, 2.0));
-  float ca = t * 20.0 + 0.6;
-  x += cos(ca) * coil * uHalfW * 1.25;
-  y += sin(ca) * coil * uHalfH * 1.7;
-  float hook = smoothstep(0.58, 1.0, t);
-  x -= sin(hook * 3.14159265) * uHalfW * 1.05 * hook;
-  y += cos(hook * 3.8) * uHalfH * 0.62 * hook;
-  float z = sin(t * 6.2831853 * 1.12 + 0.5) * uHalfH * 1.05 * uRibbonDepth;
-  z += coil * cos(ca * 0.7) * uHalfH * 0.85 * uRibbonDepth;
+  float x = mix(-uHalfW * 0.85, uHalfW * 2.15, t);
+  float y = sin(t * 3.14159265 * 1.35 + 0.15) * uHalfH * 0.62 * uRibbonWave;
+  y += sin(t * 3.14159265 * 2.6 + 0.7) * uHalfH * 0.28 * uRibbonWave;
+  float coil = exp(-pow((t - 0.22) * 5.2, 2.0));
+  float ca = t * 14.0 + 0.8;
+  x += cos(ca) * coil * uHalfW * 0.42;
+  y += sin(ca) * coil * uHalfH * 0.7;
+  float hook = smoothstep(0.72, 1.0, t);
+  y -= sin(hook * 3.14159265) * uHalfH * 0.38;
+  x -= hook * uHalfW * 0.18;
+  float z = sin(t * 3.14159265 * 1.8 + 0.4) * uHalfH * 0.72 * uRibbonDepth;
+  z += coil * uHalfH * 0.4 * uRibbonDepth;
   return vec3(x, y, z);
 }
 
@@ -140,32 +140,32 @@ void main() {
   float flowT = clamp(0.5 + 0.48 * nx + aFlowOffset * 0.22 + g * 0.045, 0.0, 1.0);
   float onset = smoothstep(aFlowOffset * 0.35, 0.45 + aFlowOffset * 0.4, uStretch);
   vec3 stretched = pos;
-  stretched.x += onset * uHalfW * 2.35 * (0.2 + flowT) * uStretch;
-  stretched.y += onset * sin(flowT * 6.2831853) * uHalfH * 0.45;
-  stretched.y *= 1.0 - uStretch * 0.28;
-  stretched.z += uStretch * ny * 14.0 + onset * 8.0 * (aSeed - 0.5);
+  stretched.x += onset * uHalfW * 1.35 * (0.15 + flowT) * uStretch;
+  stretched.y += onset * sin(flowT * 6.2831853) * uHalfH * 0.28;
+  stretched.y *= 1.0 - uStretch * 0.18;
+  stretched.z += uStretch * ny * 9.0 + onset * 5.0 * (aSeed - 0.5);
   pos = mix(pos, stretched, uStretch * live);
 
-  float t = clamp(0.04 + (nx * 0.5 + 0.5) * 0.68 + aFlowOffset * 0.2 + g * 0.035, 0.001, 0.999);
-  vec3 c0 = ribbonCenter(max(0.001, t - 0.012));
-  vec3 c1 = ribbonCenter(min(0.999, t + 0.012));
+  float t = clamp(0.06 + (nx * 0.5 + 0.5) * 0.78 + aFlowOffset * 0.12 + g * 0.02, 0.001, 0.999);
+  vec3 c0 = ribbonCenter(max(0.001, t - 0.01));
+  vec3 c1 = ribbonCenter(min(0.999, t + 0.01));
   vec3 center = ribbonCenter(t);
   vec3 tangent = normalize(c1 - c0);
-  vec3 up = abs(tangent.y) > 0.9 ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 1.0, 0.0);
+  vec3 up = abs(tangent.y) > 0.92 ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 1.0, 0.0);
   vec3 normal = normalize(cross(tangent, up));
   vec3 binormal = normalize(cross(normal, tangent));
-  float sheet = mix(1.0, 0.2, uRibbon);
+  float sheet = mix(1.0, 0.16, uRibbon);
   float thickY = aGlyphLocal.y * sheet;
-  float thickZ = aGlyphLocal.x * 0.12 * sheet + (aSeed - 0.5) * 5.5 * aEdge;
+  float thickZ = aGlyphLocal.x * 0.08 * sheet + (aSeed - 0.5) * 3.2 * aEdge;
   vec3 rib = center + binormal * thickY + normal * thickZ;
-  rib += tangent * aEdge * 14.0 * (aFlowOffset - 0.5);
-  rib = rotX(rib, uRibbon * 0.2);
-  rib = rotY(rib, uRibbon * 0.24);
-  rib = rotZ(rib, uRibbon * -0.1);
-  pos = mix(pos, rib, pow(clamp(uRibbon, 0.0, 1.0), 0.72) * live);
+  rib += tangent * aEdge * 7.0 * (aFlowOffset - 0.5);
+  rib = rotX(rib, uRibbon * 0.14);
+  rib = rotY(rib, uRibbon * 0.16);
+  rib = rotZ(rib, uRibbon * -0.06);
+  pos = mix(pos, rib, pow(clamp(uRibbon, 0.0, 1.0), 0.75) * live);
 
-  vec3 cloudDir = tangent * (0.7 + aSeed * 0.4) + normal * (aSeed - 0.5) * 0.45 + binormal * ny * 0.22;
-  pos += cloudDir * uCloud * uCloudStrength * (24.0 + aEdge * 52.0) * live;
+  vec3 cloudDir = tangent * (0.55 + aSeed * 0.3) + normal * (aSeed - 0.5) * 0.28 + binormal * ny * 0.12;
+  pos += cloudDir * uCloud * uCloudStrength * (10.0 + aEdge * 22.0) * live;
 
   float ang = aSeed * 6.28318 + uTime * 0.55;
   vec3 swirl = home + vec3(cos(ang), sin(ang * 1.1), sin(ang * 0.7)) * 14.0 * uReturn * (1.0 - uReturn);
@@ -177,9 +177,9 @@ void main() {
   pos.z += fall * fall * 3.2 * uPointerStrength * live * (1.0 - uRibbon * 0.6);
   pos.xy += normalize(md + 1e-4) * fall * fall * 3.0 * uPointerStrength * live;
 
-  pos.x = min(pos.x, uHalfW * 3.15);
-  pos.x = max(pos.x, -uHalfW * 1.55);
-  pos.y = clamp(pos.y, -uHalfH * 2.4, uHalfH * 2.9);
+  pos.x = min(pos.x, uHalfW * 2.25);
+  pos.x = max(pos.x, -uHalfW * 1.15);
+  pos.y = clamp(pos.y, -uHalfH * 1.25, uHalfH * 1.7);
   pos = mix(pos, home, uFinalLock);
 
   vec4 mv = modelViewMatrix * vec4(pos, 1.0);
@@ -304,7 +304,7 @@ function sampleGlyphs(text: string, displayPx: number, family: string, weight: s
   prefixes.push(ctx.measureText(text).width);
   ctx.fillText(text, fillX, fillY);
 
-  const wordCenterX = fillX + (right - left) * 0.5;
+  const wordCenterX = fillX + full.width * 0.5;
   const wordCenterY = fillY + (descent - ascent) * 0.5;
   const glyphCenters = chars.map((_, i) => ({
     x: fillX + (prefixes[i] + prefixes[i + 1]) * 0.5,
