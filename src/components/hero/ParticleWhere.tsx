@@ -5,21 +5,19 @@ type Particle = {
   ly: number;
   sx: number;
   sy: number;
+  cx: number;
+  cy: number;
   x: number;
   y: number;
   vx: number;
   vy: number;
   size: number;
   delay: number;
+  duration: number;
+  settled: boolean;
 };
 
 const ACCENT = "rgb(212 240 60)";
-const GATHER_S = 3.1;
-
-function easeOut(u: number) {
-  const t = Math.min(1, Math.max(0, u));
-  return 1 - (1 - t) ** 3;
-}
 
 export function ParticleWhere({
   text,
@@ -115,12 +113,16 @@ export function ParticleWhere({
           ly: dot.ly,
           sx,
           sy,
+          cx: Math.random() * w,
+          cy: Math.random() * h,
           x: sx,
           y: sy,
           vx: 0,
           vy: 0,
           size: dot.size,
-          delay: Math.random() * 0.95,
+          delay: Math.random() * 1.15,
+          duration: 2.4 + Math.random() * 2.2,
+          settled: false,
         };
       });
       start = 0;
@@ -158,51 +160,62 @@ export function ParticleWhere({
       const t = (ts - start) / 1000;
 
       if (mouse.x > -900) {
-        mouse.vx += (mouse.x - mouse.px - mouse.vx) * 0.35;
-        mouse.vy += (mouse.y - mouse.py - mouse.vy) * 0.35;
+        mouse.vx += (mouse.x - mouse.px - mouse.vx) * 0.2;
+        mouse.vy += (mouse.y - mouse.py - mouse.vy) * 0.2;
         mouse.px = mouse.x;
         mouse.py = mouse.y;
       }
 
       ctx.clearRect(0, 0, w, h);
       ctx.fillStyle = ACCENT;
-      const radius = mouse.down ? 118 : 86;
-      const push = mouse.down ? 2400 : 1100;
+      const radius = mouse.down ? 92 : 64;
+      const push = mouse.down ? 420 : 180;
 
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
         const hx = originX + p.lx;
         const hy = originY + p.ly;
-        const u = easeOut((t - p.delay) / GATHER_S);
         const dxm = p.x - mouse.x;
         const dym = p.y - mouse.y;
         const d2 = dxm * dxm + dym * dym;
-        const near = d2 < radius * radius && mouse.x > -900;
+        const near = mouse.x > -900 && d2 < radius * radius;
+        const u = Math.min(1, Math.max(0, (t - p.delay) / p.duration));
+        const e = 1 - (1 - u) ** 3;
 
-        if (u < 1 && !near) {
-          p.x = p.sx + (hx - p.sx) * u;
-          p.y = p.sy + (hy - p.sy) * u;
+        if (near) {
+          p.settled = false;
+          const d = Math.max(0.001, Math.sqrt(d2));
+          const falloff = 1 - d / radius;
+          const f = push * falloff * falloff;
+          p.vx += (dxm / d) * f * dt;
+          p.vy += (dym / d) * f * dt;
+          p.vx += mouse.vx * falloff * 8 * dt;
+          p.vy += mouse.vy * falloff * 8 * dt;
+          p.vx *= 0.975;
+          p.vy *= 0.975;
+          p.x += p.vx;
+          p.y += p.vy;
+        } else if (u < 1 && !p.settled) {
+          const o = 1 - e;
+          p.x = o * o * p.sx + 2 * o * e * p.cx + e * e * hx;
+          p.y = o * o * p.sy + 2 * o * e * p.cy + e * e * hy;
           p.vx = 0;
           p.vy = 0;
         } else {
-          let ax = (hx - p.x) * (near ? 1.6 : 5.5);
-          let ay = (hy - p.y) * (near ? 1.6 : 5.5);
-          if (near && d2 > 0.2) {
-            const d = Math.sqrt(d2);
-            const falloff = 1 - d / radius;
-            const f = (push * falloff * falloff) / d;
-            ax += dxm * f;
-            ay += dym * f;
-            ax += mouse.vx * falloff * 55;
-            ay += mouse.vy * falloff * 55;
+          p.vx *= 0.9;
+          p.vy *= 0.9;
+          p.x += (hx - p.x) * 0.018 + p.vx;
+          p.y += (hy - p.y) * 0.018 + p.vy;
+          if (Math.abs(hx - p.x) < 0.35 && Math.abs(hy - p.y) < 0.35 && Math.abs(p.vx) < 0.04) {
+            p.x = hx;
+            p.y = hy;
+            p.vx = 0;
+            p.vy = 0;
+            p.settled = true;
           }
-          p.vx = (p.vx + ax * dt) * (near ? 0.92 : 0.84);
-          p.vy = (p.vy + ay * dt) * (near ? 0.92 : 0.84);
-          p.x += p.vx * dt * 60;
-          p.y += p.vy * dt * 60;
         }
 
-        ctx.globalAlpha = 0.5 + u * 0.5;
+        ctx.globalAlpha = 0.55 + e * 0.45;
         ctx.fillRect(p.x, p.y, p.size, p.size);
       }
       ctx.globalAlpha = 1;
@@ -211,13 +224,16 @@ export function ParticleWhere({
     let ro: ResizeObserver | null = null;
     void document.fonts.ready.then(() => {
       if (disposed) return;
-      seed();
-      raf = requestAnimationFrame(tick);
-      ro = new ResizeObserver(() => {
-        layoutCanvas();
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (disposed) return;
+          seed();
+          raf = requestAnimationFrame(tick);
+          ro = new ResizeObserver(() => layoutCanvas());
+          ro.observe(host);
+          ro.observe(wrap);
+        });
       });
-      ro.observe(host);
-      ro.observe(wrap);
     });
 
     host.addEventListener("pointermove", onMove);
