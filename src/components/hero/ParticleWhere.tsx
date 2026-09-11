@@ -13,14 +13,9 @@ type Particle = {
   y: number;
   vx: number;
   vy: number;
-  ox: number;
-  oy: number;
   size: number;
   delay: number;
   duration: number;
-  returnRate: number;
-  settled: boolean;
-  held: boolean;
 };
 
 const ACCENT = "rgb(212 240 60)";
@@ -61,7 +56,7 @@ export function ParticleWhere({
     let originY = 0;
     let start = 0;
     let last = 0;
-    const mouse = { x: -9999, y: -9999, px: -9999, py: -9999, vx: 0, vy: 0, down: false };
+    const mouse = { x: -9999, y: -9999, px: -9999, py: -9999, vx: 0, vy: 0 };
 
     const glyphDots = () => {
       const cs = getComputedStyle(wrap);
@@ -133,14 +128,9 @@ export function ParticleWhere({
           y: sy,
           vx: 0,
           vy: 0,
-          ox: (Math.random() - 0.5) * 46,
-          oy: (Math.random() - 0.5) * 46,
           size: dot.size,
           delay: Math.random() * 1.4,
           duration: 1.1 + Math.random() * 4.4,
-          returnRate: 0.045 + Math.random() * 0.03,
-          settled: false,
-          held: false,
         };
       });
       start = 0;
@@ -148,16 +138,8 @@ export function ParticleWhere({
 
     const onMove = (event: PointerEvent) => {
       const rect = host.getBoundingClientRect();
-      mouse.px = mouse.x;
-      mouse.py = mouse.y;
       mouse.x = event.clientX - rect.left;
       mouse.y = event.clientY - rect.top;
-    };
-    const onDown = () => {
-      mouse.down = true;
-    };
-    const onUp = () => {
-      mouse.down = false;
     };
 
     const tick = (ts: number) => {
@@ -165,62 +147,68 @@ export function ParticleWhere({
       raf = requestAnimationFrame(tick);
       if (document.visibilityState === "hidden") return;
       if (!start) start = ts;
-      const dt = Math.min(0.033, last ? (ts - last) / 1000 : 0.016);
       last = ts;
       const t = (ts - start) / 1000;
 
-      if (mouse.x > -900) {
-        mouse.vx += (mouse.x - mouse.px - mouse.vx) * 0.25;
-        mouse.vy += (mouse.y - mouse.py - mouse.vy) * 0.25;
+      if (mouse.px < -900) {
         mouse.px = mouse.x;
         mouse.py = mouse.y;
       }
+      mouse.vx = mouse.x - mouse.px;
+      mouse.vy = mouse.y - mouse.py;
+      mouse.px = mouse.x;
+      mouse.py = mouse.y;
+      const swipe = Math.hypot(mouse.vx, mouse.vy);
+      const radius = 130 + Math.min(160, swipe * 10);
 
       ctx.clearRect(0, 0, w, h);
       ctx.fillStyle = ACCENT;
-      const grabR = mouse.down ? 110 : 78;
-      const keepR = mouse.down ? 420 : 240;
 
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
         const hx = originX + p.lx;
         const hy = originY + p.ly;
-        const dxm = p.x - mouse.x;
-        const dym = p.y - mouse.y;
-        const d2 = dxm * dxm + dym * dym;
         const u = Math.min(1, Math.max(0, (t - p.delay) / p.duration));
         const e = 1 - (1 - u) ** 3;
-        const gathering = u < 1 && !p.held && !p.settled;
-        const over = mouse.x > -900 && mouse.x < w + 40 && mouse.y > -40 && mouse.y < h + 40;
+        const gathering = u < 1;
 
         if (gathering) {
           const o = 1 - e;
-          const ee = e;
-          p.x = o * o * o * p.sx + 3 * o * o * ee * p.c1x + 3 * o * ee * ee * p.c2x + ee * ee * ee * hx;
-          p.y = o * o * o * p.sy + 3 * o * o * ee * p.c1y + 3 * o * ee * ee * p.c2y + ee * ee * ee * hy;
-          p.vx = 0;
-          p.vy = 0;
-        } else if (over && (p.held ? d2 < keepR * keepR : d2 < grabR * grabR)) {
-          p.held = true;
-          p.settled = false;
-          const tx = mouse.x + p.ox + mouse.vx * 4;
-          const ty = mouse.y + p.oy + mouse.vy * 4;
-          p.x += (tx - p.x) * 0.16;
-          p.y += (ty - p.y) * 0.16;
+          p.x = o * o * o * p.sx + 3 * o * o * e * p.c1x + 3 * o * e * e * p.c2x + e * e * e * hx;
+          p.y = o * o * o * p.sy + 3 * o * o * e * p.c1y + 3 * o * e * e * p.c2y + e * e * e * hy;
           p.vx = 0;
           p.vy = 0;
         } else {
-          p.held = false;
-          p.vx *= 0.88;
-          p.vy *= 0.88;
-          p.x += (hx - p.x) * p.returnRate + p.vx;
-          p.y += (hy - p.y) * p.returnRate + p.vy;
-          if (Math.abs(hx - p.x) < 0.35 && Math.abs(hy - p.y) < 0.35 && Math.abs(p.vx) < 0.04) {
+          const dx = p.x - mouse.x;
+          const dy = p.y - mouse.y;
+          const d2 = dx * dx + dy * dy;
+          if (swipe > 0.35 && d2 < radius * radius && d2 > 0.01) {
+            const d = Math.sqrt(d2);
+            const falloff = 1 - d / radius;
+            const wind = falloff * falloff;
+            p.vx += mouse.vx * wind * 2.2;
+            p.vy += mouse.vy * wind * 2.2;
+            p.vx += -mouse.vy * wind * 0.45;
+            p.vy += mouse.vx * wind * 0.45;
+            p.vx += (dx / d) * wind * 1.1;
+            p.vy += (dy / d) * wind * 1.1;
+          }
+          p.vx += (hx - p.x) * 0.028;
+          p.vy += (hy - p.y) * 0.028;
+          p.vx *= 0.92;
+          p.vy *= 0.92;
+          const v = Math.hypot(p.vx, p.vy);
+          if (v > 22) {
+            p.vx *= 22 / v;
+            p.vy *= 22 / v;
+          }
+          p.x += p.vx;
+          p.y += p.vy;
+          if (v < 0.05 && Math.abs(hx - p.x) < 0.4 && Math.abs(hy - p.y) < 0.4) {
             p.x = hx;
             p.y = hy;
             p.vx = 0;
             p.vy = 0;
-            p.settled = true;
           }
         }
 
@@ -246,16 +234,12 @@ export function ParticleWhere({
     });
 
     window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerdown", onDown);
-    window.addEventListener("pointerup", onUp);
 
     return () => {
       disposed = true;
       cancelAnimationFrame(raf);
       ro?.disconnect();
       window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerdown", onDown);
-      window.removeEventListener("pointerup", onUp);
       canvas.remove();
     };
   }, [text, reducedMotion]);
