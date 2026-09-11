@@ -95,24 +95,27 @@ function Home() {
             <LanguageToggle />
           </header>
 
-          <div className="flex min-h-0 flex-1 flex-col md:flex-row md:pl-4 lg:pl-8">
-            <div className="relative z-10 flex shrink-0 flex-col justify-center px-6 py-8 md:w-[min(34%,28rem)] md:pr-4 md:pl-12 lg:w-[28rem] lg:pr-6 lg:pl-16">
+          <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+            <div className="relative z-20 flex w-full shrink-0 flex-col justify-center overflow-visible px-6 py-8 md:w-[28rem] md:pl-10 lg:w-[32rem] lg:pl-12">
               <TypingTitle reducedMotion={reduced} ready={ready} align="left" />
-              <div id="search" className="pointer-events-auto mt-7 w-full">
+              <div id="search" className="pointer-events-auto mt-6 w-full">
                 <SearchBar
                   cities={cities}
                   countries={countries}
                   onSelect={openCity}
-                  className="mx-0 w-full max-w-lg"
+                  className="mx-0 w-full"
                 />
               </div>
-              <nav aria-label="Published guides" className="pointer-events-auto mt-8 flex flex-wrap gap-2">
+              <nav
+                aria-label="Published guides"
+                className="pointer-events-auto mt-7 grid grid-cols-2 gap-x-5 gap-y-1.5 md:grid-cols-4"
+              >
                 {published.map((city) => (
                   <Button
                     key={city.id}
                     type="button"
                     variant="ghost"
-                    size="sm"
+                    className="h-auto justify-start px-0 text-left text-sm font-medium"
                     onClick={() => void openCity(city)}
                   >
                     {city.name}
@@ -121,7 +124,7 @@ function Home() {
               </nav>
             </div>
 
-            <div className="globe-stage relative min-h-[46vh] min-w-0 flex-1 cursor-pointer overflow-hidden">
+            <div className="globe-stage relative z-0 min-h-[46vh] min-w-0 flex-1 cursor-pointer overflow-hidden md:pl-4 lg:pl-8">
               <Globe
                 reducedMotion={reduced}
                 cities={cities}

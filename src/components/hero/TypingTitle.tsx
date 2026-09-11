@@ -89,7 +89,7 @@ export function TypingTitle({ reducedMotion, ready, align = "center" }: TypingTi
       <span
         className={
           align === "left"
-            ? "block text-[4.6rem] font-medium tracking-tight text-accent sm:text-7xl lg:text-[6.4rem]"
+            ? "block whitespace-nowrap text-[3.25rem] font-medium tracking-tight text-accent sm:text-[3.75rem] lg:text-[4.35rem]"
             : "text-[18vw] font-medium tracking-tight text-accent sm:text-8xl md:text-[7.2rem]"
         }
       >
@@ -98,7 +98,7 @@ export function TypingTitle({ reducedMotion, ready, align = "center" }: TypingTi
       <span
         className={
           align === "left"
-            ? "mt-5 block text-[1.65rem] font-normal text-fg sm:text-[1.85rem] lg:text-[2.05rem]"
+            ? "mt-4 block whitespace-nowrap text-[1.35rem] font-normal text-fg sm:text-[1.5rem] lg:text-[1.65rem]"
             : "mt-2 block text-[6.6vw] font-normal text-fg sm:text-3xl md:mt-3 md:text-[2.2rem]"
         }
       >
