@@ -43,6 +43,11 @@ export function SiteFooter() {
               </Link>
             </li>
             <li>
+              <Link to="/feedback" className="text-sm text-fg/80 transition-colors hover:text-accent">
+                {t(locale).feedbackTitle}
+              </Link>
+            </li>
+            <li>
               <Link to="/login" className="text-sm text-fg/80 transition-colors hover:text-accent">
                 {t(locale).signIn}
               </Link>

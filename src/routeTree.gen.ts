@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CountryRouteImport } from './routes/$country'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as FeedbackRouteImport } from './routes/feedback'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PassRouteImport } from './routes/pass'
 import { Route as VerifyEmailRouteImport } from './routes/verify-email'
@@ -44,6 +45,11 @@ const AccountRoute = AccountRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedbackRoute = FeedbackRouteImport.update({
+  id: '/feedback',
+  path: '/feedback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -113,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/$country': typeof CountryRouteWithChildren
   '/account': typeof AccountRoute
   '/admin': typeof AdminRoute
+  '/feedback': typeof FeedbackRoute
   '/login': typeof LoginRoute
   '/pass': typeof PassRoute
   '/verify-email': typeof VerifyEmailRoute
@@ -130,6 +137,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
   '/admin': typeof AdminRoute
+  '/feedback': typeof FeedbackRoute
   '/login': typeof LoginRoute
   '/pass': typeof PassRoute
   '/verify-email': typeof VerifyEmailRoute
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   '/$country': typeof CountryRouteWithChildren
   '/account': typeof AccountRoute
   '/admin': typeof AdminRoute
+  '/feedback': typeof FeedbackRoute
   '/login': typeof LoginRoute
   '/pass': typeof PassRoute
   '/verify-email': typeof VerifyEmailRoute
@@ -169,6 +178,7 @@ export interface FileRouteTypes {
     | '/$country'
     | '/account'
     | '/admin'
+    | '/feedback'
     | '/login'
     | '/pass'
     | '/verify-email'
@@ -186,6 +196,7 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/admin'
+    | '/feedback'
     | '/login'
     | '/pass'
     | '/verify-email'
@@ -204,6 +215,7 @@ export interface FileRouteTypes {
     | '/$country'
     | '/account'
     | '/admin'
+    | '/feedback'
     | '/login'
     | '/pass'
     | '/verify-email'
@@ -223,6 +235,7 @@ export interface RootRouteChildren {
   CountryRoute: typeof CountryRouteWithChildren
   AccountRoute: typeof AccountRoute
   AdminRoute: typeof AdminRoute
+  FeedbackRoute: typeof FeedbackRoute
   LoginRoute: typeof LoginRoute
   PassRoute: typeof PassRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
@@ -263,6 +276,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feedback': {
+      id: '/feedback'
+      path: '/feedback'
+      fullPath: '/feedback'
+      preLoaderRoute: typeof FeedbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -370,6 +390,7 @@ const rootRouteChildren: RootRouteChildren = {
   CountryRoute: CountryRouteWithChildren,
   AccountRoute: AccountRoute,
   AdminRoute: AdminRoute,
+  FeedbackRoute: FeedbackRoute,
   LoginRoute: LoginRoute,
   PassRoute: PassRoute,
   VerifyEmailRoute: VerifyEmailRoute,

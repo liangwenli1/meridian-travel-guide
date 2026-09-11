@@ -24,6 +24,7 @@
     "username": "resend",
     "password": "CHANGE_ME_RESEND_API_KEY",
     "fromEmail": "hello@tapzm.com",
-    "fromName": "Meridian"
+    "fromName": "Meridian",
+    "inbox": "hello@tapzm.com"
   }
 }

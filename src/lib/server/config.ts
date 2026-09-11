@@ -19,6 +19,7 @@ export type SiteConfig = {
     password: string;
     fromEmail: string;
     fromName: string;
+    inbox: string;
   };
 };
 
@@ -44,6 +45,7 @@ const FALLBACK: SiteConfig = {
     password: "CHANGE_ME_RESEND_API_KEY",
     fromEmail: "hello@tapzm.com",
     fromName: "Meridian",
+    inbox: "hello@tapzm.com",
   },
 };
 

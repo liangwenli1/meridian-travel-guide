@@ -166,6 +166,13 @@ export const copy = {
     passActive: "Your Field Pass is active.",
     passInactive: "You do not have Field Pass yet.",
     passUntil: "Through",
+    feedbackKicker: "Desk",
+    feedbackTitle: "Feedback",
+    feedbackDek: "Write us. The letter lands in our inbox, and reply goes back to the email you leave here.",
+    feedbackMessage: "Message",
+    feedbackSend: "Send",
+    feedbackThanks: "Received. We'll write back if we can help.",
+    feedbackShort: "Say a little more.",
   },
   zh: {
     where: "Where",
@@ -313,6 +320,13 @@ export const copy = {
     passActive: "Field Pass 已开通。",
     passInactive: "还没有 Field Pass。",
     passUntil: "有效至",
+    feedbackKicker: "来信",
+    feedbackTitle: "反馈",
+    feedbackDek: "写给我们。信会进我们的收件箱，回复会发到你留下的邮箱。",
+    feedbackMessage: "内容",
+    feedbackSend: "发送",
+    feedbackThanks: "收到了。用得上的话我们会回信。",
+    feedbackShort: "再多写一点。",
   },
 } as const;
 

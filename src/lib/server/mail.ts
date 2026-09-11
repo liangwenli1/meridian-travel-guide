@@ -5,6 +5,7 @@ type SendLetterInput = {
   subject: string;
   html: string;
   text: string;
+  replyTo?: string;
 };
 
 export type SendLetterResult = { ok: true } | { ok: false; error: string };
@@ -26,6 +27,7 @@ export async function sendLetter(input: SendLetterInput): Promise<SendLetterResu
     await transporter.sendMail({
       from: smtp.fromName ? `"${smtp.fromName}" <${smtp.fromEmail}>` : smtp.fromEmail,
       to: input.to,
+      replyTo: input.replyTo,
       subject: input.subject,
       html: input.html,
       text: input.text,
@@ -39,7 +41,7 @@ export async function sendLetter(input: SendLetterInput): Promise<SendLetterResu
 
 export function letterHtml(opts: { title: string; body: string; href: string; cta: string }) {
   const title = escapeHtml(opts.title);
-  const body = escapeHtml(opts.body);
+  const body = escapeHtml(opts.body).replaceAll("\n", "<br>");
   const href = escapeHtml(opts.href);
   const cta = escapeHtml(opts.cta);
   return [
