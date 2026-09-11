@@ -151,7 +151,19 @@
     border-radius: var(--radius-lg);
     background: color-mix(in oklab, var(--color-fg) 12%, transparent);
     box-shadow: var(--shadow-border);
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 10.25rem), 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (min-width: 768px) {
+    .stat-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .stat-grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
   }
 
   .stat-cell {
@@ -202,6 +214,19 @@
 
 .guide-panel {
   animation: page-enter 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.guide-shell {
+  width: 100%;
+  max-width: 90rem;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .guide-shell {
+    padding-inline: 2.5rem;
+  }
 }
 
 .page-wipe {

@@ -23,7 +23,7 @@ export function StickyNav() {
       className="sticky top-0 z-20 border-b border-line bg-void/90 backdrop-blur-md"
     >
       <div className="overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <ul className="mx-auto flex w-max min-w-full max-w-6xl flex-nowrap gap-1 px-4 py-2 md:px-8">
+        <ul className="guide-shell flex w-max min-w-full flex-nowrap gap-1 py-2">
           {GUIDE_NAV.map((item) => (
             <li key={item.id} className="shrink-0">
               <button

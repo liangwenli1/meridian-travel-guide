@@ -84,7 +84,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           className="content-img absolute inset-0 size-full object-cover"
         />
         <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.82),rgba(0,0,0,0.2)_55%,rgba(0,0,0,0.4))]" />
-        <div className="relative mx-auto flex min-h-[72vh] max-w-6xl flex-col justify-end px-4 pt-28 pb-12 md:px-8 md:pb-16">
+        <div className="relative guide-shell flex min-h-[72vh] flex-col justify-end pt-28 pb-12 md:pb-16">
           <p className="kicker text-silver">
             {city.country} · Travel guide
           </p>
@@ -98,7 +98,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
       <StickyNav />
 
       <section id="overview" className={`guide-panel scroll-mt-20 py-14 md:py-20 ${section === "overview" ? "" : "hidden"}`}>
-        <div className="mx-auto max-w-6xl px-4 md:px-8">
+        <div className="guide-shell">
           <p className="kicker text-muted">City snapshot</p>
           <h2 className="mt-2 text-3xl font-medium tracking-tight text-fg md:text-4xl">Thirty seconds on {city.name}</h2>
           <StatGrid className="mt-8">
@@ -759,7 +759,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
         </div>
       </Section>
       <section className="border-t border-line py-16">
-        <div className="mx-auto grid max-w-6xl gap-8 px-4 md:grid-cols-[1.2fr_1fr] md:items-end md:px-8">
+        <div className="guide-shell grid gap-8 md:grid-cols-[1.2fr_1fr] md:items-end">
           <div>
             <p className="kicker text-accent">{t(locale).letterKicker}</p>
             <h2 className="mt-2 text-3xl font-medium tracking-tight">{t(locale).letterTitle}</h2>
