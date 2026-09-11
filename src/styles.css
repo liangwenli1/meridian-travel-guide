@@ -225,14 +225,16 @@
 }
 
 .hero-ask-where {
-  font-size: clamp(2.85rem, 13.2cqi, 5.85rem);
+  font-size: clamp(3.15rem, 16.2cqi, 7.2rem);
   font-weight: 500;
   color: var(--color-accent);
   line-height: 0.95;
+  min-width: 2.9em;
+  min-height: 1em;
 }
 
 .hero-ask-rest {
-  margin-left: 0.3em;
+  margin-left: 0.42em;
   font-size: clamp(1.35rem, 5.45cqi, 2.65rem);
   font-weight: 400;
   color: var(--color-fg);

@@ -107,7 +107,7 @@ function Home() {
             </div>
             <div className="relative z-20 flex h-full w-full max-w-[46rem] flex-col justify-center px-6 py-8 md:pl-12 lg:pl-16">
               <TypingTitle reducedMotion={reduced} ready={ready} align="left" />
-              <div id="search" className="pointer-events-auto mt-12 w-full">
+              <div id="search" className="pointer-events-auto mt-20 w-full">
                 <SearchBar
                   cities={cities}
                   countries={countries}

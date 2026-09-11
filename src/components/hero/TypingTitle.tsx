@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { t, useI18n } from "@/lib/i18n";
 import { randBetween } from "@/lib/motion";
+import { ParticleWhere } from "./ParticleWhere";
 
 type Phase = "typing" | "hold" | "deleting";
 
@@ -88,7 +89,7 @@ export function TypingTitle({ reducedMotion, ready, align = "center" }: TypingTi
     >
       {align === "left" ? (
         <span className="hero-ask">
-          <span className="hero-ask-where">{strings.where}</span>
+          <ParticleWhere text={strings.where} reducedMotion={reducedMotion} />
           <span className="hero-ask-rest">
             {rest}
             {showMark ? (
