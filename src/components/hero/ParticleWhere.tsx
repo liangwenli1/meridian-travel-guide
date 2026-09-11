@@ -5,16 +5,22 @@ type Particle = {
   ly: number;
   sx: number;
   sy: number;
-  cx: number;
-  cy: number;
+  c1x: number;
+  c1y: number;
+  c2x: number;
+  c2y: number;
   x: number;
   y: number;
   vx: number;
   vy: number;
+  ox: number;
+  oy: number;
   size: number;
   delay: number;
   duration: number;
+  returnRate: number;
   settled: boolean;
+  held: boolean;
 };
 
 const ACCENT = "rgb(212 240 60)";
@@ -37,7 +43,7 @@ export function ParticleWhere({
 
     const canvas = document.createElement("canvas");
     canvas.setAttribute("aria-hidden", "true");
-    canvas.style.cssText = "position:absolute;inset:0;z-index:15;pointer-events:none;";
+    canvas.style.cssText = "position:absolute;inset:0;z-index:25;pointer-events:none;";
     host.appendChild(canvas);
     const ctx = canvas.getContext("2d", { alpha: true });
     if (!ctx) {
@@ -108,21 +114,33 @@ export function ParticleWhere({
       particles = dots.map((dot) => {
         const sx = Math.random() * w;
         const sy = Math.random() * h;
+        const hx = originX + dot.lx;
+        const hy = originY + dot.ly;
+        const a1 = Math.random() * Math.PI * 2;
+        const a2 = Math.random() * Math.PI * 2;
+        const d1 = 80 + Math.random() * Math.max(w, h) * 0.55;
+        const d2 = 80 + Math.random() * Math.max(w, h) * 0.55;
         return {
           lx: dot.lx,
           ly: dot.ly,
           sx,
           sy,
-          cx: Math.random() * w,
-          cy: Math.random() * h,
+          c1x: sx + Math.cos(a1) * d1,
+          c1y: sy + Math.sin(a1) * d1,
+          c2x: hx + Math.cos(a2) * d2,
+          c2y: hy + Math.sin(a2) * d2,
           x: sx,
           y: sy,
           vx: 0,
           vy: 0,
+          ox: (Math.random() - 0.5) * 46,
+          oy: (Math.random() - 0.5) * 46,
           size: dot.size,
-          delay: Math.random() * 1.15,
-          duration: 2.4 + Math.random() * 2.2,
+          delay: Math.random() * 1.4,
+          duration: 1.1 + Math.random() * 4.4,
+          returnRate: 0.045 + Math.random() * 0.03,
           settled: false,
+          held: false,
         };
       });
       start = 0;
@@ -141,14 +159,6 @@ export function ParticleWhere({
     const onUp = () => {
       mouse.down = false;
     };
-    const onLeave = () => {
-      if (!mouse.down) {
-        mouse.x = -9999;
-        mouse.y = -9999;
-        mouse.vx = 0;
-        mouse.vy = 0;
-      }
-    };
 
     const tick = (ts: number) => {
       if (disposed) return;
@@ -160,16 +170,16 @@ export function ParticleWhere({
       const t = (ts - start) / 1000;
 
       if (mouse.x > -900) {
-        mouse.vx += (mouse.x - mouse.px - mouse.vx) * 0.2;
-        mouse.vy += (mouse.y - mouse.py - mouse.vy) * 0.2;
+        mouse.vx += (mouse.x - mouse.px - mouse.vx) * 0.25;
+        mouse.vy += (mouse.y - mouse.py - mouse.vy) * 0.25;
         mouse.px = mouse.x;
         mouse.py = mouse.y;
       }
 
       ctx.clearRect(0, 0, w, h);
       ctx.fillStyle = ACCENT;
-      const radius = mouse.down ? 92 : 64;
-      const push = mouse.down ? 420 : 180;
+      const grabR = mouse.down ? 110 : 78;
+      const keepR = mouse.down ? 420 : 240;
 
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
@@ -180,33 +190,31 @@ export function ParticleWhere({
         const d2 = dxm * dxm + dym * dym;
         const u = Math.min(1, Math.max(0, (t - p.delay) / p.duration));
         const e = 1 - (1 - u) ** 3;
-        const gathering = u < 1 && !p.settled;
-        const near = !gathering && mouse.x > -900 && d2 < radius * radius;
+        const gathering = u < 1 && !p.held && !p.settled;
+        const over = mouse.x > -900 && mouse.x < w + 40 && mouse.y > -40 && mouse.y < h + 40;
 
         if (gathering) {
           const o = 1 - e;
-          p.x = o * o * p.sx + 2 * o * e * p.cx + e * e * hx;
-          p.y = o * o * p.sy + 2 * o * e * p.cy + e * e * hy;
+          const ee = e;
+          p.x = o * o * o * p.sx + 3 * o * o * ee * p.c1x + 3 * o * ee * ee * p.c2x + ee * ee * ee * hx;
+          p.y = o * o * o * p.sy + 3 * o * o * ee * p.c1y + 3 * o * ee * ee * p.c2y + ee * ee * ee * hy;
           p.vx = 0;
           p.vy = 0;
-        } else if (near) {
+        } else if (over && (p.held ? d2 < keepR * keepR : d2 < grabR * grabR)) {
+          p.held = true;
           p.settled = false;
-          const d = Math.max(0.001, Math.sqrt(d2));
-          const falloff = 1 - d / radius;
-          const f = push * falloff * falloff;
-          p.vx += (dxm / d) * f * dt;
-          p.vy += (dym / d) * f * dt;
-          p.vx += mouse.vx * falloff * 8 * dt;
-          p.vy += mouse.vy * falloff * 8 * dt;
-          p.vx *= 0.975;
-          p.vy *= 0.975;
-          p.x += p.vx;
-          p.y += p.vy;
+          const tx = mouse.x + p.ox + mouse.vx * 4;
+          const ty = mouse.y + p.oy + mouse.vy * 4;
+          p.x += (tx - p.x) * 0.16;
+          p.y += (ty - p.y) * 0.16;
+          p.vx = 0;
+          p.vy = 0;
         } else {
-          p.vx *= 0.9;
-          p.vy *= 0.9;
-          p.x += (hx - p.x) * 0.018 + p.vx;
-          p.y += (hy - p.y) * 0.018 + p.vy;
+          p.held = false;
+          p.vx *= 0.88;
+          p.vy *= 0.88;
+          p.x += (hx - p.x) * p.returnRate + p.vx;
+          p.y += (hy - p.y) * p.returnRate + p.vy;
           if (Math.abs(hx - p.x) < 0.35 && Math.abs(hy - p.y) < 0.35 && Math.abs(p.vx) < 0.04) {
             p.x = hx;
             p.y = hy;
@@ -237,19 +245,17 @@ export function ParticleWhere({
       });
     });
 
-    host.addEventListener("pointermove", onMove);
-    host.addEventListener("pointerdown", onDown);
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerdown", onDown);
     window.addEventListener("pointerup", onUp);
-    host.addEventListener("pointerleave", onLeave);
 
     return () => {
       disposed = true;
       cancelAnimationFrame(raf);
       ro?.disconnect();
-      host.removeEventListener("pointermove", onMove);
-      host.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerdown", onDown);
       window.removeEventListener("pointerup", onUp);
-      host.removeEventListener("pointerleave", onLeave);
       canvas.remove();
     };
   }, [text, reducedMotion]);
