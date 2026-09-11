@@ -44,6 +44,12 @@ export function SiteHeader({
         {SITE.name}
       </Link>
       <div className="flex items-center gap-2 md:gap-3">
+        <Link
+          to="/desk"
+          className="hidden text-sm text-muted transition-colors hover:text-fg sm:inline"
+        >
+          {strings.deskNav}
+        </Link>
         <LanguageToggle />
         {isPending ? (
           <div className="h-9 w-20 animate-pulse rounded-full bg-void-elevated" />
