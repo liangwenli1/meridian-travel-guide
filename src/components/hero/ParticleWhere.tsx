@@ -1,27 +1,45 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import * as THREE from "three";
+
+/**
+ * Particle headline.
+ *
+ * One loop: "Where" breathes → morphs through four city names → the last city
+ * folds into a paper plane that flies a dotted route across the whole hero →
+ * the particles stream back and re-form "Where".
+ *
+ * The canvas is portaled into `#hero-fx` (a full-hero layer above the globe and
+ * below the copy) so the plane can cross the entire fold. If that host is
+ * missing the canvas falls back to a local stage around the word.
+ */
+
+export const HERO_FX_HOST_ID = "hero-fx";
 
 const CFG = {
   rasterScale: 4,
   alphaThreshold: 32,
-  cycle: 14,
   fov: 38,
   dprMax: 1.5,
   resizeDebounceMs: 140,
-  pointSizeMin: 0.68,
-  pointSizeMax: 1.62,
-  glyphTilt: 0.42,
-  curlStrength: 1,
-  bendStrength: 1,
-  twistStrength: 1,
-  stretchStrength: 1,
-  ribbonLength: 1,
-  ribbonWave: 1,
-  ribbonDepth: 1,
-  cloudStrength: 0.7,
-  wispyRatio: 0.09,
-  pointerRadius: 80,
-  pointerStrength: 0.15,
+  pointSizeMin: 0.7,
+  pointSizeMax: 1.7,
+  planeShare: 0.45,
+  planeSizeEm: 1.25,
+  cityFitWidth: 1.04,
+  cityMinScale: 0.5,
+  stagger: 0.35,
+  pointerRadius: 140,
+  pointerStrength: 14,
+  timing: {
+    breathe: 3.0,
+    morph: 0.9,
+    hold: 2.0,
+    form: 0.8,
+    fly: 3.0,
+    flyMobile: 2.0,
+    back: 1.0,
+  },
   counts: {
     mobileMin: 8000,
     mobileMax: 12000,
@@ -32,123 +50,127 @@ const CFG = {
   },
 };
 
+// lucide "send" (paper plane), MIT. Nose points up-right in the 24px box.
+const PLANE_BODY =
+  "M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z";
+const PLANE_FOLD = "m21.854 2.147-10.94 10.939";
+
 const VERT = /* glsl */ `
 uniform float uTime;
-uniform float uGlyph;
-uniform float uCurl;
-uniform float uStretch;
-uniform float uRibbon;
-uniform float uFlow;
-uniform float uCloud;
+uniform float uMorph;
+uniform float uFlightOn;
+uniform float uFlight;
 uniform float uReturn;
-uniform float uFinalLock;
-uniform float uHalfW;
+uniform float uMotion;
+uniform float uStagger;
 uniform float uHalfH;
 uniform float uCameraZ;
 uniform float uDpr;
-uniform float uMobile;
 uniform vec2 uPointer;
 uniform float uPointerRadius;
 uniform float uPointerStrength;
-uniform float uRibbonLength;
-uniform float uRibbonWave;
-uniform float uRibbonDepth;
-uniform float uCloudStrength;
+uniform vec3 uP0;
+uniform vec3 uP1;
+uniform vec3 uP2;
+uniform vec3 uP3;
+uniform float uPlaneScale;
+uniform vec3 uGlobe;
 attribute vec3 aHome;
-attribute vec2 aLocal;
-attribute vec2 aGlyphLocal;
-attribute float aGlyph;
+attribute vec3 aFrom;
+attribute vec3 aTo;
+attribute vec2 aPlane;
+attribute float aRole;
+attribute float aTrail;
+attribute float aOrder;
 attribute float aSeed;
 attribute float aSize;
 attribute float aBrightness;
-attribute float aFlowOffset;
-attribute float aEdge;
 varying float vAlpha;
 varying float vBright;
 
-float hash(vec3 p) {
-  p = fract(p * 0.3183099 + vec3(0.11, 0.17, 0.13));
-  p *= 17.0;
-  return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+float easeS(float x) { x = clamp(x, 0.0, 1.0); return x * x * (3.0 - 2.0 * x); }
+vec3 bez(float t) {
+  float u = 1.0 - t;
+  return u * u * u * uP0 + 3.0 * u * u * t * uP1 + 3.0 * u * t * t * uP2 + t * t * t * uP3;
 }
-float noise(vec3 p) {
-  vec3 i = floor(p);
-  vec3 f = fract(p);
-  f = f * f * (3.0 - 2.0 * f);
-  return mix(
-    mix(mix(hash(i), hash(i + vec3(1,0,0)), f.x), mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), f.x), f.y),
-    mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x), mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x), f.y),
-    f.z
-  );
+vec3 bezd(float t) {
+  float u = 1.0 - t;
+  return 3.0 * u * u * (uP1 - uP0) + 6.0 * u * t * (uP2 - uP1) + 3.0 * t * t * (uP3 - uP2);
 }
-vec3 rotX(vec3 p, float a) { float c = cos(a); float s = sin(a); return vec3(p.x, c*p.y - s*p.z, s*p.y + c*p.z); }
-vec3 rotY(vec3 p, float a) { float c = cos(a); float s = sin(a); return vec3(c*p.x + s*p.z, p.y, -s*p.x + c*p.z); }
-vec3 rotZ(vec3 p, float a) { float c = cos(a); float s = sin(a); return vec3(c*p.x - s*p.y, s*p.x + c*p.y, p.z); }
-
-vec3 ribbonCenter(float t) {
-  float x = mix(-uHalfW * 0.55, uHalfW * 0.7, t);
-  x += sin(t * 6.2831853 * 0.85) * uHalfW * 0.22 * uRibbonWave;
-  float y = mix(uHalfH * 0.15, uHalfH * (2.55 * uRibbonLength + 0.35), t);
-  y += sin(t * 3.14159265 * 2.1 + 0.2) * uHalfH * 0.28 * uRibbonWave;
-  float z = sin(t * 3.14159265 * 1.55 + 0.15) * uHalfH * 0.72 * uRibbonDepth;
-  return vec3(x, y, z);
+vec3 pathAt(float s) {
+  float c = clamp(s, 0.0, 1.0);
+  return bez(c) + bezd(c) * (s - c);
 }
 
 void main() {
-  vec3 home = aHome;
-  float nx = aLocal.x;
-  float ny = aLocal.y;
-  float live = 1.0 - uFinalLock;
-  float n1 = noise(vec3(home.xy * 0.03, aSeed));
+  float r1 = fract(aSeed * 0.37);
+  float r2 = fract(aSeed * 0.61);
+  float r3 = fract(aSeed * 0.83);
+  float r4 = fract(aSeed * 0.29);
+  float r5 = fract(aSeed * 0.53);
 
-  vec3 pos = home;
+  // 1. Text-to-text morph with a left-to-right sweep and an upward throw.
+  float m = easeS(uMorph * (1.0 + uStagger) - aOrder * uStagger);
+  vec3 a = mix(aFrom, aTo, m);
+  float lift = sin(m * 3.14159265);
+  a.y += lift * uHalfH * (0.8 + r1 * 1.4);
+  a.z += lift * (20.0 + r2 * 40.0);
+  a.x += lift * sin(aSeed * 3.1 + uTime * 2.0) * 7.0;
 
-  float wave = uCurl * live;
-  pos.y += wave * uHalfH * (0.18 + (nx * 0.5 + 0.5) * 0.35);
-  pos.y += sin(home.x * 0.03 + uTime * 1.1) * uHalfH * 0.08 * wave;
-  pos.z += sin(home.x * 0.02 + ny * 1.3) * 6.0 * wave;
-  pos = rotX(pos, wave * -0.18);
-  pos += vec3(n1 - 0.5, noise(vec3(aSeed, home.yx * 0.04)) - 0.5, 0.0) * 0.2 * wave;
+  // 2. Flight: plane particles ride the nose, trail particles are dropped along the route.
+  float isPlane = step(0.5, aRole);
+  float s = mix(aTrail, uFlight, isPlane);
+  vec3 fp = pathAt(s);
+  vec3 d = normalize(bezd(clamp(s, 0.0, 1.0)) + vec3(1e-4, 0.0, 0.0));
+  float ang = atan(d.y, d.x);
+  vec2 pl = aPlane * uPlaneScale;
+  vec2 rp = vec2(cos(ang) * pl.x - sin(ang) * pl.y, sin(ang) * pl.x + cos(ang) * pl.y);
+  vec3 f = fp + vec3(rp, 0.0) * isPlane;
+  vec2 n = vec2(-d.y, d.x);
+  f.xy += n * (r3 - 0.5) * 9.0 * (1.0 - isPlane);
+  f.z += sin(clamp(s, 0.0, 1.0) * 3.14159265) * 60.0;
 
-  float st = uStretch * live;
-  pos.y += st * uHalfH * (0.35 + (nx * 0.5 + 0.5) * 1.05);
-  pos.x *= mix(1.0, 0.72, st);
-  pos.z += st * ny * 4.0;
+  float fl = easeS(uFlightOn * (1.0 + uStagger) - aOrder * uStagger);
+  vec3 p = mix(a, f, fl);
 
-  float rb = pow(clamp(uRibbon, 0.0, 1.0), 0.82) * live;
-  float t = clamp(0.05 + (nx * 0.5 + 0.5) * 0.88 + aFlowOffset * 0.05, 0.001, 0.999);
-  vec3 c0 = ribbonCenter(max(0.001, t - 0.008));
-  vec3 c1 = ribbonCenter(min(0.999, t + 0.008));
-  vec3 center = ribbonCenter(t);
-  vec3 tangent = normalize(c1 - c0);
-  vec3 side = abs(tangent.x) > 0.92 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
-  vec3 normal = normalize(cross(tangent, side));
-  vec3 binormal = normalize(cross(normal, tangent));
-  float thick = mix(uHalfH * 0.7, uHalfH * 0.16, rb);
-  vec3 rib = center + binormal * ny * thick + normal * (aSeed - 0.5) * 2.1;
-  rib += tangent * aEdge * 3.5 * (aFlowOffset - 0.5);
-  pos = mix(pos, rib, rb);
+  // 3. Return: everything streams back into the home word.
+  float rt = easeS(uReturn * 1.5 - r4 * 0.5);
+  p = mix(p, aHome, rt);
 
-  pos += tangent * aEdge * uCloud * uCloudStrength * live * 6.0;
-
-  pos = mix(pos, home, uReturn);
-
-  vec2 md = pos.xy - uPointer;
+  // 4. Idle breath and pointer push (never during flight, never in reduced motion).
+  float calm = (1.0 - fl) * uMotion;
+  p.xy += vec2(sin(uTime * 0.7 + aSeed), cos(uTime * 0.9 + aSeed * 1.3)) * 0.9 * calm;
+  vec2 md = p.xy - uPointer;
   float pd = length(md);
   float fall = 1.0 - smoothstep(0.0, uPointerRadius, pd);
-  pos.z += fall * fall * 2.6 * uPointerStrength * live * (1.0 - rb * 0.7);
-  pos.xy += normalize(md + 1e-4) * fall * fall * 2.4 * uPointerStrength * live * (1.0 - uReturn);
+  p.xy += normalize(md + 1e-4) * fall * fall * uPointerStrength * calm;
+  p.z += fall * fall * uPointerStrength * 0.8 * calm;
 
-  pos.x = clamp(pos.x, -uHalfW * 1.06, uHalfW * 1.2);
-  pos.y = clamp(pos.y, -uHalfH * 0.92, uHalfH * 2.85);
-  pos = mix(pos, home, uFinalLock);
-
-  vec4 mv = modelViewMatrix * vec4(pos, 1.0);
+  vec4 mv = modelViewMatrix * vec4(p, 1.0);
   gl_Position = projectionMatrix * mv;
   float depth = uCameraZ / max(48.0, -mv.z);
-  gl_PointSize = clamp(aSize * uDpr * depth, 0.55, 2.05);
-  vBright = aBrightness * mix(0.74, 1.06, clamp(0.5 + pos.z * 0.014, 0.0, 1.0));
-  vAlpha = mix(0.55, 0.97, aBrightness);
+  gl_PointSize = clamp(aSize * uDpr * depth * (1.0 + lift * 0.25), 0.6, 3.2);
+
+  // Brightness: base + twinkle on 3% + boost while thrown.
+  float tw = step(0.97, r5) * uMotion;
+  float bright = aBrightness * mix(1.0, 0.45 + 0.55 * sin(uTime * 3.0 + aSeed * 7.0), tw);
+  bright *= 1.0 + lift * 0.35;
+  bright *= mix(0.8, 1.1, clamp(0.5 + p.z * 0.006, 0.0, 1.0));
+
+  float alpha = mix(0.35, 1.0, aBrightness);
+  // Trail: dotted, appears once the plane has passed, dims with age.
+  float emitted = step(aTrail, uFlight);
+  float dash = step(0.5, fract(aTrail * 36.0));
+  float age = clamp(uFlight - aTrail, 0.0, 1.0);
+  float trailA = emitted * dash * max(0.3, 1.0 - age * 0.8) * 0.75;
+  float inFlight = fl * (1.0 - rt);
+  alpha *= mix(1.0, trailA, inFlight * (1.0 - isPlane));
+  // Trail fades slightly when it crosses the globe disc.
+  float gd = 1.0 - smoothstep(uGlobe.z * 0.85, uGlobe.z, length(p.xy - uGlobe.xy));
+  alpha *= 1.0 - 0.2 * gd * inFlight * (1.0 - isPlane);
+
+  vBright = bright;
+  vAlpha = alpha;
 }
 `;
 
@@ -165,33 +187,6 @@ void main() {
 }
 `;
 
-function ease(u: number) {
-  const t = Math.min(1, Math.max(0, u));
-  return t * t * (3 - 2 * t);
-}
-
-function envelope(c: number, inA: number, inB: number, outA: number, outB: number) {
-  return ease((c - inA) / Math.max(1e-4, inB - inA)) * (1 - ease((c - outA) / Math.max(1e-4, outB - outA)));
-}
-
-function getTimelineState(time: number, mobile: number) {
-  const c = ((time % CFG.cycle) + CFG.cycle) % CFG.cycle;
-  const m = mobile;
-  const lockStart = c < 3.2 ? 1 - ease((c - 2.7) / 0.4) : 0;
-  const lockEnd = ease((c - 11.15) / 0.55);
-  const ret = c < 8.9 ? 0 : Math.min(1, ease((c - 8.9) / 1.55));
-  return {
-    glyph: 0,
-    curl: envelope(c, 2.75, 4.15, 5.4, 6.6) * m,
-    stretch: envelope(c, 4.05, 5.35, 6.5, 7.7) * m,
-    ribbon: envelope(c, 5.45, 6.7, 8.15, 9.5) * m,
-    flow: envelope(c, 5.7, 6.9, 8.3, 9.6) * m,
-    cloud: envelope(c, 7.15, 8.1, 8.9, 9.9) * m,
-    ret,
-    lock: Math.max(lockStart, lockEnd, c >= 11.7 ? 1 : 0),
-  };
-}
-
 function getPerformanceTier() {
   const mobile = window.matchMedia("(max-width: 768px)").matches;
   const cores = navigator.hardwareConcurrency || 4;
@@ -199,18 +194,14 @@ function getPerformanceTier() {
   const wide = window.innerWidth >= 1440;
   if (mobile) {
     const count = cores >= 6 ? CFG.counts.mobileMax : CFG.counts.mobileMin;
-    return { count, mobile: 0.55, pointer: 0, ribbonLength: 0.6, ribbonDepth: 0.5, cloud: 0.35 };
+    return { count, mobile: true, pointer: 0, planeScale: 0.6 };
   }
-  if (cores >= 8 && memory >= 8 && wide) {
-    return { count: CFG.counts.veryHigh, mobile: 1, pointer: 1, ribbonLength: 1, ribbonDepth: 1, cloud: 1 };
-  }
-  if (cores >= 8) {
-    return { count: CFG.counts.high, mobile: 1, pointer: 1, ribbonLength: 1, ribbonDepth: 0.95, cloud: 0.9 };
-  }
-  if (cores >= 4 && memory >= 4) {
-    return { count: CFG.counts.medium, mobile: 1, pointer: 1, ribbonLength: 0.92, ribbonDepth: 0.85, cloud: 0.75 };
-  }
-  return { count: CFG.counts.low, mobile: 0.85, pointer: 0.6, ribbonLength: 0.8, ribbonDepth: 0.7, cloud: 0.55 };
+  if (cores >= 8 && memory >= 8 && wide)
+    return { count: CFG.counts.veryHigh, mobile: false, pointer: 1, planeScale: 1 };
+  if (cores >= 8) return { count: CFG.counts.high, mobile: false, pointer: 1, planeScale: 1 };
+  if (cores >= 4 && memory >= 4)
+    return { count: CFG.counts.medium, mobile: false, pointer: 1, planeScale: 0.95 };
+  return { count: CFG.counts.low, mobile: false, pointer: 0.6, planeScale: 0.9 };
 }
 
 function hash01(n: number) {
@@ -218,61 +209,23 @@ function hash01(n: number) {
   return s - Math.floor(s);
 }
 
-type Sample = {
-  homes: Float32Array;
-  locals: Float32Array;
-  glyphLocal: Float32Array;
-  glyph: Float32Array;
-  seeds: Float32Array;
-  sizes: Float32Array;
-  bright: Float32Array;
-  flow: Float32Array;
-  edge: Float32Array;
-  halfW: number;
-  halfH: number;
-};
+function easeInOutSine(x: number) {
+  return -(Math.cos(Math.PI * Math.min(1, Math.max(0, x))) - 1) / 2;
+}
 
-function sampleGlyphs(text: string, displayPx: number, family: string, weight: string, target: number): Sample | null {
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d", { willReadFrequently: true });
-  if (!ctx) return null;
+type Sample = { xy: Float32Array; count: number; width: number; height: number };
+
+/** Turn opaque pixels of a canvas into exactly `target` points, sorted by x, relative to (originX, originY), y up. */
+function samplePixels(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  originX: number,
+  originY: number,
+  target: number,
+  salt: number,
+): Float32Array | null {
   const scale = CFG.rasterScale;
-  const fontPx = displayPx * scale;
-  const font = `${weight} ${fontPx}px ${family}`;
-  ctx.font = font;
-  const chars = Array.from(text);
-  if (!chars.length) return null;
-
-  const full = ctx.measureText(text);
-  const left = Math.max(0.5, full.actualBoundingBoxLeft || fontPx * 0.04);
-  const right = Math.max(0.5, full.actualBoundingBoxRight || full.width);
-  const ascent = Math.max(0.5, full.actualBoundingBoxAscent || fontPx * 0.8);
-  const descent = Math.max(0.5, full.actualBoundingBoxDescent || fontPx * 0.2);
-  const pad = 12;
-  const width = Math.ceil(left + right + pad * 2);
-  const height = Math.ceil(ascent + descent + pad * 2);
-  canvas.width = width;
-  canvas.height = height;
-  ctx.font = font;
-  ctx.textBaseline = "alphabetic";
-  ctx.fillStyle = "#fff";
-  const fillX = pad + left;
-  const fillY = pad + ascent;
-
-  const prefixes: number[] = [];
-  for (let i = 0; i < chars.length; i++) {
-    prefixes.push(ctx.measureText(chars.slice(0, i).join("")).width);
-  }
-  prefixes.push(ctx.measureText(text).width);
-  ctx.fillText(text, fillX, fillY);
-
-  const wordCenterX = fillX + full.width * 0.5;
-  const wordCenterY = fillY + (descent - ascent) * 0.5;
-  const glyphCenters = chars.map((_, i) => ({
-    x: fillX + (prefixes[i] + prefixes[i + 1]) * 0.5,
-    y: wordCenterY,
-  }));
-
   const data = ctx.getImageData(0, 0, width, height).data;
   const raw: number[] = [];
   for (let y = 0; y < height; y++) {
@@ -284,72 +237,138 @@ function sampleGlyphs(text: string, displayPx: number, family: string, weight: s
   const available = raw.length / 2;
   if (available < 80) return null;
 
-  const keep = Math.min(1, target / Math.max(1, available));
+  const keep = Math.min(1, target / available);
   const picked: number[] = [];
-  for (let i = 0; i < available; i++) {
-    if (hash01(i * 1.17 + chars.length * 9.1) > keep) continue;
+  for (let i = 0; i < available && picked.length / 2 < target; i++) {
+    if (hash01(i * 1.17 + salt) > keep) continue;
     picked.push(raw[i * 2], raw[i * 2 + 1]);
   }
-  while (picked.length / 2 < target && available > 0) {
+  while (picked.length / 2 < target) {
     const i = picked.length / 2;
-    const src = Math.floor(hash01(i * 3.31 + 4.7) * available) % available;
-    picked.push(raw[src * 2] + (hash01(i + 2.2) - 0.5) * 0.7, raw[src * 2 + 1] + (hash01(i + 8.1) - 0.5) * 0.7);
-  }
-  const count = Math.min(target, Math.floor(picked.length / 2));
-  const halfW = Math.max(1, (left + right) * 0.5 / scale);
-  const halfH = Math.max(1, (ascent + descent) * 0.5 / scale);
-
-  const homes = new Float32Array(count * 3);
-  const locals = new Float32Array(count * 2);
-  const glyphLocal = new Float32Array(count * 2);
-  const glyph = new Float32Array(count);
-  const seeds = new Float32Array(count);
-  const sizes = new Float32Array(count);
-  const bright = new Float32Array(count);
-  const flow = new Float32Array(count);
-  const edge = new Float32Array(count);
-
-  for (let i = 0; i < count; i++) {
-    const px = picked[i * 2];
-    const py = picked[i * 2 + 1];
-    const lx = (px - wordCenterX) / scale;
-    const ly = (wordCenterY - py) / scale;
-    homes[i * 3] = lx;
-    homes[i * 3 + 1] = ly;
-    homes[i * 3 + 2] = 0;
-    locals[i * 2] = Math.max(-1, Math.min(1, lx / halfW));
-    locals[i * 2 + 1] = Math.max(-1, Math.min(1, ly / halfH));
-    let gi = 0;
-    const rel = px - fillX;
-    for (let g = 0; g < chars.length; g++) {
-      if (rel >= prefixes[g] - 0.5) gi = g;
-    }
-    glyph[i] = gi;
-    glyphLocal[i * 2] = (px - glyphCenters[gi].x) / scale;
-    glyphLocal[i * 2 + 1] = (glyphCenters[gi].y - py) / scale;
-    const seed = hash01(i * 0.173 + gi * 5.9 + px * 0.02);
-    seeds[i] = seed * 31;
-    const sz = hash01(i * 0.91 + 2.4);
-    sizes[i] = sz > 0.94 ? 1.72 + sz * 0.22 : CFG.pointSizeMin + sz * (CFG.pointSizeMax - CFG.pointSizeMin);
-    bright[i] = 0.55 + hash01(i * 1.33 + 0.7) * 0.45;
-    flow[i] = hash01(i * 2.07 + gi * 0.41);
-    edge[i] = hash01(i * 4.13 + 1.9) > 1 - CFG.wispyRatio ? 1 : 0;
+    const src = Math.floor(hash01(i * 3.31 + 4.7 + salt) * available) % available;
+    picked.push(
+      raw[src * 2] + (hash01(i + 2.2) - 0.5) * 0.7,
+      raw[src * 2 + 1] + (hash01(i + 8.1) - 0.5) * 0.7,
+    );
   }
 
-  return { homes, locals, glyphLocal, glyph, seeds, sizes, bright, flow, edge, halfW, halfH };
+  const order = Array.from({ length: target }, (_, i) => i).sort(
+    (a, b) => picked[a * 2] - picked[b * 2],
+  );
+  const xy = new Float32Array(target * 2);
+  for (let i = 0; i < target; i++) {
+    const src = order[i];
+    xy[i * 2] = (picked[src * 2] - originX) / scale;
+    xy[i * 2 + 1] = (originY - picked[src * 2 + 1]) / scale;
+  }
+  return xy;
 }
+
+/** Sample a word. Origin is the CSS text origin (start x, alphabetic baseline). */
+function sampleText(
+  text: string,
+  displayPx: number,
+  family: string,
+  weight: string,
+  target: number,
+): Sample | null {
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx || !text) return null;
+  const scale = CFG.rasterScale;
+  const fontPx = displayPx * scale;
+  const font = `${weight} ${fontPx}px ${family}`;
+  ctx.font = font;
+  const full = ctx.measureText(text);
+  const left = Math.max(0, full.actualBoundingBoxLeft || 0);
+  const right = Math.max(1, full.actualBoundingBoxRight || full.width);
+  const ascent = Math.max(1, full.actualBoundingBoxAscent || fontPx * 0.8);
+  const descent = Math.max(0, full.actualBoundingBoxDescent || fontPx * 0.2);
+  const pad = 12;
+  const width = Math.ceil(left + right + pad * 2);
+  const height = Math.ceil(ascent + descent + pad * 2);
+  canvas.width = width;
+  canvas.height = height;
+  ctx.font = font;
+  ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = "#fff";
+  const originX = pad + left;
+  const originY = pad + ascent;
+  ctx.fillText(text, originX, originY);
+  const xy = samplePixels(ctx, width, height, originX, originY, target, text.length * 9.1);
+  if (!xy) return null;
+  return { xy, count: target, width: full.width / scale, height: (ascent + descent) / scale };
+}
+
+/** Sample the paper plane, nose pointing +x, centred on its own middle. */
+function samplePlane(sizePx: number, target: number): Sample | null {
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) return null;
+  const scale = CFG.rasterScale;
+  const box = Math.ceil(sizePx * scale * 1.5);
+  canvas.width = box;
+  canvas.height = box;
+  const k = (sizePx * scale) / 24;
+  ctx.translate(box / 2, box / 2);
+  ctx.rotate(Math.PI / 4);
+  ctx.scale(k, k);
+  ctx.translate(-12, -12);
+  ctx.fillStyle = "#fff";
+  ctx.fill(new Path2D(PLANE_BODY));
+  ctx.globalCompositeOperation = "destination-out";
+  ctx.lineWidth = 1.1;
+  ctx.lineCap = "round";
+  ctx.stroke(new Path2D(PLANE_FOLD));
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  const xy = samplePixels(ctx, box, box, box / 2, box / 2, target, 77.7);
+  if (!xy) return null;
+  return { xy, count: target, width: sizePx, height: sizePx };
+}
+
+function measureWidth(text: string, displayPx: number, family: string, weight: string) {
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return displayPx * text.length * 0.6;
+  ctx.font = `${weight} ${displayPx}px ${family}`;
+  return ctx.measureText(text).width;
+}
+
+function fontBox(displayPx: number, family: string, weight: string) {
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return { ascent: displayPx * 0.97, descent: displayPx * 0.24 };
+  ctx.font = `${weight} ${displayPx}px ${family}`;
+  const m = ctx.measureText("Hg") as TextMetrics & {
+    fontBoundingBoxAscent?: number;
+    fontBoundingBoxDescent?: number;
+  };
+  return {
+    ascent: m.fontBoundingBoxAscent || displayPx * 0.97,
+    descent: m.fontBoundingBoxDescent || displayPx * 0.24,
+  };
+}
+
+type Phase = "breathe" | "morph" | "hold" | "form" | "fly" | "back";
 
 export function ParticleWhere({
   text,
+  cities,
   reducedMotion,
 }: {
   text: string;
+  cities: readonly string[];
   reducedMotion: boolean;
 }) {
   const wrapRef = useRef<HTMLSpanElement>(null);
   const measureRef = useRef<HTMLSpanElement>(null);
   const stageRef = useRef<HTMLSpanElement>(null);
   const [fallback, setFallback] = useState(false);
+  const [host, setHost] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    setHost(document.getElementById(HERO_FX_HOST_ID));
+  }, []);
 
   useEffect(() => {
     const wrap = wrapRef.current;
@@ -365,54 +384,144 @@ export function ParticleWhere({
     let points: THREE.Points | null = null;
     let geometry: THREE.BufferGeometry | null = null;
     let material: THREE.ShaderMaterial | null = null;
+    let fromAttr: THREE.BufferAttribute | null = null;
+    let toAttr: THREE.BufferAttribute | null = null;
     let visible = true;
-    let elapsed = 0;
     let last = 0;
     let lastW = 0;
     let lastH = 0;
     let resizeTimer = 0;
     let reduce = reducedMotion;
+    let dirty = true;
     const tier = getPerformanceTier();
 
-    const layoutCamera = () => {
-      if (!renderer || !camera) return;
+    // Shapes (all in points-local px, origin = text origin / baseline).
+    let home: Float32Array | null = null;
+    let cityShapes: Float32Array[] = [];
+    let whereWidth = 0;
+    let whereHeight = 0;
+
+    // Timeline.
+    let phase: Phase = "breathe";
+    let phaseT = 0;
+    let cityIndex = 0;
+    const flyDuration = tier.mobile ? CFG.timing.flyMobile : CFG.timing.fly;
+
+    const pointerTarget = new THREE.Vector2(99999, 99999);
+    const pointerNow = new THREE.Vector2(99999, 99999);
+
+    const setPair = (from: Float32Array, to: Float32Array) => {
+      if (!fromAttr || !toAttr) return;
+      const f = fromAttr.array as Float32Array;
+      const t = toAttr.array as Float32Array;
+      const n = fromAttr.count;
+      for (let i = 0; i < n; i++) {
+        f[i * 3] = from[i * 2];
+        f[i * 3 + 1] = from[i * 2 + 1];
+        f[i * 3 + 2] = 0;
+        t[i * 3] = to[i * 2];
+        t[i * 3 + 1] = to[i * 2 + 1];
+        t[i * 3 + 2] = 0;
+      }
+      fromAttr.needsUpdate = true;
+      toAttr.needsUpdate = true;
+    };
+
+    const resetTimeline = () => {
+      phase = "breathe";
+      phaseT = 0;
+      cityIndex = 0;
+      if (home) setPair(home, home);
+      if (material) {
+        material.uniforms.uMorph.value = 0;
+        material.uniforms.uFlightOn.value = 0;
+        material.uniforms.uFlight.value = 0;
+        material.uniforms.uReturn.value = 0;
+      }
+      dirty = true;
+    };
+
+    const layout = () => {
+      if (!renderer || !camera || !material) return;
       const w = Math.max(1, stage.clientWidth);
       const h = Math.max(1, stage.clientHeight);
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
-      const dist = h * 0.5 / Math.tan((CFG.fov * Math.PI) / 360);
+      const dist = (h * 0.5) / Math.tan((CFG.fov * Math.PI) / 360);
       camera.position.set(0, 0, dist);
       camera.updateProjectionMatrix();
-      if (points) {
-        const measureBox = measure.getBoundingClientRect();
-        const stageBox = stage.getBoundingClientRect();
-        const originX = measureBox.left + measureBox.width * 0.5 - (stageBox.left + stageBox.width * 0.5);
-        const originY = stageBox.top + stageBox.height * 0.5 - (measureBox.top + measureBox.height * 0.5);
-        points.position.set(originX, originY, 0);
-      }
-      if (material) {
-        material.uniforms.uCameraZ.value = dist;
-        material.uniforms.uDpr.value = Math.min(window.devicePixelRatio || 1, CFG.dprMax);
-        material.uniforms.uStageSize.value.set(w, h);
-      }
+      material.uniforms.uCameraZ.value = dist;
+      material.uniforms.uDpr.value = Math.min(window.devicePixelRatio || 1, CFG.dprMax);
+
+      const cs = getComputedStyle(measure);
+      const displayPx = parseFloat(cs.fontSize) || 72;
+      const fb = fontBox(displayPx, cs.fontFamily, cs.fontWeight);
+      const mBox = measure.getBoundingClientRect();
+      const sBox = stage.getBoundingClientRect();
+      const baselineFromTop = (mBox.height - (fb.ascent + fb.descent)) / 2 + fb.ascent;
+      const ox = mBox.left - sBox.left - w * 0.5;
+      const oy = h * 0.5 - (mBox.top + baselineFromTop - sBox.top);
+      points?.position.set(ox, oy, 0);
+
+      // Flight path in stage-centred px, then shifted into points-local space.
+      // Take off from the middle of the word, climb gently over the globe, leave top-right.
+      const p0 = new THREE.Vector3(ox + whereWidth * 0.5, oy + whereHeight * 0.32, 0);
+      const p1 = tier.mobile
+        ? new THREE.Vector3(p0.x + w * 0.3, p0.y + h * 0.12, 0)
+        : new THREE.Vector3(p0.x + w * 0.2, p0.y + h * 0.03, 0);
+      const p2 = tier.mobile
+        ? new THREE.Vector3(w * 0.1, h * 0.36, 0)
+        : new THREE.Vector3(w * 0.2, h * 0.14, 0);
+      const p3 = tier.mobile
+        ? new THREE.Vector3(w * 0.68, h * 0.78, 0)
+        : new THREE.Vector3(w * 0.62, h * 0.7, 0);
+      const shift = new THREE.Vector3(ox, oy, 0);
+      material.uniforms.uP0.value.copy(p0.sub(shift));
+      material.uniforms.uP1.value.copy(p1.sub(shift));
+      material.uniforms.uP2.value.copy(p2.sub(shift));
+      material.uniforms.uP3.value.copy(p3.sub(shift));
+      // Rough globe disc (right side of the fold) used only to dim the trail a touch.
+      material.uniforms.uGlobe.value.set(w * 0.26 - ox, 0 - oy, tier.mobile ? h * 0.3 : h * 0.42);
+      dirty = true;
     };
 
     const build = (force: boolean) => {
       const mw = measure.offsetWidth;
       const mh = measure.offsetHeight;
       if (!force && Math.abs(mw - lastW) < 1 && Math.abs(mh - lastH) < 1 && points) {
-        layoutCamera();
+        layout();
         return;
       }
       lastW = mw;
       lastH = mh;
       const cs = getComputedStyle(measure);
       const displayPx = parseFloat(cs.fontSize) || 72;
-      const sampled = sampleGlyphs(text, displayPx, cs.fontFamily, cs.fontWeight, tier.count);
-      if (!sampled) {
+      const family = cs.fontFamily;
+      const weight = cs.fontWeight;
+      const count = tier.count;
+
+      const where = sampleText(text, displayPx, family, weight, count);
+      if (!where) {
         setFallback(true);
         return;
       }
+      home = where.xy;
+      whereWidth = where.width;
+      whereHeight = where.height;
+
+      cityShapes = [];
+      for (const city of cities) {
+        const natural = measureWidth(city, displayPx, family, weight);
+        const fit = Math.max(
+          CFG.cityMinScale,
+          Math.min(1, (where.width * CFG.cityFitWidth) / Math.max(1, natural)),
+        );
+        const s = sampleText(city, displayPx * fit, family, weight, count);
+        if (s) cityShapes.push(s.xy);
+      }
+
+      const planeCount = Math.max(200, Math.round(count * CFG.planeShare));
+      const plane = samplePlane(where.height * CFG.planeSizeEm, planeCount);
 
       if (!renderer) {
         try {
@@ -430,49 +539,89 @@ export function ParticleWhere({
         renderer.domElement.setAttribute("aria-hidden", "true");
         stage.appendChild(renderer.domElement);
         scene = new THREE.Scene();
-        camera = new THREE.PerspectiveCamera(CFG.fov, 1, 0.1, 5000);
+        camera = new THREE.PerspectiveCamera(CFG.fov, 1, 0.1, 6000);
       }
 
       geometry?.dispose();
       material?.dispose();
       if (points && scene) scene.remove(points);
 
+      const homes = new Float32Array(count * 3);
+      const planeLocal = new Float32Array(count * 2);
+      const role = new Float32Array(count);
+      const trail = new Float32Array(count);
+      const order = new Float32Array(count);
+      const seeds = new Float32Array(count);
+      const sizes = new Float32Array(count);
+      const bright = new Float32Array(count);
+
+      // Assign plane role to a random subset; hand plane points to them in x order.
+      let planeCursor = 0;
+      for (let i = 0; i < count; i++) {
+        homes[i * 3] = home[i * 2];
+        homes[i * 3 + 1] = home[i * 2 + 1];
+        order[i] = i / count;
+        const seed = hash01(i * 0.173 + home[i * 2] * 0.02);
+        seeds[i] = seed * 31;
+        const sz = hash01(i * 0.91 + 2.4);
+        sizes[i] =
+          sz > 0.94
+            ? 1.85 + sz * 0.3
+            : CFG.pointSizeMin + sz * (CFG.pointSizeMax - CFG.pointSizeMin);
+        bright[i] = 0.5 + hash01(i * 1.33 + 0.7) * 0.5;
+        const isPlane =
+          plane !== null && hash01(i * 4.13 + 1.9) < CFG.planeShare && planeCursor < planeCount;
+        if (isPlane && plane) {
+          role[i] = 1;
+          planeLocal[i * 2] = plane.xy[planeCursor * 2];
+          planeLocal[i * 2 + 1] = plane.xy[planeCursor * 2 + 1];
+          planeCursor += 1;
+        } else {
+          role[i] = 0;
+          trail[i] = hash01(i * 2.07 + 0.41) * 1.02;
+        }
+      }
+
       geometry = new THREE.BufferGeometry();
-      geometry.setAttribute("position", new THREE.BufferAttribute(sampled.homes, 3));
-      geometry.setAttribute("aHome", new THREE.BufferAttribute(sampled.homes, 3));
-      geometry.setAttribute("aLocal", new THREE.BufferAttribute(sampled.locals, 2));
-      geometry.setAttribute("aGlyphLocal", new THREE.BufferAttribute(sampled.glyphLocal, 2));
-      geometry.setAttribute("aGlyph", new THREE.BufferAttribute(sampled.glyph, 1));
-      geometry.setAttribute("aSeed", new THREE.BufferAttribute(sampled.seeds, 1));
-      geometry.setAttribute("aSize", new THREE.BufferAttribute(sampled.sizes, 1));
-      geometry.setAttribute("aBrightness", new THREE.BufferAttribute(sampled.bright, 1));
-      geometry.setAttribute("aFlowOffset", new THREE.BufferAttribute(sampled.flow, 1));
-      geometry.setAttribute("aEdge", new THREE.BufferAttribute(sampled.edge, 1));
+      geometry.setAttribute("position", new THREE.BufferAttribute(homes, 3));
+      geometry.setAttribute("aHome", new THREE.BufferAttribute(homes, 3));
+      fromAttr = new THREE.BufferAttribute(new Float32Array(count * 3), 3);
+      toAttr = new THREE.BufferAttribute(new Float32Array(count * 3), 3);
+      fromAttr.setUsage(THREE.DynamicDrawUsage);
+      toAttr.setUsage(THREE.DynamicDrawUsage);
+      geometry.setAttribute("aFrom", fromAttr);
+      geometry.setAttribute("aTo", toAttr);
+      geometry.setAttribute("aPlane", new THREE.BufferAttribute(planeLocal, 2));
+      geometry.setAttribute("aRole", new THREE.BufferAttribute(role, 1));
+      geometry.setAttribute("aTrail", new THREE.BufferAttribute(trail, 1));
+      geometry.setAttribute("aOrder", new THREE.BufferAttribute(order, 1));
+      geometry.setAttribute("aSeed", new THREE.BufferAttribute(seeds, 1));
+      geometry.setAttribute("aSize", new THREE.BufferAttribute(sizes, 1));
+      geometry.setAttribute("aBrightness", new THREE.BufferAttribute(bright, 1));
+      // Keep the whole stage inside the frustum no matter where the plane is.
+      geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, 0), 1e6);
 
       material = new THREE.ShaderMaterial({
         uniforms: {
           uTime: { value: 0 },
-          uGlyph: { value: 0 },
-          uCurl: { value: 0 },
-          uStretch: { value: 0 },
-          uRibbon: { value: 0 },
-          uFlow: { value: 0 },
-          uCloud: { value: 0 },
+          uMorph: { value: 0 },
+          uFlightOn: { value: 0 },
+          uFlight: { value: 0 },
           uReturn: { value: 0 },
-          uFinalLock: { value: 1 },
-          uHalfW: { value: sampled.halfW },
-          uHalfH: { value: sampled.halfH },
+          uMotion: { value: reduce ? 0 : 1 },
+          uStagger: { value: CFG.stagger },
+          uHalfH: { value: where.height * 0.5 },
           uCameraZ: { value: 200 },
           uDpr: { value: Math.min(window.devicePixelRatio || 1, CFG.dprMax) },
-          uMobile: { value: tier.mobile },
-          uPointer: { value: new THREE.Vector2(9999, 9999) },
+          uPointer: { value: new THREE.Vector2(99999, 99999) },
           uPointerRadius: { value: CFG.pointerRadius },
-          uPointerStrength: { value: 0 },
-          uRibbonLength: { value: CFG.ribbonLength * tier.ribbonLength },
-          uRibbonWave: { value: CFG.ribbonWave },
-          uRibbonDepth: { value: CFG.ribbonDepth * tier.ribbonDepth },
-          uCloudStrength: { value: CFG.cloudStrength * tier.cloud },
-          uStageSize: { value: new THREE.Vector2(1, 1) },
+          uPointerStrength: { value: CFG.pointerStrength * tier.pointer },
+          uP0: { value: new THREE.Vector3() },
+          uP1: { value: new THREE.Vector3() },
+          uP2: { value: new THREE.Vector3() },
+          uP3: { value: new THREE.Vector3() },
+          uPlaneScale: { value: tier.planeScale },
+          uGlobe: { value: new THREE.Vector3(0, 0, 1) },
           uColor: { value: new THREE.Color("#d4f03c") },
         },
         vertexShader: VERT,
@@ -481,69 +630,128 @@ export function ParticleWhere({
         depthWrite: false,
       });
       points = new THREE.Points(geometry, material);
-      scene!.add(points);
-      layoutCamera();
+      points.frustumCulled = false;
+      scene?.add(points);
+      resetTimeline();
+      layout();
+    };
+
+    const advance = (dt: number) => {
+      if (!material || !home) return;
+      const u = material.uniforms;
+      const T = CFG.timing;
+      phaseT += dt;
+      switch (phase) {
+        case "breathe":
+          if (phaseT >= T.breathe && cityShapes.length) {
+            phase = "morph";
+            phaseT = 0;
+            cityIndex = 0;
+            setPair(home, cityShapes[0]);
+          }
+          break;
+        case "morph":
+          u.uMorph.value = easeInOutSine(phaseT / T.morph);
+          if (phaseT >= T.morph) {
+            u.uMorph.value = 1;
+            phase = "hold";
+            phaseT = 0;
+          }
+          break;
+        case "hold":
+          if (phaseT >= T.hold) {
+            phaseT = 0;
+            const current = cityShapes[cityIndex];
+            if (cityIndex + 1 < cityShapes.length) {
+              cityIndex += 1;
+              setPair(current, cityShapes[cityIndex]);
+              u.uMorph.value = 0;
+              phase = "morph";
+            } else {
+              setPair(current, current);
+              u.uMorph.value = 0;
+              u.uFlight.value = 0;
+              phase = "form";
+            }
+          }
+          break;
+        case "form":
+          u.uFlightOn.value = Math.min(1, phaseT / T.form);
+          if (phaseT >= T.form) {
+            u.uFlightOn.value = 1;
+            phase = "fly";
+            phaseT = 0;
+          }
+          break;
+        case "fly":
+          u.uFlight.value = easeInOutSine(phaseT / flyDuration);
+          if (phaseT >= flyDuration) {
+            u.uFlight.value = 1;
+            phase = "back";
+            phaseT = 0;
+          }
+          break;
+        case "back":
+          u.uReturn.value = Math.min(1, phaseT / T.back);
+          if (phaseT >= T.back) resetTimeline();
+          break;
+      }
     };
 
     const tick = (ts: number) => {
       if (disposed) return;
       raf = requestAnimationFrame(tick);
-      if (!visible || document.visibilityState === "hidden" || !renderer || !scene || !camera || !material) {
+      if (!renderer || !scene || !camera || !material) return;
+      if (!visible || document.visibilityState === "hidden") {
         last = 0;
         return;
       }
       if (!last) last = ts;
-      elapsed += ts - last;
+      const dt = Math.min(0.05, (ts - last) / 1000);
       last = ts;
-      const t = elapsed / 1000;
-      material.uniforms.uTime.value = t;
+
       if (reduce) {
-        material.uniforms.uGlyph.value = 0;
-        material.uniforms.uCurl.value = 0;
-        material.uniforms.uStretch.value = 0;
-        material.uniforms.uRibbon.value = 0;
-        material.uniforms.uFlow.value = 0;
-        material.uniforms.uCloud.value = 0;
-        material.uniforms.uReturn.value = 0;
-        material.uniforms.uFinalLock.value = 1;
-        material.uniforms.uPointerStrength.value = 0;
-      } else {
-        const k = getTimelineState(t, tier.mobile);
-        material.uniforms.uGlyph.value = k.glyph * CFG.glyphTilt;
-        material.uniforms.uCurl.value = k.curl * CFG.curlStrength;
-        material.uniforms.uStretch.value = k.stretch * CFG.stretchStrength;
-        material.uniforms.uRibbon.value = k.ribbon;
-        material.uniforms.uFlow.value = k.flow;
-        material.uniforms.uCloud.value = k.cloud;
-        material.uniforms.uReturn.value = k.ret;
-        material.uniforms.uFinalLock.value = k.lock;
-        material.uniforms.uPointerStrength.value = CFG.pointerStrength * tier.pointer;
+        material.uniforms.uMotion.value = 0;
+        if (!dirty) return;
+        dirty = false;
+        renderer.render(scene, camera);
+        return;
       }
+      material.uniforms.uMotion.value = 1;
+      material.uniforms.uTime.value += dt;
+      advance(dt);
+      pointerNow.lerp(pointerTarget, 0.18);
+      material.uniforms.uPointer.value.copy(pointerNow);
       renderer.render(scene, camera);
     };
 
     const onMove = (event: PointerEvent) => {
-      if (!material || !points || !tier.pointer || reduce) return;
+      if (!points || !tier.pointer || reduce) return;
       const rect = stage.getBoundingClientRect();
-      material.uniforms.uPointer.value.set(
+      pointerTarget.set(
         event.clientX - rect.left - rect.width * 0.5 - points.position.x,
-        rect.height * 0.5 - (event.clientY - rect.top),
+        rect.height * 0.5 - (event.clientY - rect.top) - points.position.y,
       );
     };
+    const onLeave = () => pointerTarget.set(99999, 99999);
 
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
     const onReduce = () => {
       reduce = media.matches || reducedMotion;
+      if (reduce) resetTimeline();
+      dirty = true;
     };
     media.addEventListener("change", onReduce);
 
     const io = new IntersectionObserver(
       (entries) => {
-        visible = entries.some((entry) => entry.isIntersecting);
+        const next = entries.some((entry) => entry.isIntersecting);
+        if (next && !visible) resetTimeline();
+        visible = next;
       },
       { threshold: 0.04 },
     );
-    io.observe(wrap);
+    io.observe(stage);
 
     let ro: ResizeObserver | null = null;
     void document.fonts.ready.then(() => {
@@ -559,6 +767,7 @@ export function ParticleWhere({
     });
 
     window.addEventListener("pointermove", onMove);
+    document.addEventListener("pointerleave", onLeave);
     const onVis = () => {
       if (document.visibilityState === "hidden") last = 0;
     };
@@ -572,13 +781,18 @@ export function ParticleWhere({
       io.disconnect();
       media.removeEventListener("change", onReduce);
       window.removeEventListener("pointermove", onMove);
+      document.removeEventListener("pointerleave", onLeave);
       document.removeEventListener("visibilitychange", onVis);
       geometry?.dispose();
       material?.dispose();
       renderer?.dispose();
       renderer?.domElement.remove();
     };
-  }, [text, reducedMotion]);
+  }, [text, cities, reducedMotion, host]);
+
+  const stage = (
+    <span ref={stageRef} className={host ? "hero-fx-stage" : "hero-ask-stage"} aria-hidden="true" />
+  );
 
   return (
     <span ref={wrapRef} className="hero-ask-where" aria-label={text}>
@@ -589,7 +803,7 @@ export function ParticleWhere({
       >
         {text}
       </span>
-      <span ref={stageRef} className="hero-ask-stage" aria-hidden="true" />
+      {host ? createPortal(stage, host) : stage}
     </span>
   );
 }
