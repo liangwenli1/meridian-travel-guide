@@ -220,6 +220,7 @@
   display: flex;
   width: 100%;
   align-items: baseline;
+  flex-wrap: nowrap;
   white-space: nowrap;
   letter-spacing: -0.03em;
 }
@@ -229,12 +230,11 @@
   font-weight: 500;
   color: var(--color-accent);
   line-height: 0.95;
-  min-width: 2.9em;
-  min-height: 1em;
 }
 
 .hero-ask-rest {
   margin-left: 0.42em;
+  flex-shrink: 0;
   font-size: clamp(1.35rem, 5.45cqi, 2.65rem);
   font-weight: 400;
   color: var(--color-fg);

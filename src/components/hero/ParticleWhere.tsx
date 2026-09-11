@@ -11,7 +11,7 @@ type Particle = {
   phase: number;
 };
 
-const ACCENT = { r: 212, g: 240, b: 60 };
+const ACCENT = "rgb(212 240 60)";
 
 export function ParticleWhere({
   text,
@@ -26,8 +26,7 @@ export function ParticleWhere({
   useEffect(() => {
     const wrap = wrapRef.current;
     const canvas = canvasRef.current;
-    if (!wrap || !canvas) return;
-    if (reducedMotion) return;
+    if (!wrap || !canvas || reducedMotion) return;
 
     const ctx = canvas.getContext("2d", { alpha: true });
     if (!ctx) return;
@@ -42,32 +41,34 @@ export function ParticleWhere({
     let last = 0;
     const mouse = { x: -9999, y: -9999, down: false, inside: false };
 
-    const sample = (fontPx: number) => {
+    const sample = () => {
+      const cs = getComputedStyle(wrap);
+      const fontPx = parseFloat(cs.fontSize) || 72;
       const off = document.createElement("canvas");
       const ox = off.getContext("2d", { willReadFrequently: true });
-      if (!ox) return [] as Particle[];
-      ox.font = `500 ${fontPx}px Inter, ui-sans-serif, system-ui, sans-serif`;
+      if (!ox) return { pts: [] as Particle[], width: 2, height: 2 };
+      const font = `${cs.fontWeight} ${fontPx}px ${cs.fontFamily}`;
+      ox.font = font;
       const metrics = ox.measureText(text);
-      const width = Math.ceil(Math.max(1, metrics.width + fontPx * 0.12));
-      const height = Math.ceil(fontPx * 1.12);
+      const width = Math.max(2, Math.ceil(metrics.width + 2));
+      const height = Math.max(2, Math.ceil(fontPx * 1.05));
       off.width = width;
       off.height = height;
-      ox.font = `500 ${fontPx}px Inter, ui-sans-serif, system-ui, sans-serif`;
+      ox.font = font;
       ox.textBaseline = "alphabetic";
       ox.fillStyle = "#fff";
-      ox.fillText(text, fontPx * 0.04, fontPx * 0.86);
+      ox.fillText(text, 0, fontPx * 0.82);
       const data = ox.getImageData(0, 0, width, height).data;
-      const step = fontPx > 88 ? 2 : 3;
+      const step = 1;
       const pts: Particle[] = [];
       for (let y = 0; y < height; y += step) {
         for (let x = 0; x < width; x += step) {
-          if (data[(y * width + x) * 4 + 3] < 140) continue;
-          const jitter = Math.random();
-          if (jitter > 0.82) continue;
-          const hx = x + 0.4;
-          const hy = y + 0.4;
+          if (data[(y * width + x) * 4 + 3] < 90) continue;
+          if (Math.random() > 0.72) continue;
+          const hx = x + Math.random() * 0.6;
+          const hy = y + Math.random() * 0.6;
           const angle = Math.random() * Math.PI * 2;
-          const dist = 40 + Math.random() * 220;
+          const dist = 24 + Math.random() * 160;
           pts.push({
             hx,
             hy,
@@ -75,34 +76,32 @@ export function ParticleWhere({
             y: hy + Math.sin(angle) * dist,
             vx: 0,
             vy: 0,
-            size: 0.7 + Math.random() * 1.35,
+            size: 0.95 + Math.random() * 0.7,
             phase: Math.random() * Math.PI * 2,
           });
         }
       }
-      wrap.style.width = `${width}px`;
-      wrap.style.height = `${height}px`;
-      return pts;
+      return { pts, width, height };
     };
 
     const resize = () => {
-      const parent = wrap.parentElement;
-      const cw = parent?.clientWidth || wrap.clientWidth || 420;
-      const fontPx = Math.min(115, Math.max(52, cw * 0.168));
+      const next = sample();
+      particles = next.pts;
+      w = next.width;
+      h = next.height;
       dpr = Math.min(2, window.devicePixelRatio || 1);
-      particles = sample(fontPx);
-      w = Math.max(1, parseFloat(wrap.style.width) || 1);
-      h = Math.max(1, parseFloat(wrap.style.height) || 1);
       canvas.width = Math.floor(w * dpr);
       canvas.height = Math.floor(h * dpr);
-      canvas.style.width = `${w}px`;
-      canvas.style.height = `${h}px`;
+      canvas.style.width = "100%";
+      canvas.style.height = "100%";
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
 
     const localPoint = (event: PointerEvent) => {
       const rect = canvas.getBoundingClientRect();
-      return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+      const sx = w / Math.max(1, rect.width);
+      const sy = h / Math.max(1, rect.height);
+      return { x: (event.clientX - rect.left) * sx, y: (event.clientY - rect.top) * sy };
     };
 
     const onMove = (event: PointerEvent) => {
@@ -135,18 +134,19 @@ export function ParticleWhere({
       const dt = Math.min(0.033, last ? (ts - last) / 1000 : 0.016);
       last = ts;
       const t = (ts - start) / 1000;
-      const gather = Math.min(1, t / 1.15);
+      const gather = Math.min(1, t / 1.05);
 
       ctx.clearRect(0, 0, w, h);
-      const radius = mouse.down ? 128 : 78;
-      const push = mouse.down ? 2400 : 980;
+      ctx.fillStyle = ACCENT;
+      const radius = mouse.down ? 110 : 64;
+      const push = mouse.down ? 2100 : 860;
 
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
-        const tremble = 0.55 + (mouse.inside ? 0.7 : 0);
-        const tx = p.hx + Math.sin(t * 7.4 + p.phase) * tremble;
-        const ty = p.hy + Math.cos(t * 6.1 + p.phase * 1.13) * tremble * 0.85;
-        const spring = 18 + gather * 46;
+        const tremble = 0.35 + (mouse.inside ? 0.55 : 0);
+        const tx = p.hx + Math.sin(t * 8.2 + p.phase) * tremble;
+        const ty = p.hy + Math.cos(t * 6.8 + p.phase) * tremble * 0.8;
+        const spring = 22 + gather * 52;
         let ax = (tx - p.x) * spring;
         let ay = (ty - p.y) * spring;
         const dx = p.x - mouse.x;
@@ -159,16 +159,14 @@ export function ParticleWhere({
           ax += dx * f;
           ay += dy * f;
         }
-        p.vx = (p.vx + ax * dt) * 0.78;
-        p.vy = (p.vy + ay * dt) * 0.78;
+        p.vx = (p.vx + ax * dt) * 0.76;
+        p.vy = (p.vy + ay * dt) * 0.76;
         p.x += p.vx * dt * 60;
         p.y += p.vy * dt * 60;
-        const a = 0.55 + gather * 0.45;
-        ctx.fillStyle = `rgba(${ACCENT.r},${ACCENT.g},${ACCENT.b},${a})`;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.globalAlpha = 0.72 + gather * 0.28;
+        ctx.fillRect(p.x, p.y, p.size, p.size);
       }
+      ctx.globalAlpha = 1;
     };
 
     let ro: ResizeObserver | null = null;
@@ -177,8 +175,11 @@ export function ParticleWhere({
       resize();
       start = 0;
       raf = requestAnimationFrame(tick);
-      ro = new ResizeObserver(() => resize());
-      if (wrap.parentElement) ro.observe(wrap.parentElement);
+      ro = new ResizeObserver(() => {
+        start = 0;
+        resize();
+      });
+      ro.observe(wrap);
     });
 
     canvas.addEventListener("pointermove", onMove);
@@ -200,14 +201,11 @@ export function ParticleWhere({
   }, [text, reducedMotion]);
 
   return (
-    <span
-      ref={wrapRef}
-      className="hero-ask-where relative inline-block align-baseline"
-      aria-label={text}
-    >
-      {reducedMotion ? (
-        text
-      ) : (
+    <span ref={wrapRef} className="hero-ask-where relative inline-block shrink-0 align-baseline" aria-label={text}>
+      <span className="invisible select-none" aria-hidden="true">
+        {text}
+      </span>
+      {reducedMotion ? null : (
         <canvas
           ref={canvasRef}
           className="absolute inset-0 size-full cursor-pointer touch-none"
