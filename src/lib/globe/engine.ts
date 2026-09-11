@@ -5,7 +5,7 @@ import type { City, Country } from "@/types/catalog";
 import { latLngToVector3 } from "./latlng";
 
 /** Bump this when the engine visual contract changes so <Globe> remounts on HMR. */
-export const GLOBE_ENGINE_REV = 29;
+export const GLOBE_ENGINE_REV = 31;
 
 export type GlobeLabel = {
   id: string;
@@ -331,6 +331,10 @@ export class GlobeEngine {
 
   private handleUserEnd = () => {
     this.idleTimer = 0;
+    if (!this.reducedMotion && !this.fly) {
+      this.autoRotate = true;
+      this.controls.autoRotate = true;
+    }
   };
 
   private bindInput() {
@@ -601,7 +605,7 @@ export class GlobeEngine {
     const height = Math.max(1, this.frameEl.clientHeight || this.canvas.clientHeight || window.innerHeight);
     this.camera.aspect = width / height;
     if (width > 720) {
-      const shift = Math.round(width * 0.18);
+      const shift = Math.round(width * 0.34);
       this.camera.setViewOffset(width, height, -shift, 0, width, height);
     } else {
       this.camera.clearViewOffset();
@@ -756,13 +760,6 @@ export class GlobeEngine {
     if (this.fly) {
       this.stepFly(dt);
     } else {
-      if (!this.reducedMotion) {
-        this.idleTimer += dt;
-        if (!this.autoRotate && this.idleTimer > 7.5) {
-          this.autoRotate = true;
-          this.controls.autoRotate = true;
-        }
-      }
       this.controls.update();
     }
 

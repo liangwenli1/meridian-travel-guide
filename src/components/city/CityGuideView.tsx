@@ -1,6 +1,5 @@
 import { Link, useSearch } from "@tanstack/react-router";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
-import { useEffect } from "react";
 import type { City } from "@/types/catalog";
 import type { CityGuide } from "@/types/guide";
 import { SITE } from "@/lib/site";
@@ -39,11 +38,6 @@ const TIER_VARIANT: Record<CityGuide["attractions"][number]["tier"], "accent" | 
 export function CityGuideView({ city, guide }: { city: City; guide: CityGuide }) {
   const locale = useI18n((s) => s.locale);
   const section = useSearch({ from: "/$country/$city" }).s ?? "overview";
-
-  useEffect(() => {
-    if (section === "overview") return;
-    document.getElementById("guide-nav")?.scrollIntoView({ block: "start", behavior: "auto" });
-  }, [section]);
   const snapshotEntries = [
     ["Country", guide.snapshot.country],
     ["Language", guide.snapshot.languages],

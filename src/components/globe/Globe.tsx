@@ -5,7 +5,7 @@ import { GlobeLabels } from "./GlobeLabels";
 import { GlobeFallback } from "./GlobeFallback";
 
 /** Bump with the engine so HMR remounts WebGL. */
-const GLOBE_ENGINE_REV = 29;
+const GLOBE_ENGINE_REV = 31;
 
 export type GlobeHandle = {
   flyToCity: (city: City) => Promise<void>;
