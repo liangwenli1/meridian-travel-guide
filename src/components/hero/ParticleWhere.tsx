@@ -178,11 +178,18 @@ export function ParticleWhere({
         const dxm = p.x - mouse.x;
         const dym = p.y - mouse.y;
         const d2 = dxm * dxm + dym * dym;
-        const near = mouse.x > -900 && d2 < radius * radius;
         const u = Math.min(1, Math.max(0, (t - p.delay) / p.duration));
         const e = 1 - (1 - u) ** 3;
+        const gathering = u < 1 && !p.settled;
+        const near = !gathering && mouse.x > -900 && d2 < radius * radius;
 
-        if (near) {
+        if (gathering) {
+          const o = 1 - e;
+          p.x = o * o * p.sx + 2 * o * e * p.cx + e * e * hx;
+          p.y = o * o * p.sy + 2 * o * e * p.cy + e * e * hy;
+          p.vx = 0;
+          p.vy = 0;
+        } else if (near) {
           p.settled = false;
           const d = Math.max(0.001, Math.sqrt(d2));
           const falloff = 1 - d / radius;
@@ -195,12 +202,6 @@ export function ParticleWhere({
           p.vy *= 0.975;
           p.x += p.vx;
           p.y += p.vy;
-        } else if (u < 1 && !p.settled) {
-          const o = 1 - e;
-          p.x = o * o * p.sx + 2 * o * e * p.cx + e * e * hx;
-          p.y = o * o * p.sy + 2 * o * e * p.cy + e * e * hy;
-          p.vx = 0;
-          p.vy = 0;
         } else {
           p.vx *= 0.9;
           p.vy *= 0.9;
