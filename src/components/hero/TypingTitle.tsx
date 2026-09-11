@@ -88,7 +88,7 @@ export function TypingTitle({ reducedMotion, ready, align = "center" }: TypingTi
     >
       {align === "left" ? (
         <span className="inline-flex max-w-full items-baseline whitespace-nowrap tracking-tight">
-          <span className="text-[2.6rem] font-medium text-accent sm:text-[3.1rem] lg:text-[3.75rem]">
+          <span className="text-[2.95rem] font-medium text-accent sm:text-[3.5rem] lg:text-[4.2rem]">
             {strings.where}
           </span>
           <span className="ml-[0.32em] text-[1.55rem] font-normal text-fg sm:text-[1.85rem] lg:text-[2.2rem]">
