@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { GUIDE_NAV } from "@/lib/guide-nav";
 import { t, useI18n } from "@/lib/i18n";
@@ -8,13 +9,24 @@ export function StickyNav() {
   const navigate = useNavigate({ from: "/$country/$city" });
   const search = useSearch({ from: "/$country/$city" });
   const active = search.s ?? "overview";
+  const keepY = useRef<number | null>(null);
 
   const go = (id: (typeof GUIDE_NAV)[number]["id"]) => {
+    if (id === active) return;
+    keepY.current = window.scrollY;
     void navigate({
       search: { s: id },
       replace: true,
+      resetScroll: false,
     });
   };
+
+  useLayoutEffect(() => {
+    const y = keepY.current;
+    if (y == null) return;
+    keepY.current = null;
+    window.scrollTo(0, y);
+  }, [active]);
 
   return (
     <nav
