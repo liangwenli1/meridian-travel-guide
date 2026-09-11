@@ -29,8 +29,12 @@ export function PhotoStrip({ citySlug }: { citySlug: string }) {
           <img
             src={photo.url}
             alt={photo.alt}
+            referrerPolicy="no-referrer"
             className="content-img reveal-clip absolute inset-0 size-full object-cover"
             loading="lazy"
+            onError={(event) => {
+              event.currentTarget.style.opacity = "0";
+            }}
           />
           <figcaption className="absolute inset-x-0 bottom-0 bg-void/70 px-3 py-2 text-xs text-silver backdrop-blur-sm">
             {photo.location} · {photo.author}

@@ -12,7 +12,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Asakusa",
     },
     {
-      url: "https://images.unsplash.com/photo-1554797589-7241bb91fcd6?auto=format&fit=crop&w=1400&q=80",
+      url: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=1400&q=80",
       alt: "Ramen bowl on a counter",
       source: "Unsplash",
       author: "Warren Wong",
@@ -50,7 +50,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Left Bank",
     },
     {
-      url: "https://images.unsplash.com/photo-1471623431372-39e1b232411f?auto=format&fit=crop&w=1400&q=80",
+      url: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=1400&q=80",
       alt: "Louvre pyramid at dusk",
       source: "Unsplash",
       author: "Dan Perez",
@@ -108,7 +108,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Gardens by the Bay",
     },
     {
-      url: "https://images.unsplash.com/photo-1496939375501-2f29ac15bb55?auto=format&fit=crop&w=1400&q=80",
+      url: "https://images.unsplash.com/photo-1526318896980-cf78c088247c?auto=format&fit=crop&w=1400&q=80",
       alt: "Hawker food on a tray",
       source: "Unsplash",
       author: "Lily Banse",
@@ -186,7 +186,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Seoul",
     },
     {
-      url: "https://images.unsplash.com/photo-1546874177-9e66410726e7?auto=format&fit=crop&w=1400&q=80",
+      url: "https://images.unsplash.com/photo-1534274867514-d5b47ef89ed7?auto=format&fit=crop&w=1400&q=80",
       alt: "Gyeongbokgung palace grounds",
       source: "Unsplash",
       author: "Jeongin Cho",
@@ -215,7 +215,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Colosseum",
     },
     {
-      url: "https://images.unsplash.com/photo-1529260830199-42c24126d198?auto=format&fit=crop&w=1400&q=80",
+      url: "https://images.unsplash.com/photo-1555993539-1732b0258235?auto=format&fit=crop&w=1400&q=80",
       alt: "Roman street with ochre buildings",
       source: "Unsplash",
       author: "Chris Czermak",

@@ -71,6 +71,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
         <img
           src={guide.hero.url}
           alt={guide.hero.alt}
+          referrerPolicy="no-referrer"
           className="content-img absolute inset-0 size-full object-cover"
         />
         <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.82),rgba(0,0,0,0.2)_55%,rgba(0,0,0,0.4))]" />

@@ -5,7 +5,7 @@ import type { City, Country } from "@/types/catalog";
 import { latLngToVector3 } from "./latlng";
 
 /** Bump this when the engine visual contract changes so <Globe> remounts on HMR. */
-export const GLOBE_ENGINE_REV = 33;
+export const GLOBE_ENGINE_REV = 34;
 
 export type GlobeLabel = {
   id: string;
@@ -605,7 +605,10 @@ export class GlobeEngine {
     const height = Math.max(1, this.frameEl.clientHeight || this.canvas.clientHeight || window.innerHeight);
     this.camera.aspect = width / height;
     if (width > 720) {
-      const shift = Math.round(width * 0.22);
+      // Laptop (~1280–1440) needs more offset so the copy column doesn't sit on the globe.
+      const t = Math.min(1, Math.max(0, (width - 720) / 1400));
+      const shiftFrac = 0.3 - t * 0.1;
+      const shift = Math.round(width * shiftFrac);
       this.camera.setViewOffset(width, height, -shift, 0, width, height);
     } else {
       this.camera.clearViewOffset();

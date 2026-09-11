@@ -181,7 +181,7 @@
   @media (min-width: 768px) {
     .photo-bento {
       grid-template-columns: 1.45fr 1fr;
-      grid-template-rows: 12.5rem 12.5rem;
+      grid-template-rows: minmax(10rem, 22vh) minmax(10rem, 22vh);
     }
 
     .photo-bento > figure:first-child {
@@ -218,10 +218,49 @@
 
 /* Copy column: one centre axis for the headline, the question and the search box,
    pushed up and in from the left edge so the block reads as a poster on the left half. */
+.hero-copy {
+  container-type: inline-size;
+}
+
 @media (min-width: 768px) {
+  .hero-copy {
+    margin-left: 5vw;
+    padding-bottom: 12vh;
+  }
+}
+
+@media (min-width: 1440px) {
   .hero-copy {
     margin-left: 6vw;
     padding-bottom: 16vh;
+  }
+}
+
+@media (max-height: 900px) and (min-width: 768px) {
+  .hero-copy {
+    padding-bottom: 6vh;
+  }
+
+  .hero-ask-where {
+    font-size: clamp(3.1rem, 16cqi, 6.4rem);
+  }
+
+  .hero-ask-rest {
+    font-size: clamp(1.35rem, 5.2cqi, 2.35rem);
+  }
+
+  .hero-search {
+    margin-top: 1.5rem;
+  }
+}
+
+@media (max-height: 760px) and (min-width: 768px) {
+  .hero-ask-where {
+    font-size: clamp(2.6rem, 13cqi, 5.2rem);
+  }
+
+  .hero-ask-rest {
+    font-size: clamp(1.2rem, 4.4cqi, 1.9rem);
   }
 }
 
