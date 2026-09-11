@@ -47,8 +47,8 @@ export function ParticleWhere({
     let dpr = 1;
     let glyphW = 0;
     let glyphH = 0;
-    const padX = 260;
-    const padY = 200;
+    const padX = 420;
+    const padY = 360;
     let start = 0;
     let last = 0;
     const mouse = { x: -9999, y: -9999, down: false, inside: false };
@@ -71,6 +71,8 @@ export function ParticleWhere({
       ox.fillStyle = "#fff";
       ox.fillText(text, 0, fontPx * 0.82);
       const data = ox.getImageData(0, 0, width, height).data;
+      const cx = padX + width * 0.5;
+      const cy = padY + height * 0.52;
       const pts: Particle[] = [];
       for (let y = 0; y < height; y += 1) {
         for (let x = 0; x < width; x += 1) {
@@ -79,9 +81,9 @@ export function ParticleWhere({
           const hx = x + Math.random() * 0.5 + padX;
           const hy = y + Math.random() * 0.5 + padY;
           const angle = Math.random() * Math.PI * 2;
-          const dist = 240 + Math.random() * 560;
-          const sx = hx + Math.cos(angle) * dist;
-          const sy = hy + Math.sin(angle) * dist;
+          const radius = 340 + Math.random() * 90;
+          const sx = cx + Math.cos(angle) * radius;
+          const sy = cy + Math.sin(angle) * radius;
           pts.push({
             hx,
             hy,
@@ -92,7 +94,7 @@ export function ParticleWhere({
             vx: 0,
             vy: 0,
             size: 0.95 + Math.random() * 0.7,
-            delay: Math.random() * 0.7,
+            delay: (angle / (Math.PI * 2)) * 0.28 + Math.random() * 0.4,
           });
         }
       }
@@ -107,8 +109,8 @@ export function ParticleWhere({
       particles = next.pts;
       glyphW = next.width;
       glyphH = next.height;
-      w = next.width + padX + 280;
-      h = next.height + padY + 160;
+      w = next.width + padX * 2;
+      h = next.height + padY * 2;
       dpr = Math.min(2, window.devicePixelRatio || 1);
       canvas.width = Math.floor(w * dpr);
       canvas.height = Math.floor(h * dpr);
