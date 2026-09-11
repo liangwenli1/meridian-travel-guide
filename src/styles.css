@@ -248,14 +248,14 @@
 
 .hero-ask-stage {
   position: absolute;
-  left: 50%;
+  left: 0;
   top: 50%;
   z-index: 1;
-  width: 320%;
-  height: 260%;
+  width: 360%;
+  height: 220%;
   overflow: visible;
   pointer-events: none;
-  transform: translate(-50%, -50%);
+  transform: translate(0, -50%);
 }
 
 .hero-ask-stage canvas {
@@ -265,6 +265,8 @@
 }
 
 .hero-ask-rest {
+  position: relative;
+  z-index: 2;
   margin-left: 0.28em;
   flex-shrink: 0;
   font-size: clamp(1.6rem, 6.4cqi, 3.15rem);

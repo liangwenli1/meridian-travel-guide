@@ -86,18 +86,10 @@ vec3 rotY(vec3 p, float a) { float c = cos(a); float s = sin(a); return vec3(c*p
 vec3 rotZ(vec3 p, float a) { float c = cos(a); float s = sin(a); return vec3(c*p.x - s*p.y, s*p.x + c*p.y, p.z); }
 
 vec3 ribbonCenter(float t) {
-  float x = mix(-uHalfW * 0.85, uHalfW * 2.15, t);
-  float y = sin(t * 3.14159265 * 1.35 + 0.15) * uHalfH * 0.62 * uRibbonWave;
-  y += sin(t * 3.14159265 * 2.6 + 0.7) * uHalfH * 0.28 * uRibbonWave;
-  float coil = exp(-pow((t - 0.22) * 5.2, 2.0));
-  float ca = t * 14.0 + 0.8;
-  x += cos(ca) * coil * uHalfW * 0.42;
-  y += sin(ca) * coil * uHalfH * 0.7;
-  float hook = smoothstep(0.72, 1.0, t);
-  y -= sin(hook * 3.14159265) * uHalfH * 0.38;
-  x -= hook * uHalfW * 0.18;
-  float z = sin(t * 3.14159265 * 1.8 + 0.4) * uHalfH * 0.72 * uRibbonDepth;
-  z += coil * uHalfH * 0.4 * uRibbonDepth;
+  float x = mix(-uHalfW * 0.92, uHalfW * (1.55 * uRibbonLength + 0.35), t);
+  float y = sin(t * 3.14159265 * 1.55 + 0.12) * uHalfH * 0.48 * uRibbonWave;
+  y += sin(t * 3.14159265 * 3.05 + 0.6) * uHalfH * 0.16 * uRibbonWave;
+  float z = sin(t * 3.14159265 * 1.7 + 0.2) * uHalfH * 0.7 * uRibbonDepth;
   return vec3(x, y, z);
 }
 
@@ -105,89 +97,57 @@ void main() {
   vec3 home = aHome;
   float nx = aLocal.x;
   float ny = aLocal.y;
-  float n1 = noise(vec3(home.xy * 0.035, aSeed));
   float live = 1.0 - uFinalLock;
+  float n1 = noise(vec3(home.xy * 0.03, aSeed));
 
   vec3 pos = home;
-  pos += vec3(n1 - 0.5, noise(vec3(aSeed, home.yx * 0.04)) - 0.5, 0.0) * 0.28 * live * (1.0 - uRibbon);
 
-  float g = aGlyph;
-  float phase = g * 1.743 + aSeed * 0.31;
-  vec3 gpos = vec3(aGlyphLocal, 0.0);
-  float tiltZ = mix(-0.22, 0.18, fract(g * 0.37 + 0.11)) + sin(phase) * 0.08;
-  float tiltY = mix(-0.28, 0.24, fract(g * 0.53 + 0.07));
-  float tiltX = mix(-0.16, 0.2, fract(g * 0.19 + 0.29));
-  if (g < 0.5) { tiltY -= 0.2; tiltZ -= 0.12; }
-  else if (g < 1.5) { tiltZ += 0.16; tiltX += 0.1; }
-  else if (g < 2.5) { tiltY += 0.12; tiltZ -= 0.1; }
-  else if (g < 3.5) { tiltX += 0.18; }
-  else { tiltY -= 0.16; tiltZ += 0.14; }
-  gpos = rotZ(gpos, uGlyph * tiltZ * 1.15);
-  gpos = rotY(gpos, uGlyph * tiltY * 1.2);
-  gpos = rotX(gpos, uGlyph * tiltX * 1.05);
-  gpos.z += uGlyph * sin(phase) * 9.0;
-  vec3 glyphCenter = home - vec3(aGlyphLocal, 0.0);
-  pos = mix(pos, glyphCenter + gpos, uGlyph * live);
+  float wave = uCurl * live;
+  pos.y += sin(home.x * 0.032 + uTime * 1.15) * uHalfH * 0.1 * wave;
+  pos.z += sin(home.x * 0.022 + ny * 1.4) * 6.5 * wave;
+  pos = rotY(pos, wave * nx * 0.16);
+  pos = rotX(pos, wave * ny * 0.07);
+  pos += vec3(n1 - 0.5, noise(vec3(aSeed, home.yx * 0.04)) - 0.5, 0.0) * 0.22 * wave;
 
-  float curl = uCurl * live;
-  float hx = max(8.0, abs(aGlyphLocal.x) + 6.0);
-  float theta = (aGlyphLocal.x / hx) * curl * 1.15;
-  float cr = hx / max(curl * 1.15, 0.0002);
-  vec3 curled = glyphCenter + vec3(sin(theta) * cr, aGlyphLocal.y, (1.0 - cos(theta)) * cr);
-  curled = rotX(curled - glyphCenter, curl * ny * 0.35) + glyphCenter;
-  pos = mix(pos, curled, smoothstep(0.0, 1.0, curl));
+  float st = uStretch * live;
+  pos.x += st * uHalfW * (0.12 + max(0.0, nx) * 0.5);
+  pos.y *= mix(1.0, 0.36, st);
+  pos.z += st * ny * 4.0;
 
-  float flowT = clamp(0.5 + 0.48 * nx + aFlowOffset * 0.22 + g * 0.045, 0.0, 1.0);
-  float onset = smoothstep(aFlowOffset * 0.35, 0.45 + aFlowOffset * 0.4, uStretch);
-  vec3 stretched = pos;
-  stretched.x += onset * uHalfW * 1.35 * (0.15 + flowT) * uStretch;
-  stretched.y += onset * sin(flowT * 6.2831853) * uHalfH * 0.28;
-  stretched.y *= 1.0 - uStretch * 0.18;
-  stretched.z += uStretch * ny * 9.0 + onset * 5.0 * (aSeed - 0.5);
-  pos = mix(pos, stretched, uStretch * live);
-
-  float t = clamp(0.06 + (nx * 0.5 + 0.5) * 0.78 + aFlowOffset * 0.12 + g * 0.02, 0.001, 0.999);
-  vec3 c0 = ribbonCenter(max(0.001, t - 0.01));
-  vec3 c1 = ribbonCenter(min(0.999, t + 0.01));
+  float rb = pow(clamp(uRibbon, 0.0, 1.0), 0.82) * live;
+  float t = clamp(0.06 + (nx * 0.5 + 0.5) * 0.86 + aFlowOffset * 0.06, 0.001, 0.999);
+  vec3 c0 = ribbonCenter(max(0.001, t - 0.008));
+  vec3 c1 = ribbonCenter(min(0.999, t + 0.008));
   vec3 center = ribbonCenter(t);
   vec3 tangent = normalize(c1 - c0);
   vec3 up = abs(tangent.y) > 0.92 ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 1.0, 0.0);
   vec3 normal = normalize(cross(tangent, up));
   vec3 binormal = normalize(cross(normal, tangent));
-  float sheet = mix(1.0, 0.16, uRibbon);
-  float thickY = aGlyphLocal.y * sheet;
-  float thickZ = aGlyphLocal.x * 0.08 * sheet + (aSeed - 0.5) * 3.2 * aEdge;
-  vec3 rib = center + binormal * thickY + normal * thickZ;
-  rib += tangent * aEdge * 7.0 * (aFlowOffset - 0.5);
-  rib = rotX(rib, uRibbon * 0.14);
-  rib = rotY(rib, uRibbon * 0.16);
-  rib = rotZ(rib, uRibbon * -0.06);
-  pos = mix(pos, rib, pow(clamp(uRibbon, 0.0, 1.0), 0.75) * live);
+  float thick = mix(uHalfH * 0.85, uHalfH * 0.17, rb);
+  vec3 rib = center + binormal * ny * thick + normal * (aSeed - 0.5) * 2.2;
+  rib += tangent * aEdge * 4.0 * (aFlowOffset - 0.5);
+  pos = mix(pos, rib, rb);
 
-  vec3 cloudDir = tangent * (0.55 + aSeed * 0.3) + normal * (aSeed - 0.5) * 0.28 + binormal * ny * 0.12;
-  pos += cloudDir * uCloud * uCloudStrength * (10.0 + aEdge * 22.0) * live;
+  pos += tangent * aEdge * uCloud * uCloudStrength * live * 7.0;
 
-  float ang = aSeed * 6.28318 + uTime * 0.55;
-  vec3 swirl = home + vec3(cos(ang), sin(ang * 1.1), sin(ang * 0.7)) * 14.0 * uReturn * (1.0 - uReturn);
-  pos = mix(pos, mix(pos, home, uReturn) + swirl * live, uReturn);
+  pos = mix(pos, home, uReturn);
 
   vec2 md = pos.xy - uPointer;
   float pd = length(md);
   float fall = 1.0 - smoothstep(0.0, uPointerRadius, pd);
-  pos.z += fall * fall * 3.2 * uPointerStrength * live * (1.0 - uRibbon * 0.6);
-  pos.xy += normalize(md + 1e-4) * fall * fall * 3.0 * uPointerStrength * live;
+  pos.z += fall * fall * 2.6 * uPointerStrength * live * (1.0 - rb * 0.7);
+  pos.xy += normalize(md + 1e-4) * fall * fall * 2.4 * uPointerStrength * live * (1.0 - uReturn);
 
-  pos.x = min(pos.x, uHalfW * 2.25);
-  pos.x = max(pos.x, -uHalfW * 1.15);
-  pos.y = clamp(pos.y, -uHalfH * 1.25, uHalfH * 1.7);
+  pos.x = clamp(pos.x, -uHalfW * 1.02, uHalfW * 1.95);
+  pos.y = clamp(pos.y, -uHalfH * 1.12, uHalfH * 1.15);
   pos = mix(pos, home, uFinalLock);
 
   vec4 mv = modelViewMatrix * vec4(pos, 1.0);
   gl_Position = projectionMatrix * mv;
   float depth = uCameraZ / max(48.0, -mv.z);
   gl_PointSize = clamp(aSize * uDpr * depth, 0.55, 2.05);
-  vBright = aBrightness * mix(0.7, 1.08, clamp(0.5 + pos.z * 0.014, 0.0, 1.0));
-  vAlpha = mix(0.52, 0.96, aBrightness) * mix(1.0, 0.72, aEdge * uCloud);
+  vBright = aBrightness * mix(0.74, 1.06, clamp(0.5 + pos.z * 0.014, 0.0, 1.0));
+  vAlpha = mix(0.55, 0.97, aBrightness);
 }
 `;
 
@@ -216,17 +176,18 @@ function envelope(c: number, inA: number, inB: number, outA: number, outB: numbe
 function getTimelineState(time: number, mobile: number) {
   const c = ((time % CFG.cycle) + CFG.cycle) % CFG.cycle;
   const m = mobile;
-  const lockStart = 1 - ease((c - 2.5) / 0.45);
-  const lockEnd = ease((c - 12.0) / 0.85);
+  const lockStart = c < 3.2 ? 1 - ease((c - 2.7) / 0.4) : 0;
+  const lockEnd = ease((c - 11.15) / 0.55);
+  const ret = c < 8.9 ? 0 : Math.min(1, ease((c - 8.9) / 1.55));
   return {
-    glyph: envelope(c, 2.3, 3.5, 4.5, 5.8) * m,
-    curl: envelope(c, 2.8, 4.1, 5.7, 6.9) * m,
-    stretch: envelope(c, 4.0, 5.3, 6.5, 7.6) * m,
-    ribbon: envelope(c, 5.7, 7.05, 8.35, 9.55) * m,
-    flow: envelope(c, 6.0, 7.2, 8.5, 10.0) * m,
-    cloud: envelope(c, 8.0, 9.05, 9.85, 10.85) * m,
-    ret: envelope(c, 9.8, 11.15, 12.35, 13.15),
-    lock: Math.max(lockStart, lockEnd),
+    glyph: 0,
+    curl: envelope(c, 2.75, 4.15, 5.4, 6.6) * m,
+    stretch: envelope(c, 4.05, 5.35, 6.5, 7.7) * m,
+    ribbon: envelope(c, 5.45, 6.7, 8.15, 9.5) * m,
+    flow: envelope(c, 5.7, 6.9, 8.3, 9.6) * m,
+    cloud: envelope(c, 7.15, 8.1, 8.9, 9.9) * m,
+    ret,
+    lock: Math.max(lockStart, lockEnd, c >= 11.7 ? 1 : 0),
   };
 }
 
@@ -421,6 +382,10 @@ export function ParticleWhere({
       const dist = h * 0.5 / Math.tan((CFG.fov * Math.PI) / 360);
       camera.position.set(0, 0, dist);
       camera.updateProjectionMatrix();
+      if (points) {
+        const mw = Math.max(1, measure.offsetWidth);
+        points.position.set(mw * 0.5 - w * 0.5, 0, 0);
+      }
       if (material) {
         material.uniforms.uCameraZ.value = dist;
         material.uniforms.uDpr.value = Math.min(window.devicePixelRatio || 1, CFG.dprMax);
@@ -554,10 +519,10 @@ export function ParticleWhere({
     };
 
     const onMove = (event: PointerEvent) => {
-      if (!material || !tier.pointer || reduce) return;
+      if (!material || !points || !tier.pointer || reduce) return;
       const rect = stage.getBoundingClientRect();
       material.uniforms.uPointer.value.set(
-        event.clientX - rect.left - rect.width * 0.5,
+        event.clientX - rect.left - rect.width * 0.5 - points.position.x,
         rect.height * 0.5 - (event.clientY - rect.top),
       );
     };
