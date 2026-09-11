@@ -10,8 +10,8 @@ if [ ! -f "$CONFIG_FILE" ]; then
   exit 1
 fi
 
-export POSTGRES_PASSWORD="$(node -e "process.stdout.write(JSON.parse(require('fs').readFileSync(process.argv[1],'utf8')).database.password || '')" "$CONFIG_FILE")"
-export APP_PORT="$(node -e "process.stdout.write(String(JSON.parse(require('fs').readFileSync(process.argv[1],'utf8')).site.port || 3000))" "$CONFIG_FILE")"
+export POSTGRES_PASSWORD="$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['database']['password'], end='')" "$CONFIG_FILE")"
+export APP_PORT="$(python3 -c "import json,sys; print(json.load(open(sys.argv[1])).get('site',{}).get('port',3000), end='')" "$CONFIG_FILE")"
 
 case "$POSTGRES_PASSWORD" in
   "" | CHANGE_ME*)
