@@ -263,7 +263,7 @@ export const cities: City[] = [
     languages: ["English"],
     airportCodes: ["LHR", "LGW", "STN", "LTN", "LCY"],
     shortDescription: "A spread-out capital of theatre, parks, and neighbourhoods that feel like separate towns.",
-    contentStatus: "published",
+    contentStatus: "coming-soon",
   },
   {
     id: "new-york",
@@ -417,7 +417,7 @@ export const cities: City[] = [
     languages: ["Italian"],
     airportCodes: ["FCO", "CIA"],
     shortDescription: "Ancient stone under a living capital — exhausting, layered, and still a city people inhabit.",
-    contentStatus: "published",
+    contentStatus: "coming-soon",
   },
   {
     id: "sydney",
@@ -483,7 +483,7 @@ export const cities: City[] = [
     languages: ["Korean"],
     airportCodes: ["ICN", "GMP"],
     shortDescription: "A late-night capital of palaces, river highways, and neighbourhoods that restyle themselves quickly.",
-    contentStatus: "published",
+    contentStatus: "coming-soon",
   },
   {
     id: "dubai",
