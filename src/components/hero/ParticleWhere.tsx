@@ -5,13 +5,16 @@ import * as THREE from "three";
 /**
  * Particle headline.
  *
- * One loop: "Where" breathes → morphs through four city names → the last city
- * folds into a paper plane that flies a dotted route across the whole hero →
- * the particles stream back and re-form "Where".
+ * One loop (~30s), never quite the same twice:
+ *   breathe → "Where" lifts above its slot and grows (extra particles light up)
+ *   → four city names, each morph using a different method (sweep / burst /
+ *   vortex / rain, rotated every loop) → the particles stream down to the
+ *   bottom-left corner and fold into a small paper plane → the plane flies a
+ *   thin dotted route: climb to the centre, one loop, out over the globe
+ *   → everything streams back and re-forms "Where" in its slot.
  *
- * The canvas is portaled into `#hero-fx` (a full-hero layer above the globe and
- * below the copy) so the plane can cross the entire fold. If that host is
- * missing the canvas falls back to a local stage around the word.
+ * The canvas is portaled into `#hero-fx` (full fold, above the globe, below the
+ * copy). Without that host it falls back to a local stage around the word.
  */
 
 export const HERO_FX_HOST_ID = "hero-fx";
@@ -24,21 +27,27 @@ const CFG = {
   resizeDebounceMs: 140,
   pointSizeMin: 0.7,
   pointSizeMax: 1.7,
-  planeShare: 0.45,
-  planeSizeEm: 1.25,
+  spareShare: 0.4,
+  planeShare: 0.08,
+  trailShare: 0.2,
+  planeWingspanPx: 56,
+  planeWingspanMobilePx: 40,
+  stageScale: 1.35,
+  stageRiseEm: 1.0,
   cityFitWidth: 1.04,
   cityMinScale: 0.5,
-  stagger: 0.35,
+  stagger: 0.9,
   pointerRadius: 140,
   pointerStrength: 14,
   timing: {
     breathe: 3.0,
-    morph: 0.9,
-    hold: 2.0,
-    form: 0.8,
-    fly: 3.0,
-    flyMobile: 2.0,
-    back: 1.0,
+    rise: 1.6,
+    morph: 2.0,
+    hold: 2.4,
+    gather: 1.4,
+    fly: 5.0,
+    flyMobile: 3.5,
+    back: 1.8,
   },
   counts: {
     mobileMin: 8000,
@@ -50,56 +59,95 @@ const CFG = {
   },
 };
 
-// lucide "send" (paper plane), MIT. Nose points up-right in the 24px box.
-const PLANE_BODY =
-  "M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z";
-const PLANE_FOLD = "m21.854 2.147-10.94 10.939";
+const MODE = { sweep: 0, burst: 1, vortex: 2, rain: 3, rise: 4 } as const;
+const METHODS = [MODE.sweep, MODE.burst, MODE.vortex, MODE.rain];
+
+// Side-view paper plane in a 100 x 64 box, nose at (100, 30). Two faces with a fold gap.
+const PLANE_WING = [
+  [2, 2],
+  [100, 30],
+  [28, 38],
+];
+const PLANE_KEEL = [
+  [30, 42],
+  [100, 30],
+  [44, 64],
+];
+const PLANE_BOX = { w: 100, h: 64, cx: 50, cy: 32 };
 
 const VERT = /* glsl */ `
 uniform float uTime;
 uniform float uMorph;
+uniform float uMode;
+uniform float uDir;
+uniform float uStagger;
+uniform float uSpare;
+uniform float uGather;
 uniform float uFlightOn;
 uniform float uFlight;
 uniform float uReturn;
 uniform float uMotion;
-uniform float uStagger;
+uniform float uHalfW;
 uniform float uHalfH;
+uniform float uStageY;
 uniform float uCameraZ;
 uniform float uDpr;
 uniform vec2 uPointer;
 uniform float uPointerRadius;
 uniform float uPointerStrength;
-uniform vec3 uP0;
-uniform vec3 uP1;
-uniform vec3 uP2;
-uniform vec3 uP3;
-uniform float uPlaneScale;
+uniform vec3 uS0;
+uniform vec3 uS1;
+uniform vec3 uS2;
+uniform vec3 uS3;
+uniform vec3 uE0;
+uniform vec3 uE1;
+uniform vec3 uE2;
+uniform vec3 uE3;
+uniform vec2 uLoopC;
+uniform float uLoopR;
+uniform float uLoopDir;
 uniform vec3 uGlobe;
 attribute vec3 aHome;
 attribute vec3 aFrom;
 attribute vec3 aTo;
 attribute vec2 aPlane;
+attribute float aShade;
 attribute float aRole;
 attribute float aTrail;
 attribute float aOrder;
 attribute float aSeed;
 attribute float aSize;
 attribute float aBrightness;
+attribute float aSpare;
 varying float vAlpha;
 varying float vBright;
 
-float easeS(float x) { x = clamp(x, 0.0, 1.0); return x * x * (3.0 - 2.0 * x); }
-vec3 bez(float t) {
-  float u = 1.0 - t;
-  return u * u * u * uP0 + 3.0 * u * u * t * uP1 + 3.0 * u * t * t * uP2 + t * t * t * uP3;
+const float PI = 3.14159265;
+const float SEG1 = 0.38;
+const float SEG2 = 0.68;
+
+float cubicInOut(float x) {
+  x = clamp(x, 0.0, 1.0);
+  return x < 0.5 ? 4.0 * x * x * x : 1.0 - pow(-2.0 * x + 2.0, 3.0) * 0.5;
 }
-vec3 bezd(float t) {
+vec3 bez(vec3 p0, vec3 p1, vec3 p2, vec3 p3, float t) {
   float u = 1.0 - t;
-  return 3.0 * u * u * (uP1 - uP0) + 6.0 * u * t * (uP2 - uP1) + 3.0 * t * t * (uP3 - uP2);
+  return u * u * u * p0 + 3.0 * u * u * t * p1 + 3.0 * u * t * t * p2 + t * t * t * p3;
 }
 vec3 pathAt(float s) {
-  float c = clamp(s, 0.0, 1.0);
-  return bez(c) + bezd(c) * (s - c);
+  s = clamp(s, 0.0, 1.0);
+  vec3 p;
+  if (s < SEG1) {
+    p = bez(uS0, uS1, uS2, uS3, s / SEG1);
+  } else if (s < SEG2) {
+    float u = (s - SEG1) / (SEG2 - SEG1);
+    float th = -0.5 * PI * uLoopDir + uLoopDir * 2.0 * PI * u;
+    p = vec3(uLoopC + uLoopR * vec2(cos(th), sin(th)), 0.0);
+  } else {
+    p = bez(uE0, uE1, uE2, uE3, (s - SEG2) / (1.0 - SEG2));
+  }
+  p.z += sin(s * PI) * 40.0;
+  return p;
 }
 
 void main() {
@@ -109,65 +157,89 @@ void main() {
   float r4 = fract(aSeed * 0.29);
   float r5 = fract(aSeed * 0.53);
 
-  // 1. Text-to-text morph with a left-to-right sweep and an upward throw.
-  float m = easeS(uMorph * (1.0 + uStagger) - aOrder * uStagger);
+  // 1. Shape-to-shape morph. Departure order and mid-path drift depend on the method.
+  float key = aOrder;
+  if (uMode == 0.0) key = uDir > 0.0 ? aOrder : 1.0 - aOrder;
+  else if (uMode == 1.0) key = r1;
+  else if (uMode == 2.0) key = r2;
+  else if (uMode == 3.0) key = 1.0 - clamp((aFrom.y - uStageY) / (uHalfH * 1.5) * 0.5 + 0.5, 0.0, 1.0);
+  else key = r3 * 0.5;
+  float dur = 0.8 + 0.4 * r4;
+  float m = cubicInOut((uMorph * (1.0 + uStagger) - key * uStagger) / dur);
+  float w = sin(m * PI);
   vec3 a = mix(aFrom, aTo, m);
-  float lift = sin(m * 3.14159265);
-  a.y += lift * uHalfH * (0.8 + r1 * 1.4);
-  a.z += lift * (20.0 + r2 * 40.0);
-  a.x += lift * sin(aSeed * 3.1 + uTime * 2.0) * 7.0;
+  if (uMode == 0.0) {
+    a += vec3(sin(aSeed + uTime * 1.3) * 6.0, (r1 - 0.5) * 80.0, 30.0 + r2 * 40.0) * w;
+  } else if (uMode == 1.0) {
+    float ang = r1 * 6.2831853;
+    float rad = uHalfW * (0.5 + 0.7 * r2);
+    a += vec3(cos(ang), sin(ang) * 0.6, 0.0) * rad * w;
+    a += vec3(sin(uTime * 0.8 + aSeed), cos(uTime * 0.7 + aSeed * 1.7), 0.0) * 14.0 * w;
+    a.z += 50.0 * w * r3;
+  } else if (uMode == 2.0) {
+    vec2 c = vec2(0.0, uStageY);
+    vec2 d = a.xy - c;
+    float ang = w * PI * (0.6 + 0.6 * r1) * uDir;
+    float cs = cos(ang);
+    float sn = sin(ang);
+    a.xy = c + vec2(cs * d.x - sn * d.y, sn * d.x + cs * d.y) * (1.0 + 0.35 * w);
+    a.z += 40.0 * w;
+  } else if (uMode == 3.0) {
+    a += vec3(sin(aSeed + uTime) * 8.0, -uHalfH * (1.6 + r1 * 1.2), 20.0 * r2) * w;
+  }
 
-  // 2. Flight: plane particles ride the nose, trail particles are dropped along the route.
+  // 2. Flight along the dotted route.
   float isPlane = step(0.5, aRole);
   float s = mix(aTrail, uFlight, isPlane);
   vec3 fp = pathAt(s);
-  vec3 d = normalize(bezd(clamp(s, 0.0, 1.0)) + vec3(1e-4, 0.0, 0.0));
-  float ang = atan(d.y, d.x);
-  vec2 pl = aPlane * uPlaneScale;
-  vec2 rp = vec2(cos(ang) * pl.x - sin(ang) * pl.y, sin(ang) * pl.x + cos(ang) * pl.y);
+  vec3 d = pathAt(min(1.0, s + 0.004)) - pathAt(max(0.0, s - 0.004));
+  vec2 dn = normalize(d.xy + vec2(1e-5, 0.0));
+  vec2 rp = vec2(dn.x * aPlane.x - dn.y * aPlane.y, dn.y * aPlane.x + dn.x * aPlane.y);
   vec3 f = fp + vec3(rp, 0.0) * isPlane;
-  vec2 n = vec2(-d.y, d.x);
-  f.xy += n * (r3 - 0.5) * 9.0 * (1.0 - isPlane);
-  f.z += sin(clamp(s, 0.0, 1.0) * 3.14159265) * 60.0;
+  f.xy += vec2(-dn.y, dn.x) * (r3 - 0.5) * 3.0 * (1.0 - isPlane);
 
-  float fl = easeS(uFlightOn * (1.0 + uStagger) - aOrder * uStagger);
-  vec3 p = mix(a, f, fl);
+  vec3 p = mix(a, f, uFlightOn);
 
-  // 3. Return: everything streams back into the home word.
-  float rt = easeS(uReturn * 1.5 - r4 * 0.5);
+  // 3. Return: stream back into the home word, staggered.
+  float rt = cubicInOut(uReturn * 1.6 - r4 * 0.6);
   p = mix(p, aHome, rt);
 
-  // 4. Idle breath and pointer push (never during flight, never in reduced motion).
-  float calm = (1.0 - fl) * uMotion;
+  // 4. Idle breath and pointer push (not in flight, not in reduced motion).
+  float calm = (1.0 - uFlightOn) * uMotion;
   p.xy += vec2(sin(uTime * 0.7 + aSeed), cos(uTime * 0.9 + aSeed * 1.3)) * 0.9 * calm;
   vec2 md = p.xy - uPointer;
-  float pd = length(md);
-  float fall = 1.0 - smoothstep(0.0, uPointerRadius, pd);
+  float fall = 1.0 - smoothstep(0.0, uPointerRadius, length(md));
   p.xy += normalize(md + 1e-4) * fall * fall * uPointerStrength * calm;
   p.z += fall * fall * uPointerStrength * 0.8 * calm;
 
   vec4 mv = modelViewMatrix * vec4(p, 1.0);
   gl_Position = projectionMatrix * mv;
   float depth = uCameraZ / max(48.0, -mv.z);
-  gl_PointSize = clamp(aSize * uDpr * depth * (1.0 + lift * 0.25), 0.6, 3.2);
+  gl_PointSize = clamp(aSize * uDpr * depth * (1.0 + w * 0.2), 0.6, 3.2);
 
-  // Brightness: base + twinkle on 3% + boost while thrown.
+  // Brightness: base, 3% twinkle, lift while travelling, keel shading on the plane.
   float tw = step(0.97, r5) * uMotion;
   float bright = aBrightness * mix(1.0, 0.45 + 0.55 * sin(uTime * 3.0 + aSeed * 7.0), tw);
-  bright *= 1.0 + lift * 0.35;
-  bright *= mix(0.8, 1.1, clamp(0.5 + p.z * 0.006, 0.0, 1.0));
+  bright *= 1.0 + w * 0.3;
+  bright *= mix(0.85, 1.1, clamp(0.5 + p.z * 0.006, 0.0, 1.0));
+  bright *= mix(1.0, aShade, isPlane * uFlightOn);
 
   float alpha = mix(0.35, 1.0, aBrightness);
-  // Trail: dotted, appears once the plane has passed, dims with age.
-  float emitted = step(aTrail, uFlight);
-  float dash = step(0.5, fract(aTrail * 36.0));
+  // Spare particles only exist on the stage (they make the word grow).
+  float spare = cubicInOut(uSpare * 1.5 - r5 * 0.5);
+  alpha *= mix(1.0, spare, aSpare);
+  // Non-plane particles fade while gathering; the trail is drawn as the plane passes.
+  float isTrail = step(0.5, aRole + 0.5) * (1.0 - isPlane) * step(0.0, aTrail);
+  float emitted = step(aTrail, uFlight) * uFlightOn;
+  float dash = step(0.55, fract(aTrail * 90.0));
   float age = clamp(uFlight - aTrail, 0.0, 1.0);
-  float trailA = emitted * dash * max(0.3, 1.0 - age * 0.8) * 0.75;
-  float inFlight = fl * (1.0 - rt);
-  alpha *= mix(1.0, trailA, inFlight * (1.0 - isPlane));
-  // Trail fades slightly when it crosses the globe disc.
+  float trailA = emitted * dash * max(0.35, 1.0 - age * 0.7) * 0.45;
+  float hidden = uGather * (1.0 - rt);
+  float nonPlaneA = mix(1.0 - hidden, max(1.0 - hidden, trailA), isTrail);
+  alpha *= mix(nonPlaneA, 1.0, isPlane);
+  // The route dims a touch where it crosses the globe disc.
   float gd = 1.0 - smoothstep(uGlobe.z * 0.85, uGlobe.z, length(p.xy - uGlobe.xy));
-  alpha *= 1.0 - 0.2 * gd * inFlight * (1.0 - isPlane);
+  alpha *= 1.0 - 0.2 * gd * uFlightOn * (1.0 - rt) * (1.0 - isPlane);
 
   vBright = bright;
   vAlpha = alpha;
@@ -194,14 +266,13 @@ function getPerformanceTier() {
   const wide = window.innerWidth >= 1440;
   if (mobile) {
     const count = cores >= 6 ? CFG.counts.mobileMax : CFG.counts.mobileMin;
-    return { count, mobile: true, pointer: 0, planeScale: 0.6 };
+    return { count, mobile: true, pointer: 0 };
   }
   if (cores >= 8 && memory >= 8 && wide)
-    return { count: CFG.counts.veryHigh, mobile: false, pointer: 1, planeScale: 1 };
-  if (cores >= 8) return { count: CFG.counts.high, mobile: false, pointer: 1, planeScale: 1 };
-  if (cores >= 4 && memory >= 4)
-    return { count: CFG.counts.medium, mobile: false, pointer: 1, planeScale: 0.95 };
-  return { count: CFG.counts.low, mobile: false, pointer: 0.6, planeScale: 0.9 };
+    return { count: CFG.counts.veryHigh, mobile: false, pointer: 1 };
+  if (cores >= 8) return { count: CFG.counts.high, mobile: false, pointer: 1 };
+  if (cores >= 4 && memory >= 4) return { count: CFG.counts.medium, mobile: false, pointer: 1 };
+  return { count: CFG.counts.low, mobile: false, pointer: 0.6 };
 }
 
 function hash01(n: number) {
@@ -213,9 +284,14 @@ function easeInOutSine(x: number) {
   return -(Math.cos(Math.PI * Math.min(1, Math.max(0, x))) - 1) / 2;
 }
 
+function cubicInOut(x: number) {
+  const t = Math.min(1, Math.max(0, x));
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
 type Sample = { xy: Float32Array; count: number; width: number; height: number };
 
-/** Turn opaque pixels of a canvas into exactly `target` points, sorted by x, relative to (originX, originY), y up. */
+/** Opaque pixels → exactly `target` points, sorted by x, centred on (originX, originY), y up, CSS px. */
 function samplePixels(
   ctx: CanvasRenderingContext2D,
   width: number,
@@ -264,14 +340,14 @@ function samplePixels(
   return xy;
 }
 
-/** Sample a word. Origin is the CSS text origin (start x, alphabetic baseline). */
+/** Sample a word centred on its ink box. Also returns the ink centre relative to the CSS text origin. */
 function sampleText(
   text: string,
   displayPx: number,
   family: string,
   weight: string,
   target: number,
-): Sample | null {
+): (Sample & { inkDx: number; inkDy: number }) | null {
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
   if (!ctx || !text) return null;
@@ -280,50 +356,84 @@ function sampleText(
   const font = `${weight} ${fontPx}px ${family}`;
   ctx.font = font;
   const full = ctx.measureText(text);
-  const left = Math.max(0, full.actualBoundingBoxLeft || 0);
+  const left = full.actualBoundingBoxLeft || 0;
   const right = Math.max(1, full.actualBoundingBoxRight || full.width);
   const ascent = Math.max(1, full.actualBoundingBoxAscent || fontPx * 0.8);
   const descent = Math.max(0, full.actualBoundingBoxDescent || fontPx * 0.2);
   const pad = 12;
-  const width = Math.ceil(left + right + pad * 2);
+  const width = Math.ceil(Math.max(0, left) + right + pad * 2);
   const height = Math.ceil(ascent + descent + pad * 2);
   canvas.width = width;
   canvas.height = height;
   ctx.font = font;
   ctx.textBaseline = "alphabetic";
   ctx.fillStyle = "#fff";
-  const originX = pad + left;
-  const originY = pad + ascent;
-  ctx.fillText(text, originX, originY);
-  const xy = samplePixels(ctx, width, height, originX, originY, target, text.length * 9.1);
+  const textX = pad + Math.max(0, left);
+  const textY = pad + ascent;
+  ctx.fillText(text, textX, textY);
+  const inkCx = textX + (right - left) * 0.5;
+  const inkCy = textY + (descent - ascent) * 0.5;
+  const xy = samplePixels(ctx, width, height, inkCx, inkCy, target, text.length * 9.1);
   if (!xy) return null;
-  return { xy, count: target, width: full.width / scale, height: (ascent + descent) / scale };
+  return {
+    xy,
+    count: target,
+    width: (left + right) / scale,
+    height: (ascent + descent) / scale,
+    inkDx: (inkCx - textX) / scale,
+    inkDy: (inkCy - textY) / scale,
+  };
 }
 
-/** Sample the paper plane, nose pointing +x, centred on its own middle. */
-function samplePlane(sizePx: number, target: number): Sample | null {
+/** Side-view paper plane, nose pointing +x, centred. Returns points and a per-point shade (keel darker). */
+function samplePlane(
+  wingspanPx: number,
+  target: number,
+): (Sample & { shade: Float32Array }) | null {
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
   if (!ctx) return null;
   const scale = CFG.rasterScale;
-  const box = Math.ceil(sizePx * scale * 1.5);
-  canvas.width = box;
-  canvas.height = box;
-  const k = (sizePx * scale) / 24;
-  ctx.translate(box / 2, box / 2);
-  ctx.rotate(Math.PI / 4);
-  ctx.scale(k, k);
-  ctx.translate(-12, -12);
+  const k = (wingspanPx * scale) / PLANE_BOX.w;
+  const pad = 4 * scale;
+  const width = Math.ceil(PLANE_BOX.w * k + pad * 2);
+  const height = Math.ceil(PLANE_BOX.h * k + pad * 2);
+  canvas.width = width;
+  canvas.height = height;
   ctx.fillStyle = "#fff";
-  ctx.fill(new Path2D(PLANE_BODY));
-  ctx.globalCompositeOperation = "destination-out";
-  ctx.lineWidth = 1.1;
-  ctx.lineCap = "round";
-  ctx.stroke(new Path2D(PLANE_FOLD));
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  const xy = samplePixels(ctx, box, box, box / 2, box / 2, target, 77.7);
+  for (const poly of [PLANE_WING, PLANE_KEEL]) {
+    ctx.beginPath();
+    poly.forEach(([x, y], i) =>
+      i ? ctx.lineTo(pad + x * k, pad + y * k) : ctx.moveTo(pad + x * k, pad + y * k),
+    );
+    ctx.closePath();
+    ctx.fill();
+  }
+  const xy = samplePixels(
+    ctx,
+    width,
+    height,
+    pad + PLANE_BOX.cx * k,
+    pad + PLANE_BOX.cy * k,
+    target,
+    77.7,
+  );
   if (!xy) return null;
-  return { xy, count: target, width: sizePx, height: sizePx };
+  const shade = new Float32Array(target);
+  const unit = wingspanPx / PLANE_BOX.w;
+  for (let i = 0; i < target; i++) {
+    const sx = xy[i * 2] / unit + PLANE_BOX.cx;
+    const sy = PLANE_BOX.cy - xy[i * 2 + 1] / unit;
+    const fold = 40 - ((sx - 30) * 10) / 70;
+    shade[i] = sy > fold + 1 ? 0.6 : 1;
+  }
+  return {
+    xy,
+    count: target,
+    width: wingspanPx,
+    height: (PLANE_BOX.h / PLANE_BOX.w) * wingspanPx,
+    shade,
+  };
 }
 
 function measureWidth(text: string, displayPx: number, family: string, weight: string) {
@@ -349,7 +459,44 @@ function fontBox(displayPx: number, family: string, weight: string) {
   };
 }
 
-type Phase = "breathe" | "morph" | "hold" | "form" | "fly" | "back";
+type Phase = "breathe" | "rise" | "morph" | "hold" | "gather" | "fly" | "back";
+
+type Route = {
+  s: THREE.Vector3[];
+  e: THREE.Vector3[];
+  loopC: THREE.Vector2;
+  loopR: number;
+  loopDir: number;
+};
+
+const SEG1 = 0.38;
+const SEG2 = 0.68;
+
+function bezierAt(p: THREE.Vector3[], t: number, out: THREE.Vector3) {
+  const u = 1 - t;
+  return out
+    .copy(p[0])
+    .multiplyScalar(u * u * u)
+    .addScaledVector(p[1], 3 * u * u * t)
+    .addScaledVector(p[2], 3 * u * t * t)
+    .addScaledVector(p[3], t * t * t);
+}
+
+function routeAt(route: Route, s: number, out: THREE.Vector3) {
+  const c = Math.min(1, Math.max(0, s));
+  if (c < SEG1) bezierAt(route.s, c / SEG1, out);
+  else if (c < SEG2) {
+    const u = (c - SEG1) / (SEG2 - SEG1);
+    const th = -0.5 * Math.PI * route.loopDir + route.loopDir * 2 * Math.PI * u;
+    out.set(
+      route.loopC.x + route.loopR * Math.cos(th),
+      route.loopC.y + route.loopR * Math.sin(th),
+      0,
+    );
+  } else bezierAt(route.e, (c - SEG2) / (1 - SEG2), out);
+  out.z += Math.sin(c * Math.PI) * 40;
+  return out;
+}
 
 export function ParticleWhere({
   text,
@@ -395,49 +542,97 @@ export function ParticleWhere({
     let dirty = true;
     const tier = getPerformanceTier();
 
-    // Shapes (all in points-local px, origin = text origin / baseline).
+    // Shapes, all centred on their own ink box, in CSS px at home scale.
     let home: Float32Array | null = null;
     let cityShapes: Float32Array[] = [];
-    let whereWidth = 0;
-    let whereHeight = 0;
+    let planeLocal: Float32Array | null = null;
+    let roles: Float32Array | null = null;
+    let whereW = 0;
+    let whereH = 0;
+    let stageY = 0;
+    let inkDx = 0;
+    let inkDy = 0;
+    const route: Route = {
+      s: [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()],
+      e: [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()],
+      loopC: new THREE.Vector2(),
+      loopR: 100,
+      loopDir: 1,
+    };
 
     // Timeline.
     let phase: Phase = "breathe";
     let phaseT = 0;
     let cityIndex = 0;
+    let loop = 0;
     const flyDuration = tier.mobile ? CFG.timing.flyMobile : CFG.timing.fly;
 
     const pointerTarget = new THREE.Vector2(99999, 99999);
     const pointerNow = new THREE.Vector2(99999, 99999);
+    const tmp = new THREE.Vector3();
+    const tmp2 = new THREE.Vector3();
 
-    const setPair = (from: Float32Array, to: Float32Array) => {
-      if (!fromAttr || !toAttr) return;
-      const f = fromAttr.array as Float32Array;
-      const t = toAttr.array as Float32Array;
-      const n = fromAttr.count;
+    const packInto = (attr: THREE.BufferAttribute, xy: Float32Array, scale: number, dy: number) => {
+      const arr = attr.array as Float32Array;
+      const n = attr.count;
       for (let i = 0; i < n; i++) {
-        f[i * 3] = from[i * 2];
-        f[i * 3 + 1] = from[i * 2 + 1];
-        f[i * 3 + 2] = 0;
-        t[i * 3] = to[i * 2];
-        t[i * 3 + 1] = to[i * 2 + 1];
-        t[i * 3 + 2] = 0;
+        arr[i * 3] = xy[i * 2] * scale;
+        arr[i * 3 + 1] = xy[i * 2 + 1] * scale + dy;
+        arr[i * 3 + 2] = 0;
       }
-      fromAttr.needsUpdate = true;
-      toAttr.needsUpdate = true;
+      attr.needsUpdate = true;
+    };
+    const packRaw = (attr: THREE.BufferAttribute, xyz: Float32Array) => {
+      (attr.array as Float32Array).set(xyz);
+      attr.needsUpdate = true;
+    };
+
+    /** Where the plane (and everything else) sits at take-off: the route start, already rotated to its heading. */
+    const planeFormation = () => {
+      if (!planeLocal || !roles) return null;
+      const n = roles.length;
+      const out = new Float32Array(n * 3);
+      routeAt(route, 0, tmp);
+      routeAt(route, 0.004, tmp2);
+      const dx = tmp2.x - tmp.x;
+      const dy = tmp2.y - tmp.y;
+      const len = Math.hypot(dx, dy) || 1;
+      const cs = dx / len;
+      const sn = dy / len;
+      for (let i = 0; i < n; i++) {
+        if (roles[i] > 0.5) {
+          const px = planeLocal[i * 2];
+          const py = planeLocal[i * 2 + 1];
+          out[i * 3] = tmp.x + cs * px - sn * py;
+          out[i * 3 + 1] = tmp.y + sn * px + cs * py;
+        } else {
+          out[i * 3] = tmp.x + (hash01(i * 0.77 + 1.1) - 0.5) * 36;
+          out[i * 3 + 1] = tmp.y + (hash01(i * 0.91 + 2.3) - 0.5) * 36;
+        }
+        out[i * 3 + 2] = 0;
+      }
+      return out;
+    };
+
+    const setUniform = (name: string, value: number) => {
+      if (material) material.uniforms[name].value = value;
     };
 
     const resetTimeline = () => {
       phase = "breathe";
       phaseT = 0;
       cityIndex = 0;
-      if (home) setPair(home, home);
-      if (material) {
-        material.uniforms.uMorph.value = 0;
-        material.uniforms.uFlightOn.value = 0;
-        material.uniforms.uFlight.value = 0;
-        material.uniforms.uReturn.value = 0;
+      if (home && fromAttr && toAttr) {
+        packInto(fromAttr, home, 1, 0);
+        packInto(toAttr, home, 1, 0);
       }
+      setUniform("uMorph", 0);
+      setUniform("uMode", MODE.rise);
+      setUniform("uSpare", 0);
+      setUniform("uGather", 0);
+      setUniform("uFlightOn", 0);
+      setUniform("uFlight", 0);
+      setUniform("uReturn", 0);
       dirty = true;
     };
 
@@ -453,35 +648,56 @@ export function ParticleWhere({
       material.uniforms.uCameraZ.value = dist;
       material.uniforms.uDpr.value = Math.min(window.devicePixelRatio || 1, CFG.dprMax);
 
+      // Points origin = ink centre of the resting word, in stage-centred px (y up).
       const cs = getComputedStyle(measure);
       const displayPx = parseFloat(cs.fontSize) || 72;
       const fb = fontBox(displayPx, cs.fontFamily, cs.fontWeight);
       const mBox = measure.getBoundingClientRect();
       const sBox = stage.getBoundingClientRect();
       const baselineFromTop = (mBox.height - (fb.ascent + fb.descent)) / 2 + fb.ascent;
-      const ox = mBox.left - sBox.left - w * 0.5;
-      const oy = h * 0.5 - (mBox.top + baselineFromTop - sBox.top);
+      const ox = mBox.left + inkDx - sBox.left - w * 0.5;
+      const oy = h * 0.5 - (mBox.top + baselineFromTop + inkDy - sBox.top);
       points?.position.set(ox, oy, 0);
 
-      // Flight path in stage-centred px, then shifted into points-local space.
-      // Take off from the middle of the word, climb gently over the globe, leave top-right.
-      const p0 = new THREE.Vector3(ox + whereWidth * 0.5, oy + whereHeight * 0.32, 0);
-      const p1 = tier.mobile
-        ? new THREE.Vector3(p0.x + w * 0.3, p0.y + h * 0.12, 0)
-        : new THREE.Vector3(p0.x + w * 0.2, p0.y + h * 0.03, 0);
-      const p2 = tier.mobile
-        ? new THREE.Vector3(w * 0.1, h * 0.36, 0)
-        : new THREE.Vector3(w * 0.2, h * 0.14, 0);
-      const p3 = tier.mobile
-        ? new THREE.Vector3(w * 0.68, h * 0.78, 0)
-        : new THREE.Vector3(w * 0.62, h * 0.7, 0);
+      // Route in stage-centred px, then shifted into points-local space.
+      const m = tier.mobile;
+      // Desktop: take off below the search box, stay low until past its right end, then climb.
+      const start = m
+        ? new THREE.Vector3(-w * 0.42, -h * 0.1, 0)
+        : new THREE.Vector3(-w * 0.45, -h * 0.27, 0);
+      const loopC = m ? new THREE.Vector2(0, h * 0.14) : new THREE.Vector2(w * 0.02, h * 0.16);
+      const loopR = m ? Math.min(h * 0.08, 70) : Math.min(h * 0.13, 120);
+      const exit = m
+        ? new THREE.Vector3(w * 0.6, h * 0.62, 0)
+        : new THREE.Vector3(w * 0.58, h * 0.66, 0);
+      const entry = new THREE.Vector3(loopC.x, loopC.y - loopR * route.loopDir, 0);
+      route.s[0].copy(start);
+      route.s[1].set(start.x + (m ? w * 0.18 : w * 0.5), start.y, 0);
+      route.s[2].set(entry.x - (m ? w * 0.25 : w * 0.04), entry.y - (m ? 0 : h * 0.14), 0);
+      route.s[3].copy(entry);
+      route.e[0].copy(entry);
+      route.e[1].set(entry.x + w * 0.2, entry.y, 0);
+      route.e[2].set(exit.x - w * 0.12, exit.y - h * 0.2, 0);
+      route.e[3].copy(exit);
+      route.loopC.copy(loopC);
+      route.loopR = loopR;
       const shift = new THREE.Vector3(ox, oy, 0);
-      material.uniforms.uP0.value.copy(p0.sub(shift));
-      material.uniforms.uP1.value.copy(p1.sub(shift));
-      material.uniforms.uP2.value.copy(p2.sub(shift));
-      material.uniforms.uP3.value.copy(p3.sub(shift));
-      // Rough globe disc (right side of the fold) used only to dim the trail a touch.
-      material.uniforms.uGlobe.value.set(w * 0.26 - ox, 0 - oy, tier.mobile ? h * 0.3 : h * 0.42);
+      for (const v of [...route.s, ...route.e]) v.sub(shift);
+      route.loopC.sub(new THREE.Vector2(ox, oy));
+      const u = material.uniforms;
+      u.uS0.value.copy(route.s[0]);
+      u.uS1.value.copy(route.s[1]);
+      u.uS2.value.copy(route.s[2]);
+      u.uS3.value.copy(route.s[3]);
+      u.uE0.value.copy(route.e[0]);
+      u.uE1.value.copy(route.e[1]);
+      u.uE2.value.copy(route.e[2]);
+      u.uE3.value.copy(route.e[3]);
+      u.uLoopC.value.copy(route.loopC);
+      u.uLoopR.value = route.loopR;
+      u.uLoopDir.value = route.loopDir;
+      // Rough globe disc (right side of the fold), only used to dim the route a touch.
+      u.uGlobe.value.set(w * 0.26 - ox, 0 - oy, m ? h * 0.3 : h * 0.42);
       dirty = true;
     };
 
@@ -506,8 +722,11 @@ export function ParticleWhere({
         return;
       }
       home = where.xy;
-      whereWidth = where.width;
-      whereHeight = where.height;
+      whereW = where.width;
+      whereH = where.height;
+      inkDx = where.inkDx;
+      inkDy = where.inkDy;
+      stageY = whereH * CFG.stageRiseEm;
 
       cityShapes = [];
       for (const city of cities) {
@@ -520,8 +739,11 @@ export function ParticleWhere({
         if (s) cityShapes.push(s.xy);
       }
 
-      const planeCount = Math.max(200, Math.round(count * CFG.planeShare));
-      const plane = samplePlane(where.height * CFG.planeSizeEm, planeCount);
+      const planeCount = Math.max(300, Math.round(count * CFG.planeShare));
+      const plane = samplePlane(
+        tier.mobile ? CFG.planeWingspanMobilePx : CFG.planeWingspanPx,
+        planeCount,
+      );
 
       if (!renderer) {
         try {
@@ -547,15 +769,16 @@ export function ParticleWhere({
       if (points && scene) scene.remove(points);
 
       const homes = new Float32Array(count * 3);
-      const planeLocal = new Float32Array(count * 2);
-      const role = new Float32Array(count);
-      const trail = new Float32Array(count);
+      planeLocal = new Float32Array(count * 2);
+      const shade = new Float32Array(count).fill(1);
+      roles = new Float32Array(count);
+      const trail = new Float32Array(count).fill(-1);
       const order = new Float32Array(count);
       const seeds = new Float32Array(count);
       const sizes = new Float32Array(count);
       const bright = new Float32Array(count);
+      const spare = new Float32Array(count);
 
-      // Assign plane role to a random subset; hand plane points to them in x order.
       let planeCursor = 0;
       for (let i = 0; i < count; i++) {
         homes[i * 3] = home[i * 2];
@@ -569,16 +792,20 @@ export function ParticleWhere({
             ? 1.85 + sz * 0.3
             : CFG.pointSizeMin + sz * (CFG.pointSizeMax - CFG.pointSizeMin);
         bright[i] = 0.5 + hash01(i * 1.33 + 0.7) * 0.5;
-        const isPlane =
-          plane !== null && hash01(i * 4.13 + 1.9) < CFG.planeShare && planeCursor < planeCount;
-        if (isPlane && plane) {
-          role[i] = 1;
+        spare[i] = hash01(i * 3.71 + 0.9) < CFG.spareShare ? 1 : 0;
+        const pick = hash01(i * 4.13 + 1.9);
+        if (plane && pick < CFG.planeShare && planeCursor < planeCount) {
+          roles[i] = 1;
           planeLocal[i * 2] = plane.xy[planeCursor * 2];
           planeLocal[i * 2 + 1] = plane.xy[planeCursor * 2 + 1];
+          shade[i] = plane.shade[planeCursor];
+          spare[i] = 0;
           planeCursor += 1;
-        } else {
-          role[i] = 0;
+        } else if (pick < CFG.planeShare + CFG.trailShare) {
+          roles[i] = 0;
           trail[i] = hash01(i * 2.07 + 0.41) * 1.02;
+        } else {
+          roles[i] = 0;
         }
       }
 
@@ -592,35 +819,48 @@ export function ParticleWhere({
       geometry.setAttribute("aFrom", fromAttr);
       geometry.setAttribute("aTo", toAttr);
       geometry.setAttribute("aPlane", new THREE.BufferAttribute(planeLocal, 2));
-      geometry.setAttribute("aRole", new THREE.BufferAttribute(role, 1));
+      geometry.setAttribute("aShade", new THREE.BufferAttribute(shade, 1));
+      geometry.setAttribute("aRole", new THREE.BufferAttribute(roles, 1));
       geometry.setAttribute("aTrail", new THREE.BufferAttribute(trail, 1));
       geometry.setAttribute("aOrder", new THREE.BufferAttribute(order, 1));
       geometry.setAttribute("aSeed", new THREE.BufferAttribute(seeds, 1));
       geometry.setAttribute("aSize", new THREE.BufferAttribute(sizes, 1));
       geometry.setAttribute("aBrightness", new THREE.BufferAttribute(bright, 1));
-      // Keep the whole stage inside the frustum no matter where the plane is.
+      geometry.setAttribute("aSpare", new THREE.BufferAttribute(spare, 1));
       geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, 0), 1e6);
 
       material = new THREE.ShaderMaterial({
         uniforms: {
           uTime: { value: 0 },
           uMorph: { value: 0 },
+          uMode: { value: MODE.rise },
+          uDir: { value: 1 },
+          uStagger: { value: CFG.stagger },
+          uSpare: { value: 0 },
+          uGather: { value: 0 },
           uFlightOn: { value: 0 },
           uFlight: { value: 0 },
           uReturn: { value: 0 },
           uMotion: { value: reduce ? 0 : 1 },
-          uStagger: { value: CFG.stagger },
-          uHalfH: { value: where.height * 0.5 },
+          uHalfW: { value: whereW * 0.5 * CFG.stageScale },
+          uHalfH: { value: whereH * 0.5 * CFG.stageScale },
+          uStageY: { value: stageY },
           uCameraZ: { value: 200 },
           uDpr: { value: Math.min(window.devicePixelRatio || 1, CFG.dprMax) },
           uPointer: { value: new THREE.Vector2(99999, 99999) },
           uPointerRadius: { value: CFG.pointerRadius },
           uPointerStrength: { value: CFG.pointerStrength * tier.pointer },
-          uP0: { value: new THREE.Vector3() },
-          uP1: { value: new THREE.Vector3() },
-          uP2: { value: new THREE.Vector3() },
-          uP3: { value: new THREE.Vector3() },
-          uPlaneScale: { value: tier.planeScale },
+          uS0: { value: new THREE.Vector3() },
+          uS1: { value: new THREE.Vector3() },
+          uS2: { value: new THREE.Vector3() },
+          uS3: { value: new THREE.Vector3() },
+          uE0: { value: new THREE.Vector3() },
+          uE1: { value: new THREE.Vector3() },
+          uE2: { value: new THREE.Vector3() },
+          uE3: { value: new THREE.Vector3() },
+          uLoopC: { value: new THREE.Vector2() },
+          uLoopR: { value: 100 },
+          uLoopDir: { value: 1 },
           uGlobe: { value: new THREE.Vector3(0, 0, 1) },
           uColor: { value: new THREE.Color("#d4f03c") },
         },
@@ -636,22 +876,55 @@ export function ParticleWhere({
       layout();
     };
 
+    const startMorph = (
+      from: Float32Array,
+      to: Float32Array,
+      mode: number,
+      fromScale: number,
+      toScale: number,
+    ) => {
+      if (!fromAttr || !toAttr) return;
+      packInto(fromAttr, from, fromScale, fromScale === 1 ? 0 : stageY);
+      packInto(toAttr, to, toScale, toScale === 1 ? 0 : stageY);
+      setUniform("uMorph", 0);
+      setUniform("uMode", mode);
+      phase = "morph";
+      phaseT = 0;
+    };
+
     const advance = (dt: number) => {
       if (!material || !home) return;
       const u = material.uniforms;
       const T = CFG.timing;
+      const S = CFG.stageScale;
       phaseT += dt;
       switch (phase) {
         case "breathe":
           if (phaseT >= T.breathe && cityShapes.length) {
-            phase = "morph";
+            phase = "rise";
             phaseT = 0;
-            cityIndex = 0;
-            setPair(home, cityShapes[0]);
+            if (fromAttr && toAttr) {
+              packInto(fromAttr, home, 1, 0);
+              packInto(toAttr, home, S, stageY);
+            }
+            u.uMode.value = MODE.rise;
+            u.uMorph.value = 0;
           }
           break;
+        case "rise": {
+          const k = Math.min(1, phaseT / T.rise);
+          u.uMorph.value = k;
+          u.uSpare.value = k;
+          if (phaseT >= T.rise) {
+            u.uMorph.value = 1;
+            u.uSpare.value = 1;
+            cityIndex = 0;
+            startMorph(home, cityShapes[0], METHODS[loop % METHODS.length], S, S);
+          }
+          break;
+        }
         case "morph":
-          u.uMorph.value = easeInOutSine(phaseT / T.morph);
+          u.uMorph.value = Math.min(1, phaseT / T.morph);
           if (phaseT >= T.morph) {
             u.uMorph.value = 1;
             phase = "hold";
@@ -660,29 +933,44 @@ export function ParticleWhere({
           break;
         case "hold":
           if (phaseT >= T.hold) {
-            phaseT = 0;
             const current = cityShapes[cityIndex];
             if (cityIndex + 1 < cityShapes.length) {
               cityIndex += 1;
-              setPair(current, cityShapes[cityIndex]);
-              u.uMorph.value = 0;
-              phase = "morph";
+              startMorph(
+                current,
+                cityShapes[cityIndex],
+                METHODS[(loop + cityIndex) % METHODS.length],
+                S,
+                S,
+              );
             } else {
-              setPair(current, current);
+              const formation = planeFormation();
+              if (fromAttr && toAttr && formation) {
+                packInto(fromAttr, current, S, stageY);
+                packRaw(toAttr, formation);
+              }
               u.uMorph.value = 0;
+              u.uMode.value = MODE.sweep;
+              u.uDir.value = -1; // right-hand particles leave first, streaming down-left
               u.uFlight.value = 0;
-              phase = "form";
+              phase = "gather";
+              phaseT = 0;
             }
           }
           break;
-        case "form":
-          u.uFlightOn.value = Math.min(1, phaseT / T.form);
-          if (phaseT >= T.form) {
+        case "gather": {
+          const k = Math.min(1, phaseT / T.gather);
+          u.uMorph.value = k;
+          u.uGather.value = cubicInOut(k);
+          if (phaseT >= T.gather) {
+            u.uMorph.value = 1;
+            u.uGather.value = 1;
             u.uFlightOn.value = 1;
             phase = "fly";
             phaseT = 0;
           }
           break;
+        }
         case "fly":
           u.uFlight.value = easeInOutSine(phaseT / flyDuration);
           if (phaseT >= flyDuration) {
@@ -691,10 +979,19 @@ export function ParticleWhere({
             phaseT = 0;
           }
           break;
-        case "back":
-          u.uReturn.value = Math.min(1, phaseT / T.back);
-          if (phaseT >= T.back) resetTimeline();
+        case "back": {
+          const k = Math.min(1, phaseT / T.back);
+          u.uReturn.value = k;
+          u.uSpare.value = 1 - k;
+          if (phaseT >= T.back) {
+            loop += 1;
+            route.loopDir = loop % 2 === 0 ? 1 : -1;
+            u.uDir.value = route.loopDir;
+            layout();
+            resetTimeline();
+          }
           break;
+        }
       }
     };
 
