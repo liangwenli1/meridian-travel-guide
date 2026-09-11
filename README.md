@@ -3,7 +3,8 @@
 A premium travel-guide site. The homepage is an immersive 3D stippled globe.
 Search a city, fly there, then read a full editorial guide.
 
-**Live guides:** Tokyo · Paris · Bangkok · Singapore
+**Live guides:** Tokyo · Paris · Bangkok · Singapore · New York
+London, Rome, and Seoul are temporarily `coming-soon` (content quality stop-loss).
 Other catalog cities open a short coming-soon page.
 
 ## Features
