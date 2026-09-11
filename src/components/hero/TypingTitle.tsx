@@ -89,7 +89,7 @@ export function TypingTitle({ reducedMotion, ready, align = "center" }: TypingTi
     <h1
       className={
         align === "left"
-          ? "@container w-full text-left tracking-[-0.03em]"
+          ? "@container w-full text-center tracking-[-0.03em]"
           : "max-w-[16ch] text-center leading-[0.95] tracking-[-0.04em] md:max-w-none"
       }
     >
