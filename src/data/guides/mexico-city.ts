@@ -9,13 +9,13 @@ export const mexicoCityGuide = assembleGuide({
   seoDescription:
     "A CDMX guide for altitude people: one museum, a market lunch, and a neighborhood that is not the Zócalo loop.",
   hero: {
-    url: "https://images.unsplash.com/photo-1518659526051-707ba8d1370e?auto=format&fit=crop&w=2000&q=80",
-    alt: "Mexico City skyline and Paseo de la Reforma",
+    url: "https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=2000&q=80",
+    alt: "Palacio de Bellas Artes in Mexico City at dusk",
     source: "Unsplash",
     author: "Unsplash",
     license: "Unsplash License",
     originalUrl: "https://unsplash.com",
-    location: "Mexico City",
+    location: "Centro, Mexico City",
   },
   snapshot: {
     country: "Mexico",

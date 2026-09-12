@@ -37,7 +37,11 @@ export function Atlas({ published }: { published: City[] }) {
                     <img
                       src={guide.hero.url}
                       alt={guide.hero.alt}
+                      referrerPolicy="no-referrer"
                       className="content-img absolute inset-0 size-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]"
+                      onError={(event) => {
+                        event.currentTarget.style.opacity = "0";
+                      }}
                     />
                   ) : (
                     <div className="absolute inset-0 bg-void-elevated" />

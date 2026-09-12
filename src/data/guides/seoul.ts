@@ -9,13 +9,13 @@ export const seoulGuide = assembleGuide({
   seoDescription:
     "A Seoul guide for subway people: one palace morning, a neighborhood dinner, and late stew. T-money, mountains, and a three-day plan.",
   hero: {
-    url: "https://images.unsplash.com/photo-1538485399081-7c8ce5a1c072?auto=format&fit=crop&w=2000&q=80",
-    alt: "Seoul city lights and mountains at dusk",
+    url: "https://images.unsplash.com/photo-1546874177-9e664107314e?auto=format&fit=crop&w=2000&q=80",
+    alt: "N Seoul Tower and city lights at night",
     source: "Unsplash",
     author: "Unsplash",
     license: "Unsplash License",
     originalUrl: "https://unsplash.com",
-    location: "Seoul",
+    location: "Namsan, Seoul",
   },
   snapshot: {
     country: "South Korea",
