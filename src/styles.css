@@ -228,8 +228,17 @@
    pushed up and in from the left edge so the block reads as a poster on the left half. */
 @media (min-width: 768px) {
   .hero-copy {
+    /* Never wider than ~34% of the viewport: on wide-and-short laptops the globe's left edge
+       comes in to about 44% of the width, and the search box must stay clear of it. */
+    max-width: min(42rem, 34vw);
     margin-left: 6vw;
     padding-bottom: 16vh;
+  }
+}
+
+@media (min-width: 1880px) {
+  .hero-copy {
+    max-width: 42rem;
   }
 }
 
