@@ -34,6 +34,8 @@ const CFG = {
   planeWingspanMobilePx: 40,
   stageScale: 1.35,
   stageRiseEm: 1.0,
+  stageHeaderPx: 72,
+  stageMarginPx: 16,
   cityFitWidth: 1.04,
   cityMinScale: 0.5,
   stagger: 0.9,
@@ -41,7 +43,7 @@ const CFG = {
   pointerStrength: 14,
   timing: {
     breathe: 3.0,
-    rise: 1.6,
+    rise: 2.2,
     morph: 2.0,
     hold: 2.4,
     gather: 1.4,
@@ -90,6 +92,8 @@ uniform float uMotion;
 uniform float uHalfW;
 uniform float uHalfH;
 uniform float uStageY;
+uniform float uFromY;
+uniform float uToY;
 uniform float uCameraZ;
 uniform float uDpr;
 uniform vec2 uPointer;
@@ -162,7 +166,7 @@ void main() {
   if (uMode == 0.0) key = uDir > 0.0 ? aOrder : 1.0 - aOrder;
   else if (uMode == 1.0) key = r1;
   else if (uMode == 2.0) key = r2;
-  else if (uMode == 3.0) key = 1.0 - clamp((aFrom.y - uStageY) / (uHalfH * 1.5) * 0.5 + 0.5, 0.0, 1.0);
+  else if (uMode == 3.0) key = 1.0 - clamp((aFrom.y - uFromY) / (uHalfH * 1.5) * 0.5 + 0.5, 0.0, 1.0);
   else key = r3 * 0.5;
   float dur = 0.8 + 0.4 * r4;
   float m = cubicInOut((uMorph * (1.0 + uStagger) - key * uStagger) / dur);
@@ -177,7 +181,7 @@ void main() {
     a += vec3(sin(uTime * 0.8 + aSeed), cos(uTime * 0.7 + aSeed * 1.7), 0.0) * 14.0 * w;
     a.z += 50.0 * w * r3;
   } else if (uMode == 2.0) {
-    vec2 c = vec2(0.0, uStageY);
+    vec2 c = vec2(0.0, mix(uFromY, uToY, m));
     vec2 d = a.xy - c;
     float ang = w * PI * (0.6 + 0.6 * r1) * uDir;
     float cs = cos(ang);
@@ -550,6 +554,7 @@ export function ParticleWhere({
     let whereW = 0;
     let whereH = 0;
     let stageY = 0;
+    let stageScale = CFG.stageScale;
     let inkDx = 0;
     let inkDy = 0;
     const route: Route = {
@@ -658,6 +663,21 @@ export function ParticleWhere({
       const ox = mBox.left + inkDx - sBox.left - w * 0.5;
       const oy = h * 0.5 - (mBox.top + baselineFromTop + inkDy - sBox.top);
       points?.position.set(ox, oy, 0);
+
+      // Stage = above the slot. Fit the lift and the growth into the headroom under the header,
+      // so a 768px laptop does not push the city names into the header.
+      const inkTop = mBox.top + baselineFromTop + inkDy - whereH * 0.5;
+      const headroom = inkTop - (sBox.top + CFG.stageHeaderPx) - CFG.stageMarginPx;
+      let scale = CFG.stageScale;
+      let rise = whereH * CFG.stageRiseEm;
+      const need = () => rise + (scale - 1) * whereH * 0.5;
+      if (need() > headroom) rise = Math.max(whereH * 0.35, headroom - (scale - 1) * whereH * 0.5);
+      if (need() > headroom) scale = Math.max(1.05, 1 + ((headroom - rise) * 2) / whereH);
+      stageScale = scale;
+      stageY = rise;
+      material.uniforms.uStageY.value = stageY;
+      material.uniforms.uHalfW.value = whereW * 0.5 * stageScale;
+      material.uniforms.uHalfH.value = whereH * 0.5 * stageScale;
 
       // Route in stage-centred px, then shifted into points-local space.
       const m = tier.mobile;
@@ -845,6 +865,8 @@ export function ParticleWhere({
           uHalfW: { value: whereW * 0.5 * CFG.stageScale },
           uHalfH: { value: whereH * 0.5 * CFG.stageScale },
           uStageY: { value: stageY },
+          uFromY: { value: 0 },
+          uToY: { value: 0 },
           uCameraZ: { value: 200 },
           uDpr: { value: Math.min(window.devicePixelRatio || 1, CFG.dprMax) },
           uPointer: { value: new THREE.Vector2(99999, 99999) },
@@ -886,6 +908,8 @@ export function ParticleWhere({
       if (!fromAttr || !toAttr) return;
       packInto(fromAttr, from, fromScale, fromScale === 1 ? 0 : stageY);
       packInto(toAttr, to, toScale, toScale === 1 ? 0 : stageY);
+      setUniform("uFromY", fromScale === 1 ? 0 : stageY);
+      setUniform("uToY", toScale === 1 ? 0 : stageY);
       setUniform("uMorph", 0);
       setUniform("uMode", mode);
       phase = "morph";
@@ -896,19 +920,15 @@ export function ParticleWhere({
       if (!material || !home) return;
       const u = material.uniforms;
       const T = CFG.timing;
-      const S = CFG.stageScale;
+      const S = stageScale;
       phaseT += dt;
       switch (phase) {
         case "breathe":
           if (phaseT >= T.breathe && cityShapes.length) {
+            // Lift straight out of the slot into the first city: no second "Where" on the stage.
+            cityIndex = 0;
+            startMorph(home, cityShapes[0], METHODS[loop % METHODS.length], 1, S);
             phase = "rise";
-            phaseT = 0;
-            if (fromAttr && toAttr) {
-              packInto(fromAttr, home, 1, 0);
-              packInto(toAttr, home, S, stageY);
-            }
-            u.uMode.value = MODE.rise;
-            u.uMorph.value = 0;
           }
           break;
         case "rise": {
@@ -918,8 +938,8 @@ export function ParticleWhere({
           if (phaseT >= T.rise) {
             u.uMorph.value = 1;
             u.uSpare.value = 1;
-            cityIndex = 0;
-            startMorph(home, cityShapes[0], METHODS[loop % METHODS.length], S, S);
+            phase = "hold";
+            phaseT = 0;
           }
           break;
         }
