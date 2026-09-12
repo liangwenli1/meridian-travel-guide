@@ -120,10 +120,7 @@ function Login() {
 
   return (
     <main className="relative min-h-dvh bg-void text-fg">
-      <header className="relative z-10 flex items-center justify-between px-6 py-5 md:px-12">
-        <Link to="/" className="text-xl font-medium tracking-tight">
-          {SITE.name}
-        </Link>
+      <header className="relative z-10 flex items-center justify-end px-6 py-5 md:px-12">
         <div className="flex items-center gap-3">
           <LanguageToggle />
           <Link to="/" className="text-sm text-muted hover:text-fg">

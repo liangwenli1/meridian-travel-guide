@@ -61,7 +61,7 @@ export const copy = {
     skip: "Skip to search",
     globe: "Globe",
     switchCity: "Cities",
-    changeCity: "Change city",
+    changeCity: "change city",
     settings: "Settings",
     language: "Language",
     langEnglish: "English",

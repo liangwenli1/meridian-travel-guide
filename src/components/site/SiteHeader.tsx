@@ -23,20 +23,14 @@ export function SiteHeader({
   return (
     <header
       className={cn(
-        "relative z-20 flex items-center gap-3 px-6 py-4 md:px-12 lg:px-16",
-        overlay ? "absolute top-0 right-0 left-0 justify-end bg-transparent" : "justify-between bg-void",
+        "relative z-20 flex items-center justify-end gap-3 px-6 py-4 md:px-12 lg:px-16",
+        overlay ? "absolute top-0 right-0 left-0 bg-transparent" : "bg-void",
         className,
       )}
     >
-      {overlay ? (
-        <Link to="/" className="sr-only">
-          {SITE.name}
-        </Link>
-      ) : (
-        <Link to="/" className="text-xl font-medium tracking-tight text-fg">
-          {SITE.name}
-        </Link>
-      )}
+      <Link to="/" className="sr-only">
+        {SITE.name}
+      </Link>
       <div className="flex items-center gap-2 md:gap-3">
         {onHome ? null : <CitySwitcher ghost={overlay} />}
         {isPending ? (

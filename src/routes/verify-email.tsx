@@ -52,10 +52,7 @@ function VerifyEmail() {
 
   return (
     <main className="relative min-h-dvh bg-void text-fg">
-      <header className="relative z-10 flex items-center justify-between px-6 py-5 md:px-12">
-        <Link to="/" className="text-xl font-medium tracking-tight">
-          {SITE.name}
-        </Link>
+      <header className="relative z-10 flex items-center justify-end px-6 py-5 md:px-12">
         <LanguageToggle />
       </header>
       <div className="mx-auto flex min-h-[calc(100dvh-4.5rem)] max-w-md flex-col justify-center px-6 pb-16">

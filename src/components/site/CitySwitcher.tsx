@@ -43,9 +43,9 @@ export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       className={cn(
-        "city-orb relative flex h-9 items-center overflow-hidden rounded-full",
+        "city-orb relative flex h-11 items-center overflow-hidden rounded-full",
         ghost ? "city-orb-ghost bg-transparent" : "bg-void-elevated shadow-border",
-        reduced && "w-9",
+        reduced && "w-11",
         !reduced && "city-orb-loop",
         (hover || open) && !reduced && "city-orb-open",
       )}
@@ -53,7 +53,7 @@ export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
       <Link
         to="/"
         aria-label={strings.globe}
-        className="relative z-10 grid size-9 shrink-0 place-items-center rounded-full outline-none focus-visible:shadow-border-hover"
+        className="relative z-10 grid size-11 shrink-0 place-items-center rounded-full outline-none focus-visible:shadow-border-hover"
       >
         <WireGlobe reduced={reduced} />
       </Link>
@@ -62,7 +62,7 @@ export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
           <button
             type="button"
             aria-label={strings.changeCity}
-            className="city-orb-copy min-h-9 min-w-0 flex-1 truncate pr-3.5 text-left text-xs font-medium tracking-wide text-white outline-none"
+            className="city-orb-copy mx-1 shrink-0 whitespace-nowrap rounded-full px-3 text-[11px] font-medium tracking-wide text-white outline-none"
           >
             {strings.changeCity}
           </button>
