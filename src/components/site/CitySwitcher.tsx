@@ -30,7 +30,10 @@ function WireGlobe({ reduced }: { reduced: boolean }) {
 export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
   const locale = useI18n((s) => s.locale);
   const strings = t(locale);
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const pathname = useRouterState({
+    select: (s) => s.resolvedLocation?.pathname ?? s.location.pathname,
+  });
+  const onHome = pathname === "/";
   const { reduced } = usePrefersReducedMotion();
   const [open, setOpen] = useState(false);
   const [hover, setHover] = useState(false);
@@ -51,7 +54,7 @@ export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
   }, [pathname]);
 
   useEffect(() => {
-    if (reduced || pinned) return;
+    if (reduced || pinned || onHome) return;
     let cancelled = false;
     let timer = 0;
     const wait = (ms: number) =>
@@ -74,9 +77,9 @@ export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [reduced, pinned]);
+  }, [reduced, pinned, onHome]);
 
-  const expanded = !reduced && (pinned || autoOpen);
+  const expanded = !reduced && !onHome && (pinned || autoOpen);
 
   return (
     <div
@@ -85,6 +88,7 @@ export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
     >
       <Link
         to="/"
+        viewTransition
         aria-label={strings.globe}
         onMouseEnter={() => setHover(true)}
         onFocus={() => setHover(true)}
@@ -103,7 +107,7 @@ export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
           if (!next) setHover(false);
         }}
       >
-        <div className="city-orb-label">
+        <div className={cn("city-orb-label", onHome && "hidden")}>
           <PopoverTrigger asChild>
             <button
               type="button"

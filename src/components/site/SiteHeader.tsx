@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { CitySwitcher } from "@/components/site/CitySwitcher";
 import { Button } from "@/components/ui/Button";
 import { SignedIn, SignedOut, UserButton } from "@/lib/auth/gates";
@@ -16,8 +16,6 @@ export function SiteHeader({
   const locale = useI18n((s) => s.locale);
   const strings = t(locale);
   const { isPending } = useCurrentUserState();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const onHome = pathname === "/";
 
   return (
     <header
@@ -31,7 +29,7 @@ export function SiteHeader({
         {strings.globe}
       </Link>
       <div className="flex items-center gap-2 md:gap-3">
-        {onHome ? null : <CitySwitcher ghost={overlay} />}
+        <CitySwitcher ghost={overlay} />
         {isPending ? (
           <div className="header-chip size-9 animate-pulse rounded-full bg-void-elevated" />
         ) : (
