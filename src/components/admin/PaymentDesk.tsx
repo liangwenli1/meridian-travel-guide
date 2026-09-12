@@ -11,11 +11,8 @@ import {
 } from "@/lib/server/ops";
 import {
   deleteProvider,
-  listOrdersAdmin,
   listProviders,
-  markOrderPaid,
   saveProvider,
-  type OrderRecord,
   type ProviderPublic,
 } from "@/lib/server/payment/service";
 import type { ProviderType } from "@/lib/server/payment/types";
@@ -58,7 +55,6 @@ export function PaymentDesk() {
   const [settings, setSettings] = useState<PaymentSettings | null>(null);
   const [origin, setOrigin] = useState("");
   const [providers, setProviders] = useState<ProviderPublic[]>([]);
-  const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [type, setType] = useState<ProviderType>("easypay");
   const [name, setName] = useState("Z-Pay");
   const [creds, setCreds] = useState<Record<string, string>>({ apiBase: "https://zpayz.cn" });
@@ -68,7 +64,6 @@ export function PaymentDesk() {
     void getPaymentSettings().then(setSettings);
     void getSiteSettings().then((site) => setOrigin(site.origin));
     void listProviders().then(setProviders);
-    void listOrdersAdmin().then(setOrders);
   };
 
   useEffect(() => {
@@ -284,37 +279,6 @@ export function PaymentDesk() {
             {strings.payAddProvider}
           </Button>
         </div>
-      </section>
-
-      <section>
-        <h2 className="text-lg font-medium">{strings.payOrders}</h2>
-        <ul className="mt-4 space-y-2">
-          {orders.length === 0 ? <p className="text-sm text-muted">{strings.payNoOrders}</p> : null}
-          {orders.map((order) => (
-            <li key={order.id} className="rounded-2xl bg-void-elevated px-4 py-3 text-sm shadow-border">
-              <p>
-                {order.outTradeNo} · {order.method} · {order.currency} {order.amount}
-              </p>
-              <p className="mt-1 text-xs text-muted">{order.status}</p>
-              {order.status === "PENDING" ? (
-                <button
-                  type="button"
-                  className="mt-2 text-accent hover:underline"
-                  onClick={() => {
-                    void markOrderPaid({ data: { outTradeNo: order.outTradeNo } })
-                      .then(() => {
-                        toast.success(strings.payDone);
-                        reload();
-                      })
-                      .catch(() => toast.error(strings.authFailed));
-                  }}
-                >
-                  {strings.payMarkPaid}
-                </button>
-              ) : null}
-            </li>
-          ))}
-        </ul>
       </section>
     </div>
   );

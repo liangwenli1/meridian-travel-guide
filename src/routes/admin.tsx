@@ -1,8 +1,9 @@
-import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
+import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { toast } from "sonner";
 import { PaymentDesk } from "@/components/admin/PaymentDesk";
 import { ChapterEditor, DispatchEditor } from "@/components/admin/EditorialDesk";
+import { OrdersDesk, PassesDesk, UsersDesk } from "@/components/admin/LedgerDesk";
 import { DeskFrame, DeskStat } from "@/components/desk/DeskFrame";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -10,10 +11,10 @@ import { cities as seedCities } from "@/data/cities";
 import { listDispatches } from "@/data/dispatches";
 import { RedirectToSignIn } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
-import { t, useI18n, type Locale } from "@/lib/i18n";
+import { t, useI18n } from "@/lib/i18n";
 import { sendTestEmail } from "@/lib/server/email-verify";
 import { getHomeCatalog, setCityStatus } from "@/lib/server/catalog";
-import { getOpsOverview, listMembers, type MemberRow, type OpsOverview } from "@/lib/server/desk";
+import { getOpsOverview, type OpsOverview } from "@/lib/server/desk";
 import { listLetterSubscribers, sendLetterIssue, type LetterSubscriber } from "@/lib/server/letter";
 import {
   claimAdmin,
@@ -35,7 +36,17 @@ export const Route = createFileRoute("/admin")({
 const fieldClass =
   "h-12 w-full rounded-2xl bg-void-elevated px-4 text-sm text-fg shadow-border outline-none placeholder:text-muted focus-visible:shadow-border-hover";
 
-type Tab = "overview" | "cities" | "dispatches" | "guides" | "letter" | "mail" | "pay" | "members";
+type Tab =
+  | "overview"
+  | "orders"
+  | "passes"
+  | "members"
+  | "cities"
+  | "dispatches"
+  | "guides"
+  | "letter"
+  | "mail"
+  | "pay";
 type CityFilter = "all" | ContentStatus;
 type LetterFilter = "all" | "active" | "unsubscribed";
 
@@ -51,7 +62,6 @@ export function AdminWorkspace({ embedded = false }: { embedded?: boolean }) {
   const [testTo, setTestTo] = useState("");
   const [saving, setSaving] = useState(false);
   const [overview, setOverview] = useState<OpsOverview | null>(null);
-  const [members, setMembers] = useState<MemberRow[]>([]);
   const [letterRows, setLetterRows] = useState<LetterSubscriber[]>([]);
   const [cityRows, setCityRows] = useState<City[]>(seedCities);
   const [cityFilter, setCityFilter] = useState<CityFilter>("all");
@@ -61,7 +71,6 @@ export function AdminWorkspace({ embedded = false }: { embedded?: boolean }) {
     Promise.all([
       getSmtpSettings().then(setSmtp),
       getOpsOverview().then(setOverview),
-      listMembers().then(setMembers),
       listLetterSubscribers().then(setLetterRows).catch(() => setLetterRows([])),
       getHomeCatalog()
         .then((data) => setCityRows(data.cities))
@@ -157,13 +166,15 @@ export function AdminWorkspace({ embedded = false }: { embedded?: boolean }) {
           {(
             [
               ["overview", strings.opsOverview],
+              ["orders", strings.opsOrderTab],
+              ["passes", strings.opsPassTab],
+              ["members", strings.opsUsers],
               ["cities", strings.opsCities],
               ["dispatches", strings.opsDispatches],
               ["guides", strings.opsGuides],
               ["letter", strings.opsLetter],
               ["mail", strings.tabMail],
               ["pay", strings.tabPay],
-              ["members", strings.opsMembers],
             ] as const
           ).map(([id, label]) => (
             <Button
@@ -199,10 +210,18 @@ export function AdminWorkspace({ embedded = false }: { embedded?: boolean }) {
 
       {gate === "admin" && tab === "overview" && overview ? (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          <DeskStat label={strings.opsUsers} value={overview.users} />
-          <DeskStat label={strings.opsPasses} value={overview.passes} />
-          <DeskStat label={strings.opsPending} value={overview.pendingOrders} />
-          <DeskStat label={strings.opsPaid} value={overview.paidOrders} />
+          <button type="button" className="text-left" onClick={() => setTab("members")}>
+            <DeskStat label={strings.opsUsers} value={overview.users} />
+          </button>
+          <button type="button" className="text-left" onClick={() => setTab("passes")}>
+            <DeskStat label={strings.opsPasses} value={overview.passes} />
+          </button>
+          <button type="button" className="text-left" onClick={() => setTab("orders")}>
+            <DeskStat label={strings.opsPending} value={overview.pendingOrders} />
+          </button>
+          <button type="button" className="text-left" onClick={() => setTab("orders")}>
+            <DeskStat label={strings.opsPaid} value={overview.paidOrders} />
+          </button>
           <DeskStat label={strings.tabMail} value={overview.smtpOn ? strings.opsOn : strings.opsOff} />
           <DeskStat label={strings.tabPay} value={overview.payOn ? strings.opsOn : strings.opsOff} />
           <DeskStat label={strings.opsLetter} value={letterRows.length} />
@@ -469,41 +488,11 @@ export function AdminWorkspace({ embedded = false }: { embedded?: boolean }) {
 
       {gate === "admin" && tab === "pay" ? <PaymentDesk /> : null}
 
-      {gate === "admin" && tab === "members" ? (
-        members.length === 0 ? (
-          <p className="text-sm text-muted">{strings.opsNoMembers}</p>
-        ) : (
-          <div className="overflow-x-auto rounded-3xl bg-card shadow-border">
-            <table className="w-full min-w-[40rem] text-left text-sm">
-              <thead className="text-xs tracking-wide text-muted uppercase">
-                <tr>
-                  <th className="px-5 py-3 font-medium">{strings.name}</th>
-                  <th className="px-5 py-3 font-medium">{strings.email}</th>
-                  <th className="px-5 py-3 font-medium">{strings.passTitle}</th>
-                  <th className="px-5 py-3 font-medium">{strings.opsJoined}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {members.map((member) => (
-                  <tr key={member.id} className="border-t border-line">
-                    <td className="px-5 py-3 text-fg">{member.name}</td>
-                    <td className="px-5 py-3 font-mono text-xs text-muted">
-                      {member.email}
-                      {member.verified ? "" : ` · ${strings.opsUnverified}`}
-                    </td>
-                    <td className="px-5 py-3 text-muted">
-                      {member.passStatus === "active" ? strings.passActive : strings.passInactive}
-                    </td>
-                    <td className="px-5 py-3 font-mono text-xs text-muted">
-                      {member.createdAt.slice(0, 10)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )
-      ) : null}
+      {gate === "admin" && tab === "orders" ? <OrdersDesk /> : null}
+
+      {gate === "admin" && tab === "passes" ? <PassesDesk /> : null}
+
+      {gate === "admin" && tab === "members" ? <UsersDesk /> : null}
     </>
   );
 
@@ -517,13 +506,15 @@ export function AdminWorkspace({ embedded = false }: { embedded?: boolean }) {
       nav={[
         { to: "/account", label: strings.account },
         { label: strings.opsOverview, current: tab === "overview", onClick: () => setTab("overview") },
+        { label: strings.opsOrderTab, current: tab === "orders", onClick: () => setTab("orders") },
+        { label: strings.opsPassTab, current: tab === "passes", onClick: () => setTab("passes") },
+        { label: strings.opsUsers, current: tab === "members", onClick: () => setTab("members") },
         { label: strings.opsCities, current: tab === "cities", onClick: () => setTab("cities") },
         { label: strings.opsDispatches, current: tab === "dispatches", onClick: () => setTab("dispatches") },
         { label: strings.opsGuides, current: tab === "guides", onClick: () => setTab("guides") },
         { label: strings.opsLetter, current: tab === "letter", onClick: () => setTab("letter") },
         { label: strings.tabMail, current: tab === "mail", onClick: () => setTab("mail") },
         { label: strings.tabPay, current: tab === "pay", onClick: () => setTab("pay") },
-        { label: strings.opsMembers, current: tab === "members", onClick: () => setTab("members") },
       ]}
     >
       {inner}
