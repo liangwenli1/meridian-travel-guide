@@ -7,7 +7,7 @@ import { getHomeCatalog } from "@/lib/server/catalog";
 import { cn } from "@/lib/utils";
 import type { City } from "@/types/catalog";
 
-const SLIDE_MS = 2400;
+const SLIDE_MS = 2200;
 const REST_MS = 6000;
 const HOLD_MS = 4000;
 
