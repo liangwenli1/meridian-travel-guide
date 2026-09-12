@@ -4,7 +4,11 @@ import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { SITE } from "@/lib/site";
 import { Toaster } from "sonner";
-import appCss from "../styles.css?url";
+// Side-effect import: the stylesheet is attached to the root route in the client build
+// manifest, so the SSR head links the exact file the client build emitted. A `?url` import
+// re-emits the CSS in the server build under its own hash, which can drift from the client
+// one (it did in Docker, where .gitignore is absent and Tailwind also scans .output/).
+import "../styles.css";
 
 const fetchSessionUser = createServerFn({ method: "GET" }).handler(async () => {
   const { ensureBuiltInAdmin } = await import("@/lib/server/seed-admin");
@@ -26,7 +30,6 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
-      { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/__grok/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/__grok/icon-180.png" },
       {
