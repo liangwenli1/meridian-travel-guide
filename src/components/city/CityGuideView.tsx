@@ -19,6 +19,7 @@ import { Section } from "./Section";
 import { StickyNav } from "./StickyNav";
 import { LetterForm } from "@/components/letter/LetterForm";
 import { PassGate } from "@/components/pass/PassGate";
+import { TripBrief } from "@/components/pass/TripBrief";
 import { listOffseasonTables } from "@/data/pass";
 import { localizeGuide } from "@/lib/guide-locale";
 import { isActivePass } from "@/lib/pass/access";
@@ -163,6 +164,13 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           </StatGrid>
 
           <PhotoStrip citySlug={city.slug} />
+
+          <TripBrief
+            citySlug={city.slug}
+            cityName={city.name}
+            countrySlug={city.countrySlug}
+            passActive={passActive}
+          />
 
           <div className="mt-12 grid gap-4 md:grid-cols-2">
             <Card>

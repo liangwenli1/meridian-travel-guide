@@ -22,13 +22,17 @@ export const Route = createFileRoute("/pass")({
 
 const TIERS = {
   en: {
-    free: ["Published city guides", "Monthly letter signup", "First-day itinerary on each guide"],
-    pro: ["Downloadable day-by-day itineraries", "Off-season tables we do not publish", "One city briefing each month"],
-    max: ["Everything in Pro", "Neighborhood notes before they ship", "Locker for every city as it ships"],
+    free: ["Published city guides", "Monthly letter signup", "A teaser of what is closed on your dates"],
+    pro: [
+      "A trip brief for your dates: book now, closed days, where not to stay",
+      "The taxi / pass / tout that costs more than a year",
+      "Printable days and arrival notes for every published city",
+    ],
+    max: ["Everything in Pro", "Neighborhood notes before they ship", "The locker as each new city ships"],
   },
   zh: {
-    free: ["已发布的城市指南", "月度来信订阅", "每座城指南的首日行程"],
-    pro: ["可下载的逐日行程", "不公开的淡季餐桌", "每月一座城市的短通讯"],
+    free: ["已发布的城市指南", "月度来信", "你日期里谁关门的一条预告"],
+    pro: ["按日期的出行简报：现在订、闭馆、不要住哪", "那趟贵过一年会员的出租车 / 通票 / 黄牛", "每座已发布城市的可打印日子和过境"],
     max: ["包含 Pro 全部", "发稿前的街区笔记", "每座新城里的储物柜"],
   },
 } as const;

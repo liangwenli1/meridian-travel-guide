@@ -46,6 +46,8 @@ function kindLabel(kind: PassLockerItem["kind"], strings: ReturnType<typeof t>) 
       return strings.passLockerItemBriefing;
     case "arrival-card":
       return strings.passLockerItemArrival;
+    case "trip-brief":
+      return strings.passLockerItemTripBrief;
     default:
       return kind;
   }
@@ -188,6 +190,19 @@ function AccountPage() {
                     <p className="mt-1 truncate text-fg">{loc(item.title, locale)}</p>
                     <p className="mt-1 text-muted">{loc(item.summary, locale)}</p>
                   </div>
+                  {item.kind === "trip-brief" ? (
+                    <Link
+                      to="/$country/$city"
+                      params={{
+                        country: cities.find((c) => c.slug === item.citySlug)?.countrySlug ?? item.citySlug,
+                        city: item.citySlug,
+                      }}
+                      search={{ s: "overview" }}
+                      className="shrink-0 text-xs text-accent hover:underline"
+                    >
+                      {strings.briefTitle}
+                    </Link>
+                  ) : null}
                   {item.downloadable ? (
                     <div className="flex shrink-0 flex-col items-end gap-2">
                       <Button

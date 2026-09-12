@@ -56,6 +56,19 @@ export function buildPassLockerItems(): PassLockerItem[] {
       },
       downloadable: true,
     });
+    items.push({
+      kind: "trip-brief",
+      id: `${guide.citySlug}-brief`,
+      citySlug: guide.citySlug,
+      title: {
+        en: `${guide.title.replace(" Travel Guide", "")} trip brief`,
+        zh: `${guide.zh?.title ?? guide.title} · 出行简报`,
+      },
+      summary: {
+        en: "Your dates: book now, closed days, where not to stay.",
+        zh: "按你的日期：现在订、闭馆、不要住哪。",
+      },
+    });
   }
 
   for (const card of listArrivalCards()) {
