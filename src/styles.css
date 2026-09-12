@@ -571,27 +571,66 @@
   animation: city-orb-copy 9s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 }
 
-.mini-earth {
-  display: block;
-  border-radius: 50%;
-  background-color: #070706;
-  background-image: url("/globe/earth-dark.jpg");
-  background-repeat: repeat-x;
-  background-size: auto 100%;
-  background-position: 0 50%;
-  box-shadow:
-    inset -9px -2px 12px rgb(0 0 0 / 0.82),
-    inset 3px 3px 6px rgb(243 243 232 / 0.16),
-    0 2px 6px rgb(0 0 0 / 0.35);
-  animation: mini-earth-spin 16s linear infinite;
+.wire-globe {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  place-items: center;
+  color: var(--color-fg);
+  perspective: 52px;
 }
 
-@keyframes mini-earth-spin {
-  from {
-    background-position: 0 50%;
-  }
+.wire-globe-spin {
+  position: relative;
+  width: 1.15rem;
+  height: 1.15rem;
+  transform-style: preserve-3d;
+}
+
+.wire-globe-live .wire-globe-spin {
+  animation: wire-globe-spin 7s linear infinite;
+}
+
+.wire-globe-limb,
+.wire-globe-ring {
+  position: absolute;
+  inset: 0;
+  border: 1.4px solid currentColor;
+  border-radius: 50%;
+}
+
+.wire-globe-limb {
+  z-index: 1;
+}
+
+.wire-globe-eq {
+  transform: rotateX(88deg);
+}
+
+.wire-globe-m0 {
+  transform: rotateY(0deg);
+}
+
+.wire-globe-m1 {
+  transform: rotateY(45deg);
+}
+
+.wire-globe-m2 {
+  transform: rotateY(90deg);
+}
+
+.wire-globe-n1 {
+  transform: rotateX(50deg);
+}
+
+.wire-globe-s1 {
+  transform: rotateX(-50deg);
+}
+
+@keyframes wire-globe-spin {
   to {
-    background-position: 200% 50%;
+    transform: rotateY(360deg);
   }
 }
 

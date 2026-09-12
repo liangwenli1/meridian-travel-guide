@@ -7,6 +7,22 @@ import { getHomeCatalog } from "@/lib/server/catalog";
 import { cn } from "@/lib/utils";
 import type { City } from "@/types/catalog";
 
+function WireGlobe({ reduced }: { reduced: boolean }) {
+  return (
+    <span className={cn("wire-globe", !reduced && "wire-globe-live")} aria-hidden>
+      <span className="wire-globe-spin">
+        <span className="wire-globe-limb" />
+        <span className="wire-globe-ring wire-globe-eq" />
+        <span className="wire-globe-ring wire-globe-m0" />
+        <span className="wire-globe-ring wire-globe-m1" />
+        <span className="wire-globe-ring wire-globe-m2" />
+        <span className="wire-globe-ring wire-globe-n1" />
+        <span className="wire-globe-ring wire-globe-s1" />
+      </span>
+    </span>
+  );
+}
+
 export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
   const locale = useI18n((s) => s.locale);
   const strings = t(locale);
@@ -31,7 +47,7 @@ export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
           onMouseEnter={() => setHover(true)}
           onMouseLeave={() => setHover(false)}
           className={cn(
-            "city-orb relative flex h-9 items-center overflow-hidden rounded-full text-left outline-none",
+            "city-orb relative flex h-9 items-center rounded-full text-left outline-none",
             "focus-visible:shadow-border-hover",
             ghost ? "city-orb-ghost bg-transparent" : "bg-void-elevated shadow-border hover:shadow-border-hover",
             reduced && "w-9",
@@ -39,7 +55,7 @@ export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
             hover && !reduced && "city-orb-open",
           )}
         >
-          <span className="mini-earth pointer-events-none size-9 shrink-0" aria-hidden />
+          <WireGlobe reduced={reduced} />
           <span className="city-orb-copy min-w-0 flex-1 truncate pr-3.5 pl-0.5 text-xs font-medium tracking-wide text-fg [text-shadow:0_1px_8px_rgb(0_0_0/0.7)]">
             {strings.changeCity}
           </span>
