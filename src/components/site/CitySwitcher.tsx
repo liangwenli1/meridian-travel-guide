@@ -31,9 +31,9 @@ export function CitySwitcher() {
           <Globe className="size-4" strokeWidth={1.75} />
         </button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-72 p-2">
-        <p className="px-2 py-1.5 text-[11px] tracking-[0.16em] text-muted uppercase">{strings.switchCity}</p>
-        <ul className="grid grid-cols-2 gap-1">
+      <PopoverContent align="end" className="flex w-80 flex-col p-2">
+        <p className="shrink-0 px-2 py-1.5 text-[11px] tracking-[0.16em] text-muted uppercase">{strings.switchCity}</p>
+        <ul className="grid max-h-[min(22rem,calc(100vh-7rem))] grid-cols-2 gap-1 overflow-y-auto overscroll-contain pr-1">
           {cities.map((city) => {
             const href = `/${city.countrySlug}/${city.slug}`;
             const current = pathname === href || pathname.startsWith(`${href}/`);

@@ -53,7 +53,7 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     overflow-x: clip;
-    overflow-y: auto;
+    overflow-y: scroll;
     scrollbar-gutter: stable;
   }
 
@@ -76,6 +76,16 @@
   body {
     margin: 0;
     font-family: var(--font-sans);
+  }
+
+  /* RemoveScroll pads body by the scrollbar width. Combined with
+     scrollbar-gutter: stable that shrinks the page when a menu opens. */
+  html[data-scroll-locked],
+  body[data-scroll-locked],
+  body.with-scroll-bars-hidden {
+    --removed-body-scroll-bar-size: 0px !important;
+    margin-right: 0 !important;
+    padding-right: 0 !important;
   }
 
   button:not(:disabled),

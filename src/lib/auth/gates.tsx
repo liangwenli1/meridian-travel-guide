@@ -1,5 +1,6 @@
 import { useState, useSyncExternalStore, type ReactNode } from "react";
 import { Link, Navigate } from "@tanstack/react-router";
+import { User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
 import {
   DropdownMenu,
@@ -10,7 +11,6 @@ import {
 } from "@/components/ui/DropdownMenu";
 import { t, useI18n } from "@/lib/i18n";
 import { usePassEntitlements } from "@/lib/pass/use-entitlements";
-import { cn } from "@/lib/utils";
 import { GROK_PROVIDERS, authEnabled, signIn, signOut } from "./client";
 import { hasGateSessionMarker } from "./gate-session-marker";
 import { resolveSignInGateState } from "./sign-in-gate";
@@ -111,28 +111,21 @@ export function UserButton() {
   );
   if (!user) return null;
   const label = user.displayName ?? user.primaryEmail ?? strings.account;
-  const initial = label.charAt(0).toUpperCase();
+  const planLabel = plan === "max" ? strings.planMax : plan === "pro" ? strings.planPro : strings.planFree;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="relative rounded-full outline-none focus-visible:shadow-border-hover"
+          className="rounded-full outline-none focus-visible:shadow-border-hover"
           aria-label={strings.account}
         >
           <Avatar>
             {user.profileImageUrl ? <AvatarImage src={user.profileImageUrl} alt="" /> : null}
-            <AvatarFallback>{initial}</AvatarFallback>
+            <AvatarFallback>
+              <User className="size-4 text-muted" strokeWidth={1.5} />
+            </AvatarFallback>
           </Avatar>
-          {ready ? (
-            <span
-              aria-hidden
-              className={cn(
-                "pointer-events-none absolute right-0 bottom-0 size-2.5 rounded-full ring-2 ring-void",
-                plan === "free" ? "bg-muted" : "bg-accent",
-              )}
-            />
-          ) : null}
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -141,6 +134,9 @@ export function UserButton() {
           {user.primaryEmail ? (
             <p className="mt-0.5 truncate font-mono text-xs text-muted">{user.primaryEmail}</p>
           ) : null}
+          <p className="mt-2 text-[11px] tracking-[0.14em] text-muted uppercase">
+            {ready ? planLabel : "…"}
+          </p>
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
