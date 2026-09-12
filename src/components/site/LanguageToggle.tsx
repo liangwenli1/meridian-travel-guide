@@ -1,35 +1,52 @@
+import { ChevronDown, Globe } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/DropdownMenu";
 import { cn } from "@/lib/utils";
-import { useI18n, type Locale } from "@/lib/i18n";
+import { t, useI18n, type Locale } from "@/lib/i18n";
 
-const OPTIONS: { id: Locale; label: string }[] = [
-  { id: "zh", label: "中" },
-  { id: "en", label: "EN" },
+const OPTIONS: { id: Locale; labelKey: "langEnglish" | "langChinese" }[] = [
+  { id: "en", labelKey: "langEnglish" },
+  { id: "zh", labelKey: "langChinese" },
 ];
 
 export function LanguageToggle({ className }: { className?: string }) {
   const locale = useI18n((s) => s.locale);
   const setLocale = useI18n((s) => s.setLocale);
+  const strings = t(locale);
+  const current = OPTIONS.find((option) => option.id === locale) ?? OPTIONS[0];
 
   return (
-    <div
-      className={cn("inline-flex items-center rounded-full bg-void-elevated p-1 shadow-border", className)}
-      role="group"
-      aria-label="Language"
-    >
-      {OPTIONS.map((option) => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
         <button
-          key={option.id}
           type="button"
+          aria-label={strings.language}
           className={cn(
-            "min-h-9 min-w-9 rounded-full px-2.5 text-sm transition-colors duration-150",
-            locale === option.id ? "bg-accent font-medium text-void" : "text-muted hover:text-fg",
+            "inline-flex h-9 items-center gap-2 rounded-full bg-void-elevated px-3 text-sm text-fg shadow-border outline-none",
+            "hover:shadow-border-hover focus-visible:shadow-border-hover",
+            className,
           )}
-          aria-pressed={locale === option.id}
-          onClick={() => setLocale(option.id)}
         >
-          {option.label}
+          <Globe className="size-3.5" strokeWidth={1.75} />
+          <span>{strings[current.labelKey]}</span>
+          <ChevronDown className="size-3.5 text-muted" strokeWidth={1.75} />
         </button>
-      ))}
-    </div>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="min-w-40">
+        {OPTIONS.map((option) => (
+          <DropdownMenuItem
+            key={option.id}
+            className={cn(locale === option.id && "bg-void-elevated text-accent")}
+            onSelect={() => setLocale(option.id)}
+          >
+            {strings[option.labelKey]}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

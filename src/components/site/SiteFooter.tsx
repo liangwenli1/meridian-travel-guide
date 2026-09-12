@@ -38,6 +38,11 @@ export function SiteFooter() {
                 </Link>
               </li>
             ))}
+          </ul>
+        </nav>
+        <nav aria-label={t(locale).siteKicker} className="shrink-0 md:pt-0.5">
+          <p className="kicker text-muted">{t(locale).siteKicker}</p>
+          <ul className="mt-4 flex flex-col gap-2">
             <li>
               <Link to="/pass" className="text-sm text-fg/80 transition-colors hover:text-accent">
                 {t(locale).passTitle}
