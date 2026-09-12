@@ -20,8 +20,7 @@ export function SiteFooter() {
     <footer className="relative z-10 border-t border-line bg-void">
       <div className="flex flex-col gap-10 px-6 py-12 md:flex-row md:items-start md:justify-between md:gap-16 md:px-10 lg:px-14 lg:py-16">
         <div className="shrink-0 md:max-w-xs">
-          <p className="text-lg font-medium tracking-tight text-fg">{SITE.name}</p>
-          <p className="mt-2 text-sm leading-relaxed text-muted">{SITE.tagline}</p>
+          <p className="text-sm leading-relaxed text-muted">{SITE.tagline}</p>
         </div>
         <nav aria-label={t(locale).guidesKicker} className="min-w-0 md:pt-0.5">
           <p className="kicker text-muted">{t(locale).guidesKicker}</p>

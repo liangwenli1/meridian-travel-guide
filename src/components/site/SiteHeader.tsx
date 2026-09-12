@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/Button";
 import { SignedIn, SignedOut, UserButton } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { t, useI18n } from "@/lib/i18n";
-import { SITE } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 export function SiteHeader({
@@ -29,7 +28,7 @@ export function SiteHeader({
       )}
     >
       <Link to="/" className="sr-only">
-        {SITE.name}
+        {strings.globe}
       </Link>
       <div className="flex items-center gap-2 md:gap-3">
         {onHome ? null : <CitySwitcher ghost={overlay} />}
