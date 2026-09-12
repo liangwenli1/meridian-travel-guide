@@ -3,14 +3,12 @@ import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardDescription, CardMeta, CardTitle } from "@/components/ui/Card";
-import { Input } from "@/components/ui/Input";
+import { DatePicker } from "@/components/ui/DatePicker";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select";
 import { getTripSpec, type Party } from "@/data/pass/trip-briefs";
 import { t, useI18n } from "@/lib/i18n";
 import { buildTripBrief, briefToMarkdown, defaultArriveDate, loc, weekdayLabel } from "@/lib/trip-brief";
 import { PassGate } from "./PassGate";
-
-const fieldClass =
-  "h-12 w-full rounded-2xl bg-void-elevated px-4 text-sm text-fg shadow-border outline-none placeholder:text-muted focus-visible:shadow-border-hover";
 
 function bookingBadge(status: "ok" | "this-week" | "late", late: string, soon: string, ok: string) {
   if (status === "late") return { variant: "warn" as const, label: late };
@@ -68,25 +66,35 @@ export function TripBrief({
       <div className="mt-6 grid gap-3 sm:grid-cols-3">
         <label className="block">
           <span className="mb-2 block text-xs tracking-wide text-muted uppercase">{strings.briefArrive}</span>
-          <Input type="date" value={arrive} onChange={(event) => setArrive(event.target.value)} />
+          <DatePicker value={arrive} onChange={setArrive} locale={locale} />
         </label>
         <label className="block">
           <span className="mb-2 block text-xs tracking-wide text-muted uppercase">{strings.briefNights}</span>
-          <select className={fieldClass} value={nights} onChange={(event) => setNights(Number(event.target.value))}>
-            {[2, 3, 4, 5, 6, 7].map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </select>
+          <Select value={String(nights)} onValueChange={(value) => setNights(Number(value))}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[2, 3, 4, 5, 6, 7].map((n) => (
+                <SelectItem key={n} value={String(n)}>
+                  {n}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </label>
         <label className="block">
           <span className="mb-2 block text-xs tracking-wide text-muted uppercase">{strings.briefParty}</span>
-          <select className={fieldClass} value={party} onChange={(event) => setParty(event.target.value as Party)}>
-            <option value="solo">{strings.briefSolo}</option>
-            <option value="couple">{strings.briefCouple}</option>
-            <option value="family">{strings.briefFamily}</option>
-          </select>
+          <Select value={party} onValueChange={(value) => setParty(value as Party)}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="solo">{strings.briefSolo}</SelectItem>
+              <SelectItem value="couple">{strings.briefCouple}</SelectItem>
+              <SelectItem value="family">{strings.briefFamily}</SelectItem>
+            </SelectContent>
+          </Select>
         </label>
       </div>
 
