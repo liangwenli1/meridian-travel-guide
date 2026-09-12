@@ -98,7 +98,7 @@ export function SignInButtons() {
  * gate-materialized — behind the gate the next request signs the viewer
  * straight back in, so a sign-out control there is a broken loop.
  */
-export function UserButton() {
+export function UserButton({ ghost = false }: { ghost?: boolean }) {
   const user = useCurrentUser();
   const locale = useI18n((s) => s.locale);
   const strings = t(locale);
@@ -120,10 +120,10 @@ export function UserButton() {
           className="rounded-full outline-none focus-visible:shadow-border-hover"
           aria-label={strings.account}
         >
-          <Avatar>
+          <Avatar className={ghost ? "bg-transparent shadow-[0_0_0_1px_rgb(243_243_232/0.32)]" : undefined}>
             {user.profileImageUrl ? <AvatarImage src={user.profileImageUrl} alt="" /> : null}
             <AvatarFallback>
-              <User className="size-4 text-muted" strokeWidth={1.5} />
+              <User className={ghost ? "size-4 text-fg" : "size-4 text-muted"} strokeWidth={1.5} />
             </AvatarFallback>
           </Avatar>
         </button>
