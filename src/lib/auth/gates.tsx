@@ -120,7 +120,7 @@ export function UserButton({ ghost = false }: { ghost?: boolean }) {
           className="rounded-full outline-none focus-visible:shadow-border-hover"
           aria-label={strings.account}
         >
-          <Avatar className={ghost ? "bg-transparent shadow-[0_0_0_1px_rgb(243_243_232/0.32)]" : undefined}>
+          <Avatar className={ghost ? "header-chip bg-transparent" : undefined}>
             {user.profileImageUrl ? <AvatarImage src={user.profileImageUrl} alt="" /> : null}
             <AvatarFallback>
               <User className={ghost ? "size-4 text-fg" : "size-4 text-muted"} strokeWidth={1.5} />

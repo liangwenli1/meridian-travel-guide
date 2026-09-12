@@ -33,7 +33,7 @@ export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
           className={cn(
             "city-orb relative flex h-9 items-center overflow-hidden rounded-full text-left outline-none",
             "focus-visible:shadow-border-hover",
-            ghost ? "city-orb-ghost bg-transparent shadow-[0_0_0_1px_rgb(243_243_232/0.32)]" : "bg-void-elevated shadow-border hover:shadow-border-hover",
+            ghost ? "city-orb-ghost bg-transparent" : "bg-void-elevated shadow-border hover:shadow-border-hover",
             reduced && "w-9",
             !reduced && "city-orb-loop",
             hover && !reduced && "city-orb-open",
