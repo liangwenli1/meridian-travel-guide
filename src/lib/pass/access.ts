@@ -1,6 +1,19 @@
 import type { Membership } from "@/lib/server/membership";
 
 export type PaidPlan = "pro" | "max";
+export type PlanId = "free" | PaidPlan;
+
+export type Entitlements = {
+  plan: PlanId;
+  canReadFull: boolean;
+  canUseTools: boolean;
+};
+
+export const FREE_ENTITLEMENTS: Entitlements = {
+  plan: "free",
+  canReadFull: false,
+  canUseTools: false,
+};
 
 export function planTier(plan: string | undefined | null): 0 | 1 | 2 {
   if (plan === "max") return 2;
@@ -8,7 +21,7 @@ export function planTier(plan: string | undefined | null): 0 | 1 | 2 {
   return 0;
 }
 
-export function normalizePlan(plan: string | undefined | null): "free" | PaidPlan {
+export function normalizePlan(plan: string | undefined | null): PlanId {
   const tier = planTier(plan);
   if (tier >= 2) return "max";
   if (tier >= 1) return "pro";
@@ -30,6 +43,16 @@ export function isActivePass(membership: Membership | null | undefined): boolean
 
 export function hasMaxPass(membership: Membership | null | undefined): boolean {
   return isActivePass(membership) && planTier(membership?.plan) >= 2;
+}
+
+export function entitlementsOf(membership: Membership | null | undefined): Entitlements {
+  if (!isActivePass(membership)) return FREE_ENTITLEMENTS;
+  const plan = normalizePlan(membership?.plan);
+  return {
+    plan,
+    canReadFull: true,
+    canUseTools: plan === "max",
+  };
 }
 
 export async function requireActivePass(userId: string): Promise<Membership> {
@@ -62,4 +85,14 @@ export async function requireActivePass(userId: string): Promise<Membership> {
     throw err;
   }
   return membership!;
+}
+
+export async function requireMaxPass(userId: string): Promise<Membership> {
+  const membership = await requireActivePass(userId);
+  if (!hasMaxPass(membership)) {
+    const err = new Error("Forbidden: Max required");
+    (err as Error & { status: number }).status = 403;
+    throw err;
+  }
+  return membership;
 }

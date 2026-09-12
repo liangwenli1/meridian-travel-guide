@@ -20,12 +20,14 @@ export function TripBrief({
   citySlug,
   cityName,
   countrySlug,
-  passActive,
+  canReadFull,
+  canUseTools,
 }: {
   citySlug: string;
   cityName: string;
   countrySlug: string;
-  passActive: boolean;
+  canReadFull: boolean;
+  canUseTools: boolean;
 }) {
   const locale = useI18n((s) => s.locale);
   const strings = t(locale);
@@ -98,7 +100,7 @@ export function TripBrief({
         </label>
       </div>
 
-      {!passActive ? (
+      {!canReadFull ? (
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
         <Card padding="md">
           <CardMeta>{strings.briefBookNow}</CardMeta>
@@ -132,7 +134,7 @@ export function TripBrief({
 
       <PassGate
         className="mt-4"
-        active={passActive}
+        active={canReadFull}
         teaserTitle={strings.briefPaywall}
         teaserBody={strings.briefPaywallDek}
       >
@@ -220,9 +222,15 @@ export function TripBrief({
           </Card>
 
           <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={download}>
-              {strings.passDownloadItinerary}
-            </Button>
+            {canUseTools ? (
+              <Button type="button" variant="outline" size="sm" onClick={download}>
+                {strings.passDownloadItinerary}
+              </Button>
+            ) : (
+              <Button asChild variant="outline" size="sm">
+                <Link to="/pass">{strings.passCtaMax}</Link>
+              </Button>
+            )}
             <Button asChild variant="ghost" size="sm">
               <Link to="/$country/$city" params={{ country: countrySlug, city: citySlug }} search={{ s: "itinerary" }}>
                 {strings.briefOpenPlan}

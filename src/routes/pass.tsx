@@ -22,18 +22,26 @@ export const Route = createFileRoute("/pass")({
 
 const TIERS = {
   en: {
-    free: ["Published city guides", "Monthly letter signup", "A teaser of what is closed on your dates"],
-    pro: [
-      "A trip brief for your dates: book now, closed days, where not to stay",
-      "The taxi / pass / tout that costs more than a year",
-      "Printable days and arrival notes for every published city",
+    free: [
+      "Homepage, globe, and every published city",
+      "Snapshot, why go, neighborhood names",
+      "A teaser of what is closed on your dates",
     ],
-    max: ["Everything in Pro", "Neighborhood notes before they ship", "The locker as each new city ships"],
+    pro: [
+      "The rest of the guide: stay, food rooms, mistakes, full days",
+      "A trip brief for your dates: book now, closed days, where not to stay",
+      "Read it all on screen — every published city",
+    ],
+    max: [
+      "Everything in Pro",
+      "Print, PDF, and Markdown downloads",
+      "Neighborhood notes before a city ships",
+    ],
   },
   zh: {
-    free: ["已发布的城市指南", "月度来信", "你日期里谁关门的一条预告"],
-    pro: ["按日期的出行简报：现在订、闭馆、不要住哪", "那趟贵过一年会员的出租车 / 通票 / 黄牛", "每座已发布城市的可打印日子和过境"],
-    max: ["包含 Pro 全部", "发稿前的街区笔记", "每座新城里的储物柜"],
+    free: ["首页、地球、每座已发布的城", "快照、为什么去、街区名字", "你日期里谁关门的一条预告"],
+    pro: ["指南剩下的：住哪、吃饭的房间、别犯的错、完整日子", "按日期的出行简报：现在订、闭馆、不要住哪", "屏幕上读完全部已发布城市"],
+    max: ["包含 Pro 全部", "打印、PDF、Markdown 下载", "发稿前的街区笔记"],
   },
 } as const;
 

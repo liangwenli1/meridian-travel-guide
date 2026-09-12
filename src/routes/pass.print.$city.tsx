@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { getGuide } from "@/data/guides";
 import { itineraryMarkdown, pickItinerary } from "@/lib/itinerary-doc";
-import { isActivePass } from "@/lib/pass/access";
+import { hasMaxPass } from "@/lib/pass/access";
 import { RedirectToSignIn } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { t, useI18n } from "@/lib/i18n";
@@ -37,7 +37,7 @@ function PrintItineraryPage() {
       return;
     }
     void getMembership()
-      .then((m) => setAllowed(isActivePass(m)))
+      .then((m) => setAllowed(hasMaxPass(m)))
       .catch(() => setAllowed(false));
   }, [isPending, user]);
 
@@ -48,9 +48,10 @@ function PrintItineraryPage() {
   if (!allowed) {
     return (
       <main className="min-h-dvh bg-void px-6 py-24 text-fg">
-        <p className="text-sm text-muted">{strings.passTeaserShort}</p>
+        <p className="text-sm text-muted">{strings.gateFeaturesTitle}</p>
+        <p className="mt-2 max-w-md text-sm text-muted">{strings.gateFeaturesDek}</p>
         <Link to="/pass" className="mt-4 inline-block text-accent hover:underline">
-          {strings.passTitle}
+          {strings.passCtaMax}
         </Link>
       </main>
     );

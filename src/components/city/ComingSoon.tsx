@@ -1,15 +1,21 @@
 import type { City } from "@/types/catalog";
 import { AmbientParticles } from "@/components/fx/AmbientParticles";
 import { LetterForm } from "@/components/letter/LetterForm";
+import { PassGate } from "@/components/pass/PassGate";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { Card, CardDescription, CardMeta, CardTitle } from "@/components/ui/Card";
 import { StatCell, StatGrid } from "@/components/ui/Grid";
+import { listNeighborhoodPreviews } from "@/data/pass";
 import { t, useI18n } from "@/lib/i18n";
+import { usePassEntitlements } from "@/lib/pass/use-entitlements";
 
 export function ComingSoon({ city }: { city: City }) {
   const locale = useI18n((s) => s.locale);
   const strings = t(locale);
+  const { canUseTools } = usePassEntitlements();
+  const preview = listNeighborhoodPreviews().find((item) => item.citySlug === city.slug);
+
   return (
     <main className="page-enter relative min-h-dvh bg-void text-fg">
       <AmbientParticles />
@@ -30,6 +36,24 @@ export function ComingSoon({ city }: { city: City }) {
             <StatCell label="Currency" value={`${city.currency} (${city.currencyCode})`} />
             <StatCell label="Airports" value={city.airportCodes.join(", ") || "—"} />
           </StatGrid>
+          {preview ? (
+            <div className="mt-10">
+              {canUseTools ? (
+                <Card padding="lg">
+                  <CardMeta>{strings.earlyNotesTitle}</CardMeta>
+                  <CardTitle className="mt-2">{preview.title[locale]}</CardTitle>
+                  <CardDescription className="whitespace-pre-wrap">{preview.body[locale]}</CardDescription>
+                </Card>
+              ) : (
+                <PassGate
+                  active={false}
+                  need="features"
+                  teaserTitle={preview.title[locale]}
+                  teaserBody={strings.gateFeaturesDek}
+                />
+              )}
+            </div>
+          ) : null}
           <Card className="mt-10" padding="lg">
             <CardMeta>{strings.waitlistKicker}</CardMeta>
             <CardTitle className="mt-2">{strings.waitlistTitle}</CardTitle>

@@ -18,15 +18,13 @@ import { PhotoStrip } from "./PhotoStrip";
 import { Section } from "./Section";
 import { StickyNav } from "./StickyNav";
 import { LetterForm } from "@/components/letter/LetterForm";
-import { PassGate } from "@/components/pass/PassGate";
+import { PassGate, LockedRest } from "@/components/pass/PassGate";
 import { TripBrief } from "@/components/pass/TripBrief";
 import { listOffseasonTables } from "@/data/pass";
 import { localizeGuide } from "@/lib/guide-locale";
-import { isActivePass } from "@/lib/pass/access";
-import { getMembership } from "@/lib/server/membership";
+import { usePassEntitlements } from "@/lib/pass/use-entitlements";
 import { downloadPassItinerary } from "@/lib/server/pass-locker";
 import { getChapterNotes } from "@/lib/server/editorial";
-import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -51,20 +49,9 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
   const strings = t(locale);
   const view = localizeGuide(guide, locale);
   const section = useSearch({ from: "/$country/$city" }).s ?? "overview";
-  const { user, isPending: authPending } = useCurrentUserState();
-  const [passActive, setPassActive] = useState(false);
+  const { canReadFull, canUseTools } = usePassEntitlements();
   const [downloading, setDownloading] = useState(false);
   const [chapterNote, setChapterNote] = useState("");
-
-  useEffect(() => {
-    if (authPending || !user) {
-      setPassActive(false);
-      return;
-    }
-    void getMembership()
-      .then((m) => setPassActive(isActivePass(m)))
-      .catch(() => setPassActive(false));
-  }, [authPending, user]);
 
   useEffect(() => {
     void getChapterNotes({ data: { citySlug: city.slug } })
@@ -169,7 +156,8 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
             citySlug={city.slug}
             cityName={city.name}
             countrySlug={city.countrySlug}
-            passActive={passActive}
+            canReadFull={canReadFull}
+            canUseTools={canUseTools}
           />
 
           <div className="mt-12 grid gap-4 md:grid-cols-2">
@@ -235,6 +223,8 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
               </CardHeader>
               <CardDescription>{area.vibe}</CardDescription>
               <p className="mt-3 text-xs text-muted">Best for {area.bestFor.join(", ")}</p>
+              {canReadFull ? (
+              <>
               <div className="mt-4 grid grid-cols-2 gap-2">
                 <div className="surface-inner">
                   <p className="kicker text-muted">Noise</p>
@@ -272,9 +262,12 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
                 </div>
               </div>
               <p className="mt-4 text-sm text-muted">Combine with {area.combineWith}</p>
+              </>
+              ) : null}
             </Card>
           ))}
         </Grid>
+        <LockedRest open={canReadFull} className="mt-8">
         <Table className="mt-8" caption="Best area for…">
           <THead>
             <tr>
@@ -293,6 +286,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
             ))}
           </tbody>
         </Table>
+        </LockedRest>
       </Section>
 
       <Section id="things-to-do" show={section === "things-to-do"} eyebrow="Time well spent" title="Attractions and things to do">
@@ -304,6 +298,8 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
                 <Badge variant={TIER_VARIANT[place.tier]}>{TIER_LABEL[place.tier]}</Badge>
               </CardHeader>
               <CardDescription>{place.summary}</CardDescription>
+              {canReadFull ? (
+              <>
               <p className="mt-2 text-sm text-fg">{place.whyItMatters}</p>
               <Grid min="sm" className="mt-4">
                 <Fact label="Duration" value={place.duration} />
@@ -327,9 +323,12 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
                 </Callout>
               </Grid>
               <p className="mt-3 text-sm text-muted">If it is crowded or closed: {place.alternative}</p>
+              </>
+              ) : null}
             </Card>
           ))}
         </div>
+        <LockedRest open={canReadFull} className="mt-8">
         <Grid min="md" className="mt-8">
           {view.thingsToDo.map((item) => (
             <Card key={item.title}>
@@ -366,6 +365,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
             </p>
           ))}
         </div>
+        </LockedRest>
       </Section>
 
       <Section id="food" show={section === "food"} eyebrow="What to eat" title="Food and drinks" intro={view.foodIntro}>
@@ -375,6 +375,8 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
               <CardTitle className="text-xl">{dish.name}</CardTitle>
               {dish.localName ? <p className="text-xs text-muted">{dish.localName}</p> : null}
               <CardDescription>{dish.what}</CardDescription>
+              {canReadFull ? (
+              <>
               <p className="mt-2 text-sm text-fg">{dish.taste}</p>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <Fact label="When" value={dish.when} />
@@ -383,9 +385,12 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
                 <Fact label="How to order" value={dish.howToOrder} />
               </div>
               {dish.note ? <p className="mt-3 text-sm text-muted">{dish.note}</p> : null}
+              </>
+              ) : null}
             </Card>
           ))}
         </Grid>
+        <LockedRest open={canReadFull} className="mt-8">
         <div className="mt-8 space-y-4">
           {view.foodThemes.map((theme) => (
             <Card key={theme.title} padding="sm">
@@ -427,31 +432,24 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
         </Grid>
         <div className="mt-10">
           <h3 className="kicker text-muted">{strings.deskOffseasonTitle}</h3>
-          {passActive ? (
-            <div className="mt-4 space-y-4">
-              {listOffseasonTables()
-                .filter((table) => table.citySlug === view.citySlug)
-                .map((table) => (
-                  <Card key={table.name.en} padding="sm">
-                    <CardTitle className="text-base">{table.name[locale]}</CardTitle>
-                    <p className="mt-1 text-xs text-muted">{table.neighborhood[locale]} · {table.seasonWindow[locale]}</p>
-                    <CardDescription className="mt-2">{table.why[locale]}</CardDescription>
-                    <p className="mt-2 text-sm text-fg">{table.howToGetIn[locale]}</p>
-                    {table.watchOut ? <p className="mt-2 text-sm text-warn">{table.watchOut[locale]}</p> : null}
-                  </Card>
-                ))}
-              {listOffseasonTables().filter((table) => table.citySlug === view.citySlug).length === 0 ? (
-                <p className="mt-3 text-sm text-muted">{strings.passLockerEmpty}</p>
-              ) : null}
-            </div>
-          ) : (
-            <div className="mt-4">
-              <PassGate active={false} teaserTitle={strings.deskOffseasonTeaser}>
-                {null}
-              </PassGate>
-            </div>
-          )}
+          <div className="mt-4 space-y-4">
+            {listOffseasonTables()
+              .filter((table) => table.citySlug === view.citySlug)
+              .map((table) => (
+                <Card key={table.name.en} padding="sm">
+                  <CardTitle className="text-base">{table.name[locale]}</CardTitle>
+                  <p className="mt-1 text-xs text-muted">{table.neighborhood[locale]} · {table.seasonWindow[locale]}</p>
+                  <CardDescription className="mt-2">{table.why[locale]}</CardDescription>
+                  <p className="mt-2 text-sm text-fg">{table.howToGetIn[locale]}</p>
+                  {table.watchOut ? <p className="mt-2 text-sm text-warn">{table.watchOut[locale]}</p> : null}
+                </Card>
+              ))}
+            {listOffseasonTables().filter((table) => table.citySlug === view.citySlug).length === 0 ? (
+              <p className="mt-3 text-sm text-muted">{strings.passLockerEmpty}</p>
+            ) : null}
+          </div>
         </div>
+        </LockedRest>
       </Section>
 
       <Section id="stay" show={section === "stay"} eyebrow="Where to sleep" title="Where to stay" intro={view.stayIntro}>
@@ -460,20 +458,24 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
             <Card key={area.name}>
               <CardTitle className="text-xl">{area.name}</CardTitle>
               <p className="mt-1 text-xs text-muted">Best for {area.bestFor.join(", ")}</p>
+              {canReadFull ? (
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <Fact label="Commute" value={area.commute} />
                 <Fact label="Price" value={area.priceHint} />
                 <Fact label="Noise" value={area.noise} />
                 <Fact label="Safety" value={area.safety} />
               </div>
+              ) : null}
             </Card>
           ))}
         </Grid>
+        <LockedRest open={canReadFull} className="mt-6">
         <ul className="mt-6 list-disc space-y-2 pl-5 text-sm text-muted">
           {view.stayNotes.map((note) => (
             <li key={note}>{note}</li>
           ))}
         </ul>
+        </LockedRest>
       </Section>
 
       <Section id="transport" show={section === "transport"} eyebrow="Getting in and around" title="Transport">
@@ -492,16 +494,21 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
               <Tr key={row.name}>
                 <Td>
                   <p className="font-medium">{row.name}</p>
-                  <p className="text-muted">{row.how}</p>
-                  {row.watchOut ? <p className="mt-1 text-warn">{row.watchOut}</p> : null}
+                  {canReadFull ? (
+                    <>
+                      <p className="text-muted">{row.how}</p>
+                      {row.watchOut ? <p className="mt-1 text-warn">{row.watchOut}</p> : null}
+                    </>
+                  ) : null}
                 </Td>
                 <Td>{row.time}</Td>
-                <Td>{row.cost}</Td>
-                <Td>{row.bestFor}</Td>
+                <Td>{canReadFull ? row.cost : "—"}</Td>
+                <Td>{canReadFull ? row.bestFor : "—"}</Td>
               </Tr>
             ))}
           </tbody>
         </Table>
+        <LockedRest open={canReadFull} className="mt-8">
         <Grid min="md" className="mt-8">
           {view.gettingAround.map((item) => (
             <Card key={item.title}>
@@ -521,6 +528,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
             </Card>
           ))}
         </Grid>
+        </LockedRest>
       </Section>
 
       <Section id="money" show={section === "money"} eyebrow="Costs" title="Budget and payments">
@@ -536,6 +544,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
             </Card>
           ))}
         </Grid>
+        <LockedRest open={canReadFull} className="mt-6">
         <div className="mt-6">
           <BudgetChart budget={view.budget} />
         </div>
@@ -590,6 +599,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
             </Card>
           ))}
         </Grid>
+        </LockedRest>
       </Section>
 
       <Section id="connectivity" show={section === "connectivity"} eyebrow="Before you fly" title="Visa, SIM, and weather">
@@ -779,7 +789,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
 
       <Section id="itinerary" show={section === "itinerary"} eyebrow="Time" title="Suggested itineraries">
         <div className="mb-6 flex flex-wrap gap-2">
-          <PassGate active={passActive} teaserTitle={strings.passTeaserShort}>
+          <PassGate active={canUseTools} need="features" teaserTitle={strings.gateFeaturesTitle}>
             <Button variant="outline" size="sm" disabled={downloading} onClick={() => void downloadItinerary()}>
               {downloading ? strings.passDownloading : strings.passDownloadItinerary}
             </Button>
@@ -800,10 +810,10 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
         </Grid>
         <div className="space-y-8">
           {view.itineraries.map((plan, planIndex) => {
-            const freeDays = passActive || planIndex > 0 ? [] : plan.daysPlan.slice(0, 1);
+            const freeDays = canReadFull || planIndex > 0 ? [] : plan.daysPlan.slice(0, 1);
             const lockedDays =
-              passActive ? [] : planIndex === 0 ? plan.daysPlan.slice(1) : plan.daysPlan;
-            const visibleDays = passActive ? plan.daysPlan : freeDays;
+              canReadFull ? [] : planIndex === 0 ? plan.daysPlan.slice(1) : plan.daysPlan;
+            const visibleDays = canReadFull ? plan.daysPlan : freeDays;
 
             return (
               <Card key={plan.title} padding="lg">
@@ -832,7 +842,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
                       <p className="mt-2 text-sm text-muted">If it rains: {day.rainPlan}</p>
                     </div>
                   ))}
-                  {!passActive && lockedDays.length > 0 ? (
+                  {!canReadFull && lockedDays.length > 0 ? (
                     <PassGate
                       active={false}
                       teaserTitle={strings.deskItineraryTeaser}
