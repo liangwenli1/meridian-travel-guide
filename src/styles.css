@@ -532,6 +532,85 @@
   }
 }
 
+.city-orb {
+  width: 2.25rem;
+}
+
+.city-orb-loop {
+  animation: city-orb-morph 9s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.city-orb-open {
+  animation: none;
+  width: 11.5rem;
+}
+
+.city-orb-open .city-orb-copy {
+  animation: none;
+  opacity: 1;
+}
+
+.city-orb-copy {
+  opacity: 0;
+}
+
+.city-orb-loop .city-orb-copy {
+  animation: city-orb-copy 9s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.mini-earth {
+  display: block;
+  border-radius: 50%;
+  background-color: #070706;
+  background-image: url("/globe/earth-dark.jpg");
+  background-repeat: repeat-x;
+  background-size: auto 100%;
+  background-position: 0 50%;
+  box-shadow:
+    inset -8px -1px 11px rgb(0 0 0 / 0.8),
+    inset 2px 2px 5px rgb(243 243 232 / 0.12);
+  animation: mini-earth-spin 16s linear infinite;
+}
+
+@keyframes mini-earth-spin {
+  from {
+    background-position: 0 50%;
+  }
+  to {
+    background-position: 200% 50%;
+  }
+}
+
+@keyframes city-orb-morph {
+  0%,
+  22% {
+    width: 2.25rem;
+  }
+  34%,
+  68% {
+    width: 11.5rem;
+  }
+  80%,
+  100% {
+    width: 2.25rem;
+  }
+}
+
+@keyframes city-orb-copy {
+  0%,
+  26% {
+    opacity: 0;
+  }
+  34%,
+  68% {
+    opacity: 1;
+  }
+  76%,
+  100% {
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

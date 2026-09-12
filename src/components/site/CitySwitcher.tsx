@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Globe } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/Popover";
 import { t, useI18n } from "@/lib/i18n";
+import { usePrefersReducedMotion } from "@/lib/motion";
 import { getHomeCatalog } from "@/lib/server/catalog";
 import { cn } from "@/lib/utils";
 import type { City } from "@/types/catalog";
@@ -11,14 +11,57 @@ export function CitySwitcher() {
   const locale = useI18n((s) => s.locale);
   const strings = t(locale);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { reduced } = usePrefersReducedMotion();
   const [open, setOpen] = useState(false);
+  const [hover, setHover] = useState(false);
   const [cities, setCities] = useState<City[]>([]);
+  const [tick, setTick] = useState(0);
 
   useEffect(() => {
     void getHomeCatalog()
-      .then((data) => setCities(data.cities))
+      .then((data) => {
+        const published = data.cities.filter((city) => city.contentStatus === "published");
+        setCities(published.length ? published : data.cities);
+      })
       .catch(() => setCities([]));
   }, []);
+
+  useEffect(() => {
+    if (reduced || cities.length === 0) return;
+    const id = window.setInterval(() => setTick((n) => n + 1), 2200);
+    return () => window.clearInterval(id);
+  }, [reduced, cities.length]);
+
+  const featured = cities.length ? cities[tick % cities.length] : null;
+
+  const list = (
+    <ul className="grid max-h-[min(22rem,calc(100vh-7rem))] grid-cols-2 gap-1 overflow-y-auto overscroll-contain pr-1">
+      {cities.map((city) => {
+        const href = `/${city.countrySlug}/${city.slug}`;
+        const current = pathname === href || pathname.startsWith(`${href}/`);
+        return (
+          <li key={city.id}>
+            <Link
+              to="/$country/$city"
+              params={{ country: city.countrySlug, city: city.slug }}
+              search={{ s: "overview" }}
+              onClick={() => setOpen(false)}
+              className={cn(
+                "block rounded-xl px-2.5 py-2 text-sm transition-colors",
+                current ? "bg-accent text-void" : "text-fg hover:bg-void-elevated",
+              )}
+            >
+              <span className="block truncate font-medium">{city.name}</span>
+              <span className={cn("mt-0.5 block truncate text-xs", current ? "text-void/70" : "text-muted")}>
+                {city.country}
+                {city.contentStatus === "coming-soon" ? ` · ${strings.comingSoon}` : ""}
+              </span>
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -26,39 +69,26 @@ export function CitySwitcher() {
         <button
           type="button"
           aria-label={strings.switchCity}
-          className="grid size-9 place-items-center rounded-full bg-void-elevated text-fg shadow-border outline-none hover:shadow-border-hover focus-visible:shadow-border-hover"
+          onMouseEnter={() => setHover(true)}
+          onMouseLeave={() => setHover(false)}
+          className={cn(
+            "city-orb relative flex h-9 items-center overflow-hidden rounded-full bg-void-elevated text-left shadow-border outline-none",
+            "hover:shadow-border-hover focus-visible:shadow-border-hover",
+            reduced && "w-9",
+            !reduced && "city-orb-loop",
+            hover && !reduced && "city-orb-open",
+          )}
         >
-          <Globe className="size-4" strokeWidth={1.75} />
+          <span className="mini-earth pointer-events-none size-9 shrink-0" aria-hidden />
+          <span className="city-orb-copy min-w-0 flex-1 pr-3 pl-1">
+            <span className="block text-[9px] tracking-[0.18em] text-muted uppercase">{strings.switchCity}</span>
+            <span className="block truncate text-xs font-medium text-fg">{featured?.name ?? strings.switchCity}</span>
+          </span>
         </button>
       </PopoverTrigger>
       <PopoverContent align="end" className="flex w-80 flex-col p-2">
         <p className="shrink-0 px-2 py-1.5 text-[11px] tracking-[0.16em] text-muted uppercase">{strings.switchCity}</p>
-        <ul className="grid max-h-[min(22rem,calc(100vh-7rem))] grid-cols-2 gap-1 overflow-y-auto overscroll-contain pr-1">
-          {cities.map((city) => {
-            const href = `/${city.countrySlug}/${city.slug}`;
-            const current = pathname === href || pathname.startsWith(`${href}/`);
-            return (
-              <li key={city.id}>
-                <Link
-                  to="/$country/$city"
-                  params={{ country: city.countrySlug, city: city.slug }}
-                  search={{ s: "overview" }}
-                  onClick={() => setOpen(false)}
-                  className={cn(
-                    "block rounded-xl px-2.5 py-2 text-sm transition-colors",
-                    current ? "bg-accent text-void" : "text-fg hover:bg-void-elevated",
-                  )}
-                >
-                  <span className="block truncate font-medium">{city.name}</span>
-                  <span className={cn("mt-0.5 block truncate text-xs", current ? "text-void/70" : "text-muted")}>
-                    {city.country}
-                    {city.contentStatus === "coming-soon" ? ` · ${strings.comingSoon}` : ""}
-                  </span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+        {list}
       </PopoverContent>
     </Popover>
   );
