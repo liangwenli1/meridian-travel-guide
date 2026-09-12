@@ -7,6 +7,10 @@ import { getHomeCatalog } from "@/lib/server/catalog";
 import { cn } from "@/lib/utils";
 import type { City } from "@/types/catalog";
 
+const SLIDE_MS = 2400;
+const REST_MS = 6000;
+const HOLD_MS = 4000;
+
 function WireGlobe({ reduced }: { reduced: boolean }) {
   return (
     <span className={cn("wire-globe", !reduced && "wire-globe-live")} aria-hidden>
@@ -30,7 +34,9 @@ export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
   const { reduced } = usePrefersReducedMotion();
   const [open, setOpen] = useState(false);
   const [hover, setHover] = useState(false);
+  const [autoOpen, setAutoOpen] = useState(false);
   const [cities, setCities] = useState<City[]>([]);
+  const pinned = hover || open;
 
   useEffect(() => {
     void getHomeCatalog()
@@ -38,14 +44,44 @@ export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
       .catch(() => setCities([]));
   }, []);
 
+  useEffect(() => {
+    setOpen(false);
+    setHover(false);
+    setAutoOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (reduced || pinned) return;
+    let cancelled = false;
+    let timer = 0;
+    const wait = (ms: number) =>
+      new Promise<void>((resolve) => {
+        timer = window.setTimeout(resolve, ms);
+      });
+    const run = async () => {
+      while (!cancelled) {
+        await wait(REST_MS);
+        if (cancelled) return;
+        setAutoOpen(true);
+        await wait(SLIDE_MS + HOLD_MS);
+        if (cancelled) return;
+        setAutoOpen(false);
+        await wait(SLIDE_MS);
+      }
+    };
+    void run();
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [reduced, pinned]);
+
+  const expanded = !reduced && (pinned || autoOpen);
+
   return (
     <div
       onMouseLeave={() => setHover(false)}
-      className={cn(
-        "city-orb relative flex h-9 items-center",
-        !reduced && "city-orb-loop",
-        (hover || open) && !reduced && "city-orb-open",
-      )}
+      className={cn("city-orb relative flex h-9 items-center", expanded && "city-orb-open")}
     >
       <Link
         to="/"
@@ -60,7 +96,13 @@ export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
       >
         <WireGlobe reduced={reduced} />
       </Link>
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover
+        open={open}
+        onOpenChange={(next) => {
+          setOpen(next);
+          if (!next) setHover(false);
+        }}
+      >
         <div className="city-orb-label">
           <PopoverTrigger asChild>
             <button
@@ -84,7 +126,11 @@ export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
                     to="/$country/$city"
                     params={{ country: city.countrySlug, city: city.slug }}
                     search={{ s: "overview" }}
-                    onClick={() => setOpen(false)}
+                    onClick={() => {
+                      setOpen(false);
+                      setHover(false);
+                      setAutoOpen(false);
+                    }}
                     className={cn(
                       "block truncate rounded-lg px-2 py-1.5 text-sm transition-colors",
                       current ? "bg-accent font-medium text-void" : "text-fg hover:bg-void-elevated",
