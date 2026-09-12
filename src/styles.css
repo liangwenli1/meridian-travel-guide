@@ -1,4 +1,12 @@
 @import "tailwindcss";
+/* Never scan build output for class candidates: in Docker there is no .gitignore to skip it,
+   and scanning .output/ during the server build changes the CSS (and its hash) after the
+   client build already shipped its copy. */
+@source not "../.output";
+@source not "../.nitro";
+@source not "../.tanstack";
+@source not "../.vercel";
+@source not "../dist";
 
 @theme {
   --color-void: #000000;
@@ -218,49 +226,10 @@
 
 /* Copy column: one centre axis for the headline, the question and the search box,
    pushed up and in from the left edge so the block reads as a poster on the left half. */
-.hero-copy {
-  container-type: inline-size;
-}
-
 @media (min-width: 768px) {
-  .hero-copy {
-    margin-left: 5vw;
-    padding-bottom: 12vh;
-  }
-}
-
-@media (min-width: 1440px) {
   .hero-copy {
     margin-left: 6vw;
     padding-bottom: 16vh;
-  }
-}
-
-@media (max-height: 900px) and (min-width: 768px) {
-  .hero-copy {
-    padding-bottom: 6vh;
-  }
-
-  .hero-ask-where {
-    font-size: clamp(3.1rem, 16cqi, 6.4rem);
-  }
-
-  .hero-ask-rest {
-    font-size: clamp(1.35rem, 5.2cqi, 2.35rem);
-  }
-
-  .hero-search {
-    margin-top: 1.5rem;
-  }
-}
-
-@media (max-height: 760px) and (min-width: 768px) {
-  .hero-ask-where {
-    font-size: clamp(2.6rem, 13cqi, 5.2rem);
-  }
-
-  .hero-ask-rest {
-    font-size: clamp(1.2rem, 4.4cqi, 1.9rem);
   }
 }
 
@@ -332,6 +301,49 @@
   color: var(--color-fg);
   line-height: 1;
   white-space: nowrap;
+}
+
+/* Laptops (short viewports, ≥768px wide): keep the desktop proportions, scale the whole stack
+   with the viewport height instead of the container width, so nothing crowds the header. */
+@media (min-width: 768px) and (max-height: 900px) {
+  .hero-ask-where {
+    font-size: clamp(3.6rem, min(22cqi, 15.5vh), 9.4rem);
+  }
+
+  .hero-ask-rest {
+    font-size: clamp(1.5rem, min(7.4cqi, 5.2vh), 3.5rem);
+  }
+
+  .hero-search {
+    margin-top: clamp(3rem, 10vh, 6rem);
+  }
+}
+
+/* Phones: the globe sits behind the copy, so drop the block into the lower third (sparser labels,
+   thumb reach) and tighten the stack. */
+@media (max-width: 767px) {
+  .hero-copy {
+    justify-content: flex-end;
+    padding-bottom: 12vh;
+  }
+
+  .hero-ask-where {
+    font-size: clamp(3.6rem, 21cqi, 6rem);
+  }
+
+  .hero-ask-rest {
+    margin-top: 0.34em;
+    font-size: clamp(1.45rem, 7cqi, 2.2rem);
+  }
+
+  .hero-search {
+    margin-top: 2.75rem;
+  }
+
+  /* The globe sits behind the headline on phones: keep its labels, but let the copy win. */
+  .globe-stage button {
+    opacity: 0.4;
+  }
 }
 
 .guide-shell {
