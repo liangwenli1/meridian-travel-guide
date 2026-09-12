@@ -124,28 +124,56 @@ type AssembleInput = {
   faq: CityGuide["faq"];
   sources: CityGuide["sources"];
   lastUpdated?: string;
+  hiddenGems?: CityGuide["hiddenGems"];
+  localExperiences?: CityGuide["localExperiences"];
+  everydayLife?: CityGuide["everydayLife"];
+  foodThemes?: CityGuide["foodThemes"];
+  shopping?: CityGuide["shopping"];
+  stayNotes?: CityGuide["stayNotes"];
+  bestAreaFor?: CityGuide["bestAreaFor"];
+  dayTrips?: CityGuide["dayTrips"];
+  seasons?: CityGuide["seasons"];
+  weatherTips?: CityGuide["weatherTips"];
+  festivals?: CityGuide["festivals"];
+  budget?: CityGuide["budget"];
+  timePlanning?: CityGuide["timePlanning"];
+  connectivity?: CityGuide["connectivity"];
+  payments?: CityGuide["payments"];
+  etiquette?: CityGuide["etiquette"];
+  taboos?: CityGuide["taboos"];
+  accessibility?: CityGuide["accessibility"];
+  byTraveler?: CityGuide["byTraveler"];
+  touristsGetWrong?: CityGuide["touristsGetWrong"];
+  localModules?: CityGuide["localModules"];
+  phrases?: CityGuide["phrases"];
 };
 
 export function assembleGuide(input: AssembleInput): CityGuide {
   return {
     ...input,
     lastUpdated: input.lastUpdated ?? "September 2026",
-    hiddenGems: input.thingsToDo.slice(0, 2).map((item) => ({
-      title: item.title,
-      body: item.body,
-    })),
-    localExperiences: input.culture.slice(0, 2),
-    everydayLife: input.gettingAround.slice(0, 2),
-    foodThemes: [{ title: "How to eat", body: input.foodIntro }],
-    shopping: [{ title: "Shop later", body: "Walk first. Buy on the last afternoon if you still want the object." }],
-    stayNotes: ["Price the walk home after 23:00, not only the nightly rate."],
-    bestAreaFor: input.stayAreas.map((area) => ({
-      persona: area.bestFor[0] ?? "Most travelers",
-      area: area.name,
-      why: area.commute,
-    })),
-    dayTrips: [],
-    seasons: [
+    hiddenGems:
+      input.hiddenGems ??
+      input.thingsToDo.slice(0, 3).map((item) => ({
+        title: item.title,
+        body: item.body,
+      })),
+    localExperiences: input.localExperiences ?? input.culture.slice(0, 3),
+    everydayLife: input.everydayLife ?? input.gettingAround.slice(0, 3),
+    foodThemes: input.foodThemes ?? [{ title: "How to eat", body: input.foodIntro }],
+    shopping: input.shopping ?? [
+      { title: "Shop later", body: "Walk first. Buy on the last afternoon if you still want the object." },
+    ],
+    stayNotes: input.stayNotes ?? ["Price the walk home after 23:00, not only the nightly rate."],
+    bestAreaFor:
+      input.bestAreaFor ??
+      input.stayAreas.map((area) => ({
+        persona: area.bestFor[0] ?? "Most travelers",
+        area: area.name,
+        why: area.commute,
+      })),
+    dayTrips: input.dayTrips ?? [],
+    seasons: input.seasons ?? [
       {
         name: "Shoulder",
         forWhom: "Almost everyone",
@@ -154,9 +182,11 @@ export function assembleGuide(input: AssembleInput): CityGuide {
         pack: "A layer you can walk in.",
       },
     ],
-    weatherTips: [{ title: "Walk anyway", body: "A short rain is not a reason to take a taxi across town." }],
-    festivals: [],
-    budget: {
+    weatherTips: input.weatherTips ?? [
+      { title: "Walk anyway", body: "A short rain is not a reason to take a taxi across town." },
+    ],
+    festivals: input.festivals ?? [],
+    budget: input.budget ?? {
       currency: input.snapshot.currency,
       asOf: "2026",
       bands: [
@@ -179,21 +209,27 @@ export function assembleGuide(input: AssembleInput): CityGuide {
       worthSpending: ["The one interior you booked.", "A neighborhood dinner you will repeat."],
       worthSaving: ["A second viewpoint.", "A hotel next to a monument because the map looks central."],
     },
-    timePlanning: [
+    timePlanning: input.timePlanning ?? [
       { title: "How many days", body: input.snapshot.typicalStay },
       { title: "Arrival day", body: "One neighborhood and a normal meal. Do not book a 10:00 interior after a dawn landing." },
     ],
-    connectivity: [{ title: "eSIM first", body: "Install before you land. Cafe Wi-Fi is a backup, not a plan." }],
-    payments: [{ title: "Cards", body: input.snapshot.cashVsCard }],
-    etiquette: [{ do: "Greet before you ask.", dont: "Film people eating.", why: "You are in their canteen." }],
-    taboos: ["Do not treat a working neighborhood as a set."],
-    accessibility: [{ title: "Stairs", body: "Assume stairs. Check the one museum you care about for step-free routes." }],
-    byTraveler: [
+    connectivity: input.connectivity ?? [
+      { title: "eSIM first", body: "Install before you land. Cafe Wi-Fi is a backup, not a plan." },
+    ],
+    payments: input.payments ?? [{ title: "Cards", body: input.snapshot.cashVsCard }],
+    etiquette: input.etiquette ?? [
+      { do: "Greet before you ask.", dont: "Film people eating.", why: "You are in their canteen." },
+    ],
+    taboos: input.taboos ?? ["Do not treat a working neighborhood as a set."],
+    accessibility: input.accessibility ?? [
+      { title: "Stairs", body: "Assume stairs. Check the one museum you care about for step-free routes." },
+    ],
+    byTraveler: input.byTraveler ?? [
       { persona: "First visit", tips: input.shortVersion.slice(0, 3) },
       { persona: "Return", tips: ["Pick one neighborhood and stay there after dark."] },
     ],
-    touristsGetWrong: input.realityCheck.slice(0, 3),
-    localModules: input.culture.slice(0, 1),
-    phrases: [],
+    touristsGetWrong: input.touristsGetWrong ?? input.realityCheck.slice(0, 4),
+    localModules: input.localModules ?? input.culture.slice(0, 2),
+    phrases: input.phrases ?? [],
   };
 }

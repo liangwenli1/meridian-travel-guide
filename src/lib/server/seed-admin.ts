@@ -54,8 +54,13 @@ async function seedAdmin() {
   const { admin } = loadSiteConfig();
   const email = admin.email.trim().toLowerCase();
   const password = admin.password;
-  if (!email.includes("@") || password.length < 8) {
-    throw new Error("config.json admin.email / admin.password are missing or too short (min 8)");
+  if (
+    isPlaceholder(email) ||
+    isPlaceholder(password) ||
+    !email.includes("@") ||
+    password.length < 8
+  ) {
+    return;
   }
 
   const sql = await getSql();

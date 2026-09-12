@@ -92,6 +92,8 @@ function asGuide(payload: unknown): CityGuide {
   return value as CityGuide;
 }
 
+const GUIDE_SEED_REV = 30;
+let lastSeedRev = 0;
 let seedPromise: Promise<void> | null = null;
 
 async function seedCatalog() {
@@ -162,6 +164,10 @@ async function seedCatalog() {
 }
 
 export function ensureSeeded() {
+  if (lastSeedRev !== GUIDE_SEED_REV) {
+    seedPromise = null;
+    lastSeedRev = GUIDE_SEED_REV;
+  }
   seedPromise ??= seedCatalog().catch((err) => {
     seedPromise = null;
     throw err;

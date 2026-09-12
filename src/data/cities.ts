@@ -131,7 +131,7 @@ export const cities: City[] = [
     languages: ["Japanese"],
     airportCodes: ["KIX", "ITM"],
     shortDescription: "Japan's kitchen: street food, comedy, and a blunt, generous city manner.",
-    contentStatus: "coming-soon",
+    contentStatus: "published",
   },
   {
     id: "nara",
@@ -307,7 +307,7 @@ export const cities: City[] = [
     languages: ["English", "Spanish"],
     airportCodes: ["LAX"],
     shortDescription: "A constellation of cities under one name, best understood by car, light rail, and patience.",
-    contentStatus: "coming-soon",
+    contentStatus: "published",
   },
   {
     id: "san-francisco",
@@ -505,7 +505,7 @@ export const cities: City[] = [
     languages: ["Arabic", "English"],
     airportCodes: ["DXB", "DWC"],
     shortDescription: "A desert port rebuilt as a global hub — intense heat, long distances, and very specific rules.",
-    contentStatus: "coming-soon",
+    contentStatus: "published",
   },
   {
     id: "istanbul",
@@ -615,7 +615,7 @@ export const cities: City[] = [
     languages: ["Czech"],
     airportCodes: ["PRG"],
     shortDescription: "A fairytale core with a real city around it — best when you leave the main square.",
-    contentStatus: "coming-soon",
+    contentStatus: "published",
   },
   {
     id: "lyon",
@@ -769,7 +769,7 @@ export const cities: City[] = [
     languages: ["English"],
     airportCodes: ["MEL"],
     shortDescription: "Laneways, coffee, and a cultural city that prefers weather complaints to showmanship.",
-    contentStatus: "coming-soon",
+    contentStatus: "published",
   },
   {
     id: "vancouver",
@@ -879,7 +879,7 @@ export const cities: City[] = [
     languages: ["English", "Afrikaans", "isiXhosa"],
     airportCodes: ["CPT"],
     shortDescription: "A dramatic peninsula city of mountains, townships, and a wine hinterland.",
-    contentStatus: "coming-soon",
+    contentStatus: "published",
   },
   {
     id: "marrakech",
@@ -923,7 +923,7 @@ export const cities: City[] = [
     languages: ["Vietnamese"],
     airportCodes: ["HAN"],
     shortDescription: "Lakes, scooters, and a northern Vietnamese capital with a colder, more literary air than the south.",
-    contentStatus: "coming-soon",
+    contentStatus: "published",
   },
   {
     id: "cusco",
@@ -989,7 +989,7 @@ export const cities: City[] = [
     languages: ["Greek"],
     airportCodes: ["ATH"],
     shortDescription: "Ancient hills over a noisy, likeable Mediterranean capital.",
-    contentStatus: "coming-soon",
+    contentStatus: "published",
   },
   {
     id: "auckland",
@@ -1077,7 +1077,7 @@ export const cities: City[] = [
     languages: ["English"],
     airportCodes: ["ORD", "MDW"],
     shortDescription: "A lake-facing grid of architecture, neighbourhoods, and winters you should take seriously.",
-    contentStatus: "coming-soon",
+    contentStatus: "published",
   },
   {
     id: "venice",
@@ -1121,7 +1121,7 @@ export const cities: City[] = [
     languages: ["Italian"],
     airportCodes: ["FLR", "PSA"],
     shortDescription: "Renaissance density in a walkable bowl — better with reservations and an off-peak morning.",
-    contentStatus: "coming-soon",
+    contentStatus: "published",
   },
 ];
 
