@@ -3,18 +3,53 @@ import { persist } from "zustand/middleware";
 
 export type Locale = "en" | "zh";
 
+export function detectLocale(langs: readonly string[] = []): Locale {
+  const list =
+    langs.length > 0
+      ? langs
+      : typeof navigator === "undefined"
+        ? []
+        : navigator.languages?.length
+          ? navigator.languages
+          : navigator.language
+            ? [navigator.language]
+            : [];
+  for (const raw of list) {
+    const code = raw.toLowerCase();
+    if (code.startsWith("zh")) return "zh";
+  }
+  return "en";
+}
+
 type I18nState = {
   locale: Locale;
+  chosen: boolean;
   setLocale: (locale: Locale) => void;
+  applyDetected: (locale: Locale) => void;
 };
 
 export const useI18n = create<I18nState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       locale: "en",
-      setLocale: (locale) => set({ locale }),
+      chosen: false,
+      setLocale: (locale) => set({ locale, chosen: true }),
+      applyDetected: (locale) => {
+        if (!get().chosen) set({ locale });
+      },
     }),
-    { name: "meridian-locale" },
+    {
+      name: "meridian-locale",
+      version: 1,
+      migrate: (persisted) => {
+        const row = persisted as { locale?: string; chosen?: boolean } | undefined;
+        const locale: Locale = row?.locale === "zh" ? "zh" : "en";
+        if (row && row.chosen === undefined) {
+          return { locale, chosen: true };
+        }
+        return { locale, chosen: Boolean(row?.chosen) };
+      },
+    },
   ),
 );
 
@@ -25,6 +60,9 @@ export const copy = {
     search: "Search a city or country",
     skip: "Skip to search",
     globe: "Globe",
+    switchCity: "Cities",
+    settings: "Settings",
+    language: "Language",
     noMatch: "No matching city yet.",
     country: "Country",
     comingSoon: "Coming soon",
@@ -340,6 +378,9 @@ export const copy = {
     search: "搜索城市或国家",
     skip: "跳到搜索",
     globe: "地球",
+    switchCity: "城市",
+    settings: "设置",
+    language: "语言",
     noMatch: "还没有匹配的城市。",
     country: "国家",
     comingSoon: "即将推出",

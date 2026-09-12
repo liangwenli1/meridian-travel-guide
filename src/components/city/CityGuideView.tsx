@@ -108,7 +108,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
       <AmbientParticles />
       <JsonLd city={city} guide={guide} />
       <div className="relative z-10">
-      <SiteHeader overlay className="px-4 md:px-8" />
+      <SiteHeader className="px-4 md:px-8" />
 
       <section className="relative isolate min-h-[72vh] overflow-hidden">
         <img
@@ -118,7 +118,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           className="content-img absolute inset-0 size-full object-cover"
         />
         <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.82),rgba(0,0,0,0.2)_55%,rgba(0,0,0,0.4))]" />
-        <div className="relative guide-shell flex min-h-[72vh] flex-col justify-end pt-28 pb-12 md:pb-16">
+        <div className="relative guide-shell flex min-h-[72vh] flex-col justify-end pt-12 pb-12 md:pb-16">
           <p className="kicker text-silver">
             {city.country} · Travel guide
           </p>

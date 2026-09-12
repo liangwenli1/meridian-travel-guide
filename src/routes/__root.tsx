@@ -2,6 +2,7 @@ import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-r
 import { createServerFn } from "@tanstack/react-start";
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
+import { LocaleBootstrap } from "@/components/site/LocaleBootstrap";
 import { SITE } from "@/lib/site";
 import { Toaster } from "sonner";
 // Side-effect import: the stylesheet is attached to the root route in the client build
@@ -70,6 +71,7 @@ function RootDocument() {
       </head>
       <body>
         <PreviewHostBridge />
+        <LocaleBootstrap />
         <AuthProvider>
           <Outlet />
         </AuthProvider>

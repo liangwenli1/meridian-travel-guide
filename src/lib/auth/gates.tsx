@@ -9,6 +9,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/DropdownMenu";
 import { t, useI18n } from "@/lib/i18n";
+import { usePassEntitlements } from "@/lib/pass/use-entitlements";
+import { cn } from "@/lib/utils";
 import { GROK_PROVIDERS, authEnabled, signIn, signOut } from "./client";
 import { hasGateSessionMarker } from "./gate-session-marker";
 import { resolveSignInGateState } from "./sign-in-gate";
@@ -100,6 +102,7 @@ export function UserButton() {
   const user = useCurrentUser();
   const locale = useI18n((s) => s.locale);
   const strings = t(locale);
+  const { plan, ready } = usePassEntitlements();
   const [signingOut, setSigningOut] = useState(false);
   const gateSession = useSyncExternalStore(
     subscribeToNothing,
@@ -114,13 +117,22 @@ export function UserButton() {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="rounded-full outline-none focus-visible:shadow-border-hover"
+          className="relative rounded-full outline-none focus-visible:shadow-border-hover"
           aria-label={strings.account}
         >
           <Avatar>
             {user.profileImageUrl ? <AvatarImage src={user.profileImageUrl} alt="" /> : null}
             <AvatarFallback>{initial}</AvatarFallback>
           </Avatar>
+          {ready ? (
+            <span
+              aria-hidden
+              className={cn(
+                "pointer-events-none absolute right-0 bottom-0 size-2.5 rounded-full ring-2 ring-void",
+                plan === "free" ? "bg-muted" : "bg-accent",
+              )}
+            />
+          ) : null}
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

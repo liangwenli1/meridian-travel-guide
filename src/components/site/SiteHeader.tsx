@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { LanguageToggle } from "@/components/site/LanguageToggle";
+import { CitySwitcher } from "@/components/site/CitySwitcher";
 import { Button } from "@/components/ui/Button";
 import { SignedIn, SignedOut, UserButton } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
@@ -22,7 +22,7 @@ export function SiteHeader({
     <header
       className={cn(
         "relative z-20 flex items-center justify-between gap-3 px-6 py-4 md:px-12 lg:px-16",
-        overlay && "absolute top-0 right-0 left-0",
+        overlay ? "absolute top-0 right-0 left-0" : "bg-void",
         className,
       )}
     >
@@ -30,7 +30,7 @@ export function SiteHeader({
         {SITE.name}
       </Link>
       <div className="flex items-center gap-2 md:gap-3">
-        <LanguageToggle />
+        <CitySwitcher />
         {isPending ? (
           <div className="size-9 animate-pulse rounded-full bg-void-elevated" />
         ) : (

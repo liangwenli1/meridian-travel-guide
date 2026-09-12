@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { listPublishedCities } from "@/lib/server/catalog";
+import { LanguageToggle } from "@/components/site/LanguageToggle";
 import { t, useI18n } from "@/lib/i18n";
 import { SITE } from "@/lib/site";
 import type { City } from "@/types/catalog";
@@ -55,9 +56,12 @@ export function SiteFooter() {
           </ul>
         </nav>
       </div>
-      <p className="px-6 pb-8 text-xs text-muted md:px-10 lg:px-14">
-        © {new Date().getFullYear()} {SITE.name}. Land outlines: Natural Earth (public domain). City photos: Unsplash.
-      </p>
+      <div className="flex flex-col-reverse items-start gap-4 px-6 pb-8 sm:flex-row sm:items-end sm:justify-between md:px-10 lg:px-14">
+        <p className="text-xs text-muted">
+          © {new Date().getFullYear()} {SITE.name}. Land outlines: Natural Earth (public domain). City photos: Unsplash.
+        </p>
+        <LanguageToggle />
+      </div>
     </footer>
   );
 }

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AdminWorkspace } from "@/routes/admin";
 import { DeskCard, DeskFrame } from "@/components/desk/DeskFrame";
+import { LanguageToggle } from "@/components/site/LanguageToggle";
 import { PassGate } from "@/components/pass/PassGate";
 import { Button } from "@/components/ui/Button";
 import { RedirectToSignIn } from "@/lib/auth/gates";
@@ -184,6 +185,11 @@ function AccountPage() {
         </DeskCard>
         <DeskCard meta={strings.account} title={user.primaryEmail ?? strings.email}>
           <p>{strings.myDeskSignedIn}</p>
+        </DeskCard>
+        <DeskCard meta={strings.settings} title={strings.language}>
+          <div className="mt-3">
+            <LanguageToggle />
+          </div>
         </DeskCard>
       </div>
 
