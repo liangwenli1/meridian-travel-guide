@@ -545,30 +545,28 @@
 }
 
 .city-orb-loop {
-  animation: city-orb-morph 9s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  animation: city-orb-width 13s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.city-orb-ghost.city-orb-loop {
+  animation:
+    city-orb-width 13s cubic-bezier(0.4, 0, 0.2, 1) infinite,
+    city-orb-fill 13s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 .city-orb-open {
   animation: none;
-  width: 10rem;
+  width: 10.5rem;
+  background: #000;
 }
 
 .city-orb-ghost.city-orb-open {
-  background: rgb(0 0 0 / 0.22);
-  backdrop-filter: blur(12px);
-}
-
-.city-orb-open .city-orb-copy {
-  animation: none;
-  opacity: 1;
+  background: #000;
+  backdrop-filter: none;
 }
 
 .city-orb-copy {
-  opacity: 0;
-}
-
-.city-orb-loop .city-orb-copy {
-  animation: city-orb-copy 9s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  opacity: 1;
 }
 
 .wire-globe {
@@ -634,33 +632,33 @@
   }
 }
 
-@keyframes city-orb-morph {
+@keyframes city-orb-width {
   0%,
-  22% {
+  16% {
     width: 2.25rem;
   }
-  34%,
-  68% {
-    width: 10rem;
+  42%,
+  70% {
+    width: 10.5rem;
   }
-  80%,
+  94%,
   100% {
     width: 2.25rem;
   }
 }
 
-@keyframes city-orb-copy {
+@keyframes city-orb-fill {
   0%,
-  26% {
-    opacity: 0;
+  16% {
+    background: transparent;
   }
-  34%,
-  68% {
-    opacity: 1;
+  42%,
+  70% {
+    background: #000;
   }
-  76%,
+  94%,
   100% {
-    opacity: 0;
+    background: transparent;
   }
 }
 
