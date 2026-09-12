@@ -52,8 +52,8 @@ export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
         to="/"
         aria-label={strings.globe}
         className={cn(
-          "relative z-10 grid size-9 shrink-0 place-items-center rounded-full outline-none",
-          ghost ? "header-chip bg-transparent" : "bg-void-elevated shadow-border",
+          "relative z-10 grid size-9 shrink-0 place-items-center rounded-full header-chip outline-none",
+          ghost ? "bg-transparent" : "bg-void-elevated",
           "focus-visible:shadow-border-hover",
         )}
       >

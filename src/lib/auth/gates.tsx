@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/DropdownMenu";
 import { t, useI18n } from "@/lib/i18n";
 import { usePassEntitlements } from "@/lib/pass/use-entitlements";
+import { cn } from "@/lib/utils";
 import { GROK_PROVIDERS, authEnabled, signIn, signOut } from "./client";
 import { hasGateSessionMarker } from "./gate-session-marker";
 import { resolveSignInGateState } from "./sign-in-gate";
@@ -120,10 +121,10 @@ export function UserButton({ ghost = false }: { ghost?: boolean }) {
           className="rounded-full outline-none focus-visible:shadow-border-hover"
           aria-label={strings.account}
         >
-          <Avatar className={ghost ? "header-chip bg-transparent" : undefined}>
+          <Avatar className={cn("header-chip shadow-none", ghost ? "bg-transparent" : "bg-void-elevated")}>
             {user.profileImageUrl ? <AvatarImage src={user.profileImageUrl} alt="" /> : null}
             <AvatarFallback>
-              <User className={ghost ? "size-4 text-fg" : "size-4 text-muted"} strokeWidth={1.5} />
+              <User className="size-4 text-fg" strokeWidth={1.5} />
             </AvatarFallback>
           </Avatar>
         </button>

@@ -539,7 +539,7 @@
 .city-orb-ghost,
 .header-chip {
   box-shadow:
-    0 0 0 1px rgb(243 243 232 / 0.34),
+    0 0 0 2px rgb(243 243 232 / 0.42),
     0 10px 24px rgb(0 0 0 / 0.5),
     0 4px 8px rgb(0 0 0 / 0.35);
 }
@@ -547,15 +547,14 @@
 .city-orb-label {
   width: 0;
   overflow: hidden;
-  transition: width 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 1.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.city-orb-loop .city-orb-label {
-  animation: city-orb-label 11s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+.city-orb-loop:not(.city-orb-open) .city-orb-label {
+  animation: city-orb-label 12.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 .city-orb-open .city-orb-label {
-  animation: none;
   width: 8.75rem;
 }
 
@@ -624,11 +623,11 @@
 
 @keyframes city-orb-label {
   0%,
-  63% {
+  48% {
     width: 0;
   }
-  68%,
-  95% {
+  58%,
+  90% {
     width: 8.75rem;
   }
   100% {
