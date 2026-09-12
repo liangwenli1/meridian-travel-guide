@@ -43,9 +43,7 @@ export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       className={cn(
-        "city-orb relative flex h-11 items-center overflow-hidden rounded-full",
-        ghost ? "city-orb-ghost bg-transparent" : "bg-void-elevated shadow-border",
-        reduced && "w-11",
+        "city-orb relative flex h-9 items-center",
         !reduced && "city-orb-loop",
         (hover || open) && !reduced && "city-orb-open",
       )}
@@ -53,20 +51,26 @@ export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
       <Link
         to="/"
         aria-label={strings.globe}
-        className="relative z-10 grid size-11 shrink-0 place-items-center rounded-full outline-none focus-visible:shadow-border-hover"
+        className={cn(
+          "relative z-10 grid size-9 shrink-0 place-items-center rounded-full outline-none",
+          ghost ? "header-chip bg-transparent" : "bg-void-elevated shadow-border",
+          "focus-visible:shadow-border-hover",
+        )}
       >
         <WireGlobe reduced={reduced} />
       </Link>
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <button
-            type="button"
-            aria-label={strings.changeCity}
-            className="city-orb-copy mx-1 shrink-0 whitespace-nowrap rounded-full px-3 text-[11px] font-medium tracking-wide text-white outline-none"
-          >
-            {strings.changeCity}
-          </button>
-        </PopoverTrigger>
+        <div className="city-orb-label">
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              aria-label={strings.changeCity}
+              className="whitespace-nowrap px-3 text-sm font-medium tracking-[0.14em] text-fg uppercase outline-none [text-shadow:0_1px_8px_rgb(0_0_0/0.65)]"
+            >
+              {strings.changeCity}
+            </button>
+          </PopoverTrigger>
+        </div>
         <PopoverContent align="end" className="w-[22rem] p-2">
           <p className="px-2 py-1.5 text-[11px] tracking-[0.16em] text-muted uppercase">{strings.changeCity}</p>
           <ul className="city-list grid grid-cols-3 gap-0.5">

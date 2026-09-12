@@ -533,7 +533,7 @@
 }
 
 .city-orb {
-  width: 2.75rem;
+  width: auto;
 }
 
 .city-orb-ghost,
@@ -544,37 +544,25 @@
     0 4px 8px rgb(0 0 0 / 0.35);
 }
 
-.city-orb-loop {
-  animation: city-orb-width 11s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+.city-orb-label {
+  width: 0;
+  overflow: hidden;
+  transition: width 0.55s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.city-orb-ghost.city-orb-loop {
-  animation:
-    city-orb-width 11s cubic-bezier(0.4, 0, 0.2, 1) infinite,
-    city-orb-fill 11s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+.city-orb-loop .city-orb-label {
+  animation: city-orb-label 11s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-.city-orb-open {
+.city-orb-open .city-orb-label {
   animation: none;
-  width: 9rem;
-  background: #000;
-}
-
-.city-orb-ghost.city-orb-open {
-  background: #000;
-  backdrop-filter: none;
-}
-
-.city-orb-copy {
-  height: 1.85rem;
-  background: rgb(243 243 232 / 0.08);
-  box-shadow: 0 0 0 1px rgb(243 243 232 / 0.38);
+  width: 8.75rem;
 }
 
 .wire-globe {
   display: grid;
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 2.25rem;
+  height: 2.25rem;
   flex-shrink: 0;
   place-items: center;
   color: var(--color-fg);
@@ -583,8 +571,8 @@
 
 .wire-globe-spin {
   position: relative;
-  width: 1.55rem;
-  height: 1.55rem;
+  width: 1.7rem;
+  height: 1.7rem;
   transform-style: preserve-3d;
 }
 
@@ -634,31 +622,17 @@
   }
 }
 
-@keyframes city-orb-width {
+@keyframes city-orb-label {
   0%,
   63% {
-    width: 2.75rem;
+    width: 0;
   }
   68%,
   95% {
-    width: 9rem;
+    width: 8.75rem;
   }
   100% {
-    width: 2.75rem;
-  }
-}
-
-@keyframes city-orb-fill {
-  0%,
-  63% {
-    background: transparent;
-  }
-  68%,
-  95% {
-    background: #000;
-  }
-  100% {
-    background: transparent;
+    width: 0;
   }
 }
 
