@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { Button } from "@/components/ui/Button";
-import { Card, CardDescription, CardMeta, CardTitle } from "@/components/ui/Card";
+import { Card, CardTitle } from "@/components/ui/Card";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { t, useI18n } from "@/lib/i18n";
 import { normalizePlan } from "@/lib/pass/access";
@@ -105,7 +105,7 @@ function PassPage() {
         </Button>
       );
     }
-    if (!pay?.enabled) {
+    if (!pay?.enabled || pay.methods.length === 0) {
       return <p className="text-sm text-muted">{strings.payNotReady}</p>;
     }
     return (
@@ -154,10 +154,8 @@ function PassPage() {
 
         <div className="mt-12 grid gap-4 md:grid-cols-3">
           <Card padding="lg">
-            <CardMeta>{strings.planFree}</CardMeta>
-            <CardTitle className="mt-2">{strings.planFree}</CardTitle>
+            <CardTitle>{strings.planFree}</CardTitle>
             <p className="mt-3 font-mono text-sm text-accent">{strings.planFreePrice}</p>
-            <CardDescription>{strings.planFreeDek}</CardDescription>
             <ul className="mt-6 space-y-3">
               {perks.free.map((perk) => (
                 <li key={perk} className="flex items-start gap-3 text-sm text-fg">
@@ -178,12 +176,10 @@ function PassPage() {
           </Card>
 
           <Card padding="lg" className="shadow-border-hover">
-            <CardMeta>{strings.planPro}</CardMeta>
-            <CardTitle className="mt-2">{strings.planPro}</CardTitle>
+            <CardTitle>{strings.planPro}</CardTitle>
             <p className="mt-3 font-mono text-sm text-accent">
               {pay ? `¥${pay.priceCny} / $${pay.priceUsd}` : strings.passPrice} {strings.planYear}
             </p>
-            <CardDescription>{strings.planProDek}</CardDescription>
             <ul className="mt-6 space-y-3">
               {perks.pro.map((perk) => (
                 <li key={perk} className="flex items-start gap-3 text-sm text-fg">
@@ -196,12 +192,10 @@ function PassPage() {
           </Card>
 
           <Card padding="lg">
-            <CardMeta>{strings.planMax}</CardMeta>
-            <CardTitle className="mt-2">{strings.planMax}</CardTitle>
+            <CardTitle>{strings.planMax}</CardTitle>
             <p className="mt-3 font-mono text-sm text-accent">
               {pay ? `¥${pay.priceMaxCny} / $${pay.priceMaxUsd}` : strings.planMaxPrice} {strings.planYear}
             </p>
-            <CardDescription>{strings.planMaxDek}</CardDescription>
             <ul className="mt-6 space-y-3">
               {perks.max.map((perk) => (
                 <li key={perk} className="flex items-start gap-3 text-sm text-fg">

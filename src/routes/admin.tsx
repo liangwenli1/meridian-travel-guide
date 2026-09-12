@@ -50,12 +50,20 @@ type Tab =
 type CityFilter = "all" | ContentStatus;
 type LetterFilter = "all" | "active" | "unsubscribed";
 
-export function AdminWorkspace({ embedded = false }: { embedded?: boolean }) {
+export function AdminWorkspace({
+  embedded = false,
+  assumeAdmin = false,
+}: {
+  embedded?: boolean;
+  assumeAdmin?: boolean;
+}) {
   const locale = useI18n((s) => s.locale);
   const strings = t(locale);
   const { user, isPending } = useCurrentUserState();
   const userId = user?.id;
-  const [gate, setGate] = useState<"load" | "claim" | "admin" | "denied">("load");
+  const [gate, setGate] = useState<"load" | "claim" | "admin" | "denied">(
+    assumeAdmin ? "admin" : "load",
+  );
   const [tab, setTab] = useState<Tab>("overview");
   const [smtp, setSmtp] = useState<SmtpPublic | null>(null);
   const [password, setPassword] = useState("");
@@ -69,9 +77,24 @@ export function AdminWorkspace({ embedded = false }: { embedded?: boolean }) {
 
   const loadAdminData = () =>
     Promise.all([
-      getSmtpSettings().then(setSmtp),
-      getOpsOverview().then(setOverview),
-      listLetterSubscribers().then(setLetterRows).catch(() => setLetterRows([])),
+      getSmtpSettings()
+        .then(setSmtp)
+        .catch(() => setSmtp(null)),
+      getOpsOverview()
+        .then(setOverview)
+        .catch(() =>
+          setOverview({
+            users: 0,
+            passes: 0,
+            pendingOrders: 0,
+            paidOrders: 0,
+            smtpOn: false,
+            payOn: false,
+          }),
+        ),
+      listLetterSubscribers()
+        .then(setLetterRows)
+        .catch(() => setLetterRows([])),
       getHomeCatalog()
         .then((data) => setCityRows(data.cities))
         .catch(() => setCityRows(seedCities)),
@@ -79,6 +102,11 @@ export function AdminWorkspace({ embedded = false }: { embedded?: boolean }) {
 
   useEffect(() => {
     if (isPending || !userId) return;
+    if (assumeAdmin) {
+      setGate("admin");
+      void loadAdminData();
+      return;
+    }
     void getAdminState()
       .then((state) => {
         if (state.isAdmin) {
@@ -88,7 +116,7 @@ export function AdminWorkspace({ embedded = false }: { embedded?: boolean }) {
         setGate(state.canClaim ? "claim" : "denied");
       })
       .catch(() => setGate("denied"));
-  }, [isPending, userId]);
+  }, [isPending, userId, assumeAdmin]);
 
   const filteredCities = useMemo(() => {
     const rows = [...cityRows].sort((a, b) => b.tourismPriority - a.tourismPriority || a.name.localeCompare(b.name));
@@ -207,6 +235,22 @@ export function AdminWorkspace({ embedded = false }: { embedded?: boolean }) {
       ) : null}
 
       {gate === "denied" ? <p className="text-sm text-muted">{strings.adminDenied}</p> : null}
+
+      {gate === "load" ? (
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-24 animate-pulse rounded-3xl bg-void-elevated" />
+          ))}
+        </div>
+      ) : null}
+
+      {gate === "admin" && tab === "overview" && !overview ? (
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-24 animate-pulse rounded-3xl bg-void-elevated" />
+          ))}
+        </div>
+      ) : null}
 
       {gate === "admin" && tab === "overview" && overview ? (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">

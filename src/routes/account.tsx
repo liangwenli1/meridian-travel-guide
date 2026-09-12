@@ -24,6 +24,14 @@ import type { Localized, PassLockerItem } from "@/types/pass";
 export const Route = createFileRoute("/account")({
   validateSearch: (search: Record<string, unknown>): { tab?: "tools" } =>
     search.tab === "tools" ? { tab: "tools" } : {},
+  loader: async () => {
+    try {
+      const state = await getAdminState();
+      return { isAdmin: state.isAdmin };
+    } catch {
+      return { isAdmin: false };
+    }
+  },
   component: AccountPage,
   head: () => ({
     meta: [{ title: `Account · ${SITE.name}` }],
@@ -69,12 +77,13 @@ function AccountPage() {
   const locale = useI18n((s) => s.locale);
   const strings = t(locale);
   const { tab: initialTab } = Route.useSearch();
+  const { isAdmin: loadedAdmin } = Route.useLoaderData();
   const { user, isPending } = useCurrentUserState();
   const [desk, setDesk] = useState<TravelerDesk | null>(null);
   const [cities, setCities] = useState<City[]>([]);
   const [locker, setLocker] = useState<PassLockerResult | null>(null);
   const [downloading, setDownloading] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(loadedAdmin);
   const [pane, setPane] = useState<"you" | "tools">(initialTab === "tools" ? "tools" : "you");
 
   useEffect(() => {
@@ -149,9 +158,12 @@ function AccountPage() {
         { to: "/feedback", label: strings.feedbackTitle },
       ]}
     >
-      {isAdmin && pane === "tools" ? (
-        <AdminWorkspace embedded />
-      ) : (
+      {isAdmin ? (
+        <div hidden={pane !== "tools"}>
+          <AdminWorkspace embedded assumeAdmin />
+        </div>
+      ) : null}
+      {pane === "you" ? (
         <>
       <div className="grid gap-4 md:grid-cols-2">
         <DeskCard
@@ -280,7 +292,7 @@ function AccountPage() {
         )}
       </div>
         </>
-      )}
+      ) : null}
     </DeskFrame>
   );
 }
