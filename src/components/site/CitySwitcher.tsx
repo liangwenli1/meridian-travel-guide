@@ -40,7 +40,6 @@ export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
 
   return (
     <div
-      onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       className={cn(
         "city-orb relative flex h-9 items-center",
@@ -51,6 +50,8 @@ export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
       <Link
         to="/"
         aria-label={strings.globe}
+        onMouseEnter={() => setHover(true)}
+        onFocus={() => setHover(true)}
         className={cn(
           "relative z-10 grid size-9 shrink-0 place-items-center rounded-full header-chip outline-none",
           ghost ? "bg-transparent" : "bg-void-elevated",

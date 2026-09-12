@@ -33,7 +33,7 @@ export function SiteHeader({
       <div className="flex items-center gap-2 md:gap-3">
         {onHome ? null : <CitySwitcher ghost={overlay} />}
         {isPending ? (
-          <div className="size-9 animate-pulse rounded-full bg-void-elevated" />
+          <div className="header-chip size-9 animate-pulse rounded-full bg-void-elevated" />
         ) : (
           <>
             <SignedOut>
