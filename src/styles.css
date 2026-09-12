@@ -545,13 +545,13 @@
 }
 
 .city-orb-loop {
-  animation: city-orb-width 13s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation: city-orb-width 16s cubic-bezier(0.45, 0.05, 0.2, 1) infinite;
 }
 
 .city-orb-ghost.city-orb-loop {
   animation:
-    city-orb-width 13s cubic-bezier(0.4, 0, 0.2, 1) infinite,
-    city-orb-fill 13s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    city-orb-width 16s cubic-bezier(0.45, 0.05, 0.2, 1) infinite,
+    city-orb-fill 16s cubic-bezier(0.45, 0.05, 0.2, 1) infinite;
 }
 
 .city-orb-open {
@@ -634,14 +634,13 @@
 
 @keyframes city-orb-width {
   0%,
-  16% {
+  12% {
     width: 2.25rem;
   }
-  42%,
-  70% {
+  38%,
+  56% {
     width: 10.5rem;
   }
-  94%,
   100% {
     width: 2.25rem;
   }
@@ -649,17 +648,26 @@
 
 @keyframes city-orb-fill {
   0%,
-  16% {
+  12% {
     background: transparent;
   }
-  42%,
-  70% {
+  38%,
+  56% {
     background: #000;
   }
-  94%,
   100% {
     background: transparent;
   }
+}
+
+.city-list {
+  max-height: min(22rem, calc(100vh - 7rem));
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.city-list::-webkit-scrollbar {
+  display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

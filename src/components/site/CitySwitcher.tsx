@@ -39,53 +39,60 @@ export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
   }, []);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          aria-label={strings.changeCity}
-          onMouseEnter={() => setHover(true)}
-          onMouseLeave={() => setHover(false)}
-          className={cn(
-            "city-orb relative flex h-9 items-center overflow-hidden rounded-full text-left outline-none",
-            "focus-visible:shadow-border-hover",
-            ghost ? "city-orb-ghost bg-transparent" : "bg-void-elevated shadow-border hover:shadow-border-hover",
-            reduced && "w-9",
-            !reduced && "city-orb-loop",
-            hover && !reduced && "city-orb-open",
-          )}
-        >
-          <WireGlobe reduced={reduced} />
-          <span className="city-orb-copy min-w-0 flex-1 truncate pr-3.5 pl-0.5 text-xs font-medium tracking-wide text-white">
+    <div
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      className={cn(
+        "city-orb relative flex h-9 items-center overflow-hidden rounded-full",
+        ghost ? "city-orb-ghost bg-transparent" : "bg-void-elevated shadow-border",
+        reduced && "w-9",
+        !reduced && "city-orb-loop",
+        (hover || open) && !reduced && "city-orb-open",
+      )}
+    >
+      <Link
+        to="/"
+        aria-label={strings.globe}
+        className="relative z-10 grid size-9 shrink-0 place-items-center rounded-full outline-none focus-visible:shadow-border-hover"
+      >
+        <WireGlobe reduced={reduced} />
+      </Link>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            aria-label={strings.changeCity}
+            className="city-orb-copy min-h-9 min-w-0 flex-1 truncate pr-3.5 text-left text-xs font-medium tracking-wide text-white outline-none"
+          >
             {strings.changeCity}
-          </span>
-        </button>
-      </PopoverTrigger>
-      <PopoverContent align="end" className="w-[22rem] p-2">
-        <p className="px-2 py-1.5 text-[11px] tracking-[0.16em] text-muted uppercase">{strings.changeCity}</p>
-        <ul className="grid grid-cols-3 gap-0.5">
-          {cities.map((city) => {
-            const href = `/${city.countrySlug}/${city.slug}`;
-            const current = pathname === href || pathname.startsWith(`${href}/`);
-            return (
-              <li key={city.id}>
-                <Link
-                  to="/$country/$city"
-                  params={{ country: city.countrySlug, city: city.slug }}
-                  search={{ s: "overview" }}
-                  onClick={() => setOpen(false)}
-                  className={cn(
-                    "block truncate rounded-lg px-2 py-1.5 text-sm transition-colors",
-                    current ? "bg-accent font-medium text-void" : "text-fg hover:bg-void-elevated",
-                  )}
-                >
-                  {city.name}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </PopoverContent>
-    </Popover>
+          </button>
+        </PopoverTrigger>
+        <PopoverContent align="end" className="w-[22rem] p-2">
+          <p className="px-2 py-1.5 text-[11px] tracking-[0.16em] text-muted uppercase">{strings.changeCity}</p>
+          <ul className="city-list grid grid-cols-3 gap-0.5">
+            {cities.map((city) => {
+              const href = `/${city.countrySlug}/${city.slug}`;
+              const current = pathname === href || pathname.startsWith(`${href}/`);
+              return (
+                <li key={city.id}>
+                  <Link
+                    to="/$country/$city"
+                    params={{ country: city.countrySlug, city: city.slug }}
+                    search={{ s: "overview" }}
+                    onClick={() => setOpen(false)}
+                    className={cn(
+                      "block truncate rounded-lg px-2 py-1.5 text-sm transition-colors",
+                      current ? "bg-accent font-medium text-void" : "text-fg hover:bg-void-elevated",
+                    )}
+                  >
+                    {city.name}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 }
