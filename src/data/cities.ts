@@ -439,7 +439,7 @@ export const cities: City[] = [
     languages: ["English"],
     airportCodes: ["SYD"],
     shortDescription: "Harbour city of ferries, beaches, and a spread-out suburban hinterland.",
-    contentStatus: "coming-soon",
+    contentStatus: "published",
   },
   {
     id: "hong-kong",
@@ -461,7 +461,7 @@ export const cities: City[] = [
     languages: ["Cantonese", "English"],
     airportCodes: ["HKG"],
     shortDescription: "Vertical density, ridgeline trails, and one of Asia's most legible public-transport grids.",
-    contentStatus: "coming-soon",
+    contentStatus: "published",
   },
   {
     id: "seoul",
@@ -527,7 +527,7 @@ export const cities: City[] = [
     languages: ["Turkish"],
     airportCodes: ["IST", "SAW"],
     shortDescription: "A city on two continents, held together by ferries, hills, and an old trading instinct.",
-    contentStatus: "coming-soon",
+    contentStatus: "published",
   },
   {
     id: "amsterdam",
@@ -549,7 +549,7 @@ export const cities: City[] = [
     languages: ["Dutch", "English"],
     airportCodes: ["AMS"],
     shortDescription: "Canals, bikes, and a compact center that is easy to over-love in peak months.",
-    contentStatus: "coming-soon",
+    contentStatus: "published",
   },
   {
     id: "lisbon",
@@ -593,7 +593,7 @@ export const cities: City[] = [
     languages: ["German"],
     airportCodes: ["BER"],
     shortDescription: "A low-rise capital of history, courtyards, and nights that start later than you think.",
-    contentStatus: "coming-soon",
+    contentStatus: "published",
   },
   {
     id: "prague",
@@ -901,7 +901,7 @@ export const cities: City[] = [
     languages: ["Arabic", "Berber", "French"],
     airportCodes: ["RAK"],
     shortDescription: "Medina labyrinth, Atlas light, and a city that rewards slowing down more than ticking sights.",
-    contentStatus: "coming-soon",
+    contentStatus: "published",
   },
   {
     id: "hanoi",
@@ -1055,7 +1055,7 @@ export const cities: City[] = [
     languages: ["Mandarin", "Taiwanese Hokkien"],
     airportCodes: ["TPE", "TSA"],
     shortDescription: "Night markets, hot springs, and a metro system that makes a mountainous basin feel easy.",
-    contentStatus: "coming-soon",
+    contentStatus: "published",
   },
   {
     id: "chicago",
@@ -1099,7 +1099,7 @@ export const cities: City[] = [
     languages: ["Italian"],
     airportCodes: ["VCE"],
     shortDescription: "A lagoon city that is still inhabited — and strained — by the world's desire to see it.",
-    contentStatus: "coming-soon",
+    contentStatus: "published",
   },
   {
     id: "florence",
