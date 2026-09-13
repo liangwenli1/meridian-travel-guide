@@ -30,10 +30,11 @@ function WireGlobe({ reduced }: { reduced: boolean }) {
 export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
   const locale = useI18n((s) => s.locale);
   const strings = t(locale);
-  const pathname = useRouterState({
-    select: (s) => s.resolvedLocation?.pathname ?? s.location.pathname,
+  // Rendered route only — pending location.pathname is already "/" after a
+  // globe click, and must not hide this chip while the city page is still up.
+  const renderedPath = useRouterState({
+    select: (s) => s.matches.at(-1)?.pathname ?? s.resolvedLocation.pathname,
   });
-  const onHome = pathname === "/";
   const { reduced } = usePrefersReducedMotion();
   const [open, setOpen] = useState(false);
   const [hover, setHover] = useState(false);
@@ -51,10 +52,10 @@ export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
     setOpen(false);
     setHover(false);
     setAutoOpen(false);
-  }, [pathname]);
+  }, [renderedPath]);
 
   useEffect(() => {
-    if (reduced || pinned || onHome) return;
+    if (reduced || pinned) return;
     let cancelled = false;
     let timer = 0;
     const wait = (ms: number) =>
@@ -77,18 +78,14 @@ export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [reduced, pinned, onHome]);
+  }, [reduced, pinned]);
 
-  const expanded = !reduced && !onHome && (pinned || autoOpen);
+  const expanded = !reduced && (pinned || autoOpen);
 
   return (
     <div
       onMouseLeave={() => setHover(false)}
-      className={cn(
-        "city-orb relative flex h-9 items-center",
-        expanded && "city-orb-open",
-        onHome && "hidden",
-      )}
+      className={cn("city-orb relative flex h-9 items-center", expanded && "city-orb-open")}
     >
       <Link
         to="/"
@@ -111,7 +108,7 @@ export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
           if (!next) setHover(false);
         }}
       >
-        <div className={cn("city-orb-label", onHome && "hidden")}>
+        <div className="city-orb-label">
           <PopoverTrigger asChild>
             <button
               type="button"
@@ -127,7 +124,7 @@ export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
           <ul className="city-list grid grid-cols-3 gap-0.5">
             {cities.map((city) => {
               const href = `/${city.countrySlug}/${city.slug}`;
-              const current = pathname === href || pathname.startsWith(`${href}/`);
+              const current = renderedPath === href || renderedPath.startsWith(`${href}/`);
               return (
                 <li key={city.id}>
                   <Link
