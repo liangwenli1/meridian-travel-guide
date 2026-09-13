@@ -62,7 +62,7 @@ export function SiteFooter() {
       </div>
       <div className="flex flex-col-reverse items-start gap-4 px-6 pb-8 sm:flex-row sm:items-end sm:justify-between md:px-10 lg:px-14">
         <p className="text-xs text-muted">
-          © {new Date().getFullYear()} {SITE.name}. Land outlines: Natural Earth (public domain). City photos: Unsplash.
+          © {new Date().getFullYear()} {SITE.name}. Land outlines: Natural Earth (public domain). City photos: Unsplash and Pexels.
         </p>
         <LanguageToggle />
       </div>

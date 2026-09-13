@@ -9,13 +9,13 @@ export const dubaiGuide = assembleGuide({
   seoDescription:
     "A Dubai guide that treats heat as a timetable: Nol card, metro plus taxi, Downtown or JLT not a Palm hotel, Burj as a ticket, desert as a booked morning.",
   hero: {
-    url: "https://images.unsplash.com/photo-1512453979792-5eabb6a2c0d4?auto=format&fit=crop&w=2000&q=80",
-    alt: "Dubai skyline with Burj Khalifa in heat haze",
+    url: "https://images.unsplash.com/photo-1518684079-3c830dcef090?auto=format&fit=crop&w=2000&q=80",
+    alt: "Burj Al Arab on the water in late light",
     source: "Unsplash",
     author: "Unsplash",
     license: "Unsplash License",
-    originalUrl: "https://unsplash.com",
-    location: "Downtown Dubai",
+    originalUrl: "https://unsplash.com/photos/3c830dcef090",
+    location: "Jumeirah",
   },
   snapshot: {
     country: "United Arab Emirates",

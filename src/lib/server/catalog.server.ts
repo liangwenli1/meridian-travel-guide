@@ -92,7 +92,7 @@ function asGuide(payload: unknown): CityGuide {
   return value as CityGuide;
 }
 
-const GUIDE_SEED_REV = 30;
+const GUIDE_SEED_REV = 31;
 let lastSeedRev = 0;
 let seedPromise: Promise<void> | null = null;
 

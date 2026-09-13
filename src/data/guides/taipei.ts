@@ -9,13 +9,13 @@ export const taipeiGuide = assembleGuide({
   seoDescription:
     "A Taipei guide for people who will ride the MRT, eat one night market as dinner, and treat 101 as optional. EasyCard, Beitou, rain.",
   hero: {
-    url: "https://images.unsplash.com/photo-1470004914144-24199811c0c6?auto=format&fit=crop&w=2000&q=80",
-    alt: "Taipei street at dusk with a dense night-market crowd under fluorescent lights",
-    source: "Unsplash",
-    author: "Unsplash",
-    license: "Unsplash License",
-    originalUrl: "https://unsplash.com",
-    location: "Taipei",
+    url: "https://images.pexels.com/photos/2506923/pexels-photo-2506923.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    alt: "Taipei 101 above the basin at dusk, seen from a hillside trail",
+    source: "Pexels",
+    author: "Pexels",
+    license: "Pexels License",
+    originalUrl: "https://www.pexels.com/photo/2506923/",
+    location: "Xiangshan",
   },
   snapshot: {
     country: "Taiwan",

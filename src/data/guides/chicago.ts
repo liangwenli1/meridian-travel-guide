@@ -9,13 +9,13 @@ export const chicagoGuide = assembleGuide({
   seoDescription:
     "A Chicago guide that treats the Loop as a job: Logan Square, Pilsen, or Hyde Park as a stay, the L as the spine, the architecture cruise as the one tourist thing that earns it.",
   hero: {
-    url: "https://images.unsplash.com/photo-1494522855154-9297acd8f877?auto=format&fit=crop&w=2000&q=80",
-    alt: "Chicago River and Loop towers from a bridge",
+    url: "https://images.unsplash.com/photo-1494522358652-f30e61a60313?auto=format&fit=crop&w=2000&q=80",
+    alt: "Chicago Loop elevated tracks and masonry seen from the street",
     source: "Unsplash",
     author: "Unsplash",
     license: "Unsplash License",
-    originalUrl: "https://unsplash.com/photos/1494522855154-9297acd8f877",
-    location: "Chicago River, Loop",
+    originalUrl: "https://unsplash.com/photos/f30e61a60313",
+    location: "Loop",
   },
   snapshot: {
     country: "United States",
