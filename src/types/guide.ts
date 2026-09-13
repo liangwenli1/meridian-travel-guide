@@ -6,6 +6,7 @@ export type MediaAsset = {
   license: string;
   originalUrl: string;
   location?: string;
+  kind?: "sight" | "eat" | "night" | "street";
 };
 
 export type Snapshot = {
@@ -67,6 +68,7 @@ export type Attraction = {
   alternative: string;
   worthIt: string;
   tier: "essential" | "extra-time" | "niche" | "conditional" | "overrated";
+  image?: MediaAsset;
 };
 
 export type Dish = {
@@ -79,6 +81,7 @@ export type Dish = {
   where: string;
   howToOrder: string;
   note?: string;
+  image?: MediaAsset;
 };
 
 export type Venue = {

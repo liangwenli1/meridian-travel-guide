@@ -8,6 +8,7 @@ import type {
   Snapshot,
   Venue,
 } from "@/types/guide";
+import { ATTRACTION_PHOTOS, DISH_PHOTOS } from "./place-photos";
 
 export function nbh(
   name: string,
@@ -56,6 +57,7 @@ export function att(
     alternative: extra.alternative ?? "A neighborhood walk",
     worthIt: extra.worthIt ?? "Yes if you booked",
     tier: extra.tier ?? "essential",
+    image: extra.image,
   };
 }
 
@@ -70,6 +72,7 @@ export function dish(name: string, what: string, extra: Partial<Dish> = {}): Dis
     where: extra.where ?? "Neighborhood counters, not only the famous street",
     howToOrder: extra.howToOrder ?? "Point, or learn one sentence",
     note: extra.note,
+    image: extra.image,
   };
 }
 
@@ -149,8 +152,18 @@ type AssembleInput = {
 };
 
 export function assembleGuide(input: AssembleInput): CityGuide {
+  const attractions = input.attractions.map((place) => ({
+    ...place,
+    image: place.image ?? ATTRACTION_PHOTOS[input.citySlug]?.[place.name],
+  }));
+  const dishes = input.dishes.map((item) => ({
+    ...item,
+    image: item.image ?? DISH_PHOTOS[input.citySlug]?.[item.name],
+  }));
   return {
     ...input,
+    attractions,
+    dishes,
     lastUpdated: input.lastUpdated ?? "September 2026",
     hiddenGems:
       input.hiddenGems ??

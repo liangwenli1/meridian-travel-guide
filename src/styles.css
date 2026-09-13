@@ -221,8 +221,8 @@
 
   @media (min-width: 768px) {
     .photo-bento {
-      grid-template-columns: 1.45fr 1fr;
-      grid-template-rows: minmax(10rem, 22vh) minmax(10rem, 22vh);
+      grid-template-columns: 1.35fr 1fr 1fr;
+      grid-template-rows: minmax(9rem, 20vh) minmax(9rem, 20vh);
     }
 
     .photo-bento > figure:first-child {

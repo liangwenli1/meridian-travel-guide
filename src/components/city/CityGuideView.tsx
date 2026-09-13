@@ -15,6 +15,7 @@ import { BudgetChart } from "./BudgetChart";
 import { Callout } from "./callouts";
 import { JsonLd } from "./JsonLd";
 import { PhotoStrip } from "./PhotoStrip";
+import { ATTRACTION_PHOTOS, DISH_PHOTOS } from "@/data/guides/place-photos";
 import { Section } from "./Section";
 import { StickyNav } from "./StickyNav";
 import { LetterForm } from "@/components/letter/LetterForm";
@@ -48,6 +49,14 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
   const locale = useI18n((s) => s.locale);
   const strings = t(locale);
   const view = localizeGuide(guide, locale);
+  const attractions = view.attractions.map((place) => ({
+    ...place,
+    image: place.image ?? ATTRACTION_PHOTOS[city.slug]?.[place.name],
+  }));
+  const dishes = view.dishes.map((item) => ({
+    ...item,
+    image: item.image ?? DISH_PHOTOS[city.slug]?.[item.name],
+  }));
   const section = useSearch({ from: "/$country/$city" }).s ?? "overview";
   const { canReadFull, canUseTools } = usePassEntitlements();
   const [downloading, setDownloading] = useState(false);
@@ -291,8 +300,23 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
 
       <Section id="things-to-do" show={section === "things-to-do"} eyebrow="Time well spent" title="Attractions and things to do">
         <div className="space-y-4">
-          {view.attractions.map((place) => (
-            <Card key={place.name} padding="lg">
+          {attractions.map((place) => (
+            <Card key={place.name} padding="none" className="overflow-hidden">
+              {place.image ? (
+                <div className="relative aspect-[16/9] bg-void md:aspect-[2.2/1]">
+                  <img
+                    src={place.image.url}
+                    alt={place.image.alt}
+                    referrerPolicy="no-referrer"
+                    loading="lazy"
+                    className="content-img size-full object-cover"
+                    onError={(event) => {
+                      event.currentTarget.style.opacity = "0";
+                    }}
+                  />
+                </div>
+              ) : null}
+              <div className="p-6">
               <CardHeader>
                 <CardTitle className="text-xl">{place.name}</CardTitle>
                 <Badge variant={TIER_VARIANT[place.tier]}>{TIER_LABEL[place.tier]}</Badge>
@@ -325,6 +349,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
               <p className="mt-3 text-sm text-muted">If it is crowded or closed: {place.alternative}</p>
               </>
               ) : null}
+              </div>
             </Card>
           ))}
         </div>
@@ -370,8 +395,23 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
 
       <Section id="food" show={section === "food"} eyebrow="What to eat" title="Food and drinks" intro={view.foodIntro}>
         <Grid min="md">
-          {view.dishes.map((dish) => (
-            <Card key={dish.name}>
+          {dishes.map((dish) => (
+            <Card key={dish.name} padding="none" className="overflow-hidden">
+              {dish.image ? (
+                <div className="relative aspect-[16/10] bg-void">
+                  <img
+                    src={dish.image.url}
+                    alt={dish.image.alt}
+                    referrerPolicy="no-referrer"
+                    loading="lazy"
+                    className="content-img size-full object-cover"
+                    onError={(event) => {
+                      event.currentTarget.style.opacity = "0";
+                    }}
+                  />
+                </div>
+              ) : null}
+              <div className="p-5">
               <CardTitle className="text-xl">{dish.name}</CardTitle>
               {dish.localName ? <p className="text-xs text-muted">{dish.localName}</p> : null}
               <CardDescription>{dish.what}</CardDescription>
@@ -387,6 +427,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
               {dish.note ? <p className="mt-3 text-sm text-muted">{dish.note}</p> : null}
               </>
               ) : null}
+              </div>
             </Card>
           ))}
         </Grid>
