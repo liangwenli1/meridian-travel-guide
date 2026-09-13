@@ -9,7 +9,7 @@ export const dubaiGuide = assembleGuide({
   seoDescription:
     "A Dubai guide that treats heat as a timetable: Nol card, metro plus taxi, Downtown or JLT not a Palm hotel, Burj as a ticket, desert as a booked morning.",
   hero: {
-    url: "https://images.unsplash.com/photo-1518684079-3c830dcef090?auto=format&fit=crop&w=2000&q=80",
+    url: "https://resource.tapzm.com/media/cities/dubai/hero.jpg",
     alt: "Burj Al Arab on the water in late light",
     source: "Unsplash",
     author: "Unsplash",

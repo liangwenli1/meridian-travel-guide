@@ -9,7 +9,7 @@ export const newYorkGuide: CityGuide = {
   seoDescription:
     "Planning a trip to New York? Discover the best things to do, food, transport, hotels, apps, visa information, travel costs and essential local tips.",
   hero: {
-    url: "https://images.unsplash.com/photo-1485871981521-5b1fd3805eee?auto=format&fit=crop&w=2000&q=80",
+    url: "https://resource.tapzm.com/media/cities/new-york/hero.jpg",
     alt: "Manhattan skyline at night with lit skyscrapers and the Empire State Building",
     source: "Unsplash",
     author: "Jacek Dylag",

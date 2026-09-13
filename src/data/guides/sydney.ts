@@ -9,7 +9,7 @@ export const sydneyGuide = assembleGuide({
   seoDescription:
     "A Sydney guide that treats the Opera House as a free angle: Opal card, ferry as transit, Bondi in the morning, Circular Quay as a station not a hotel.",
   hero: {
-    url: "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=2000&q=80",
+    url: "https://resource.tapzm.com/media/cities/sydney/hero.jpg",
     alt: "Sydney Opera House and harbour from the water",
     source: "Unsplash",
     author: "Unsplash",

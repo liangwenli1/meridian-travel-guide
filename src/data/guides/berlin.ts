@@ -9,7 +9,7 @@ export const berlinGuide = assembleGuide({
   seoDescription:
     "A Berlin guide that treats Brandenburg as a walk-through: BVG as the spine, Museumsinsel as one island, döner as infrastructure, cash still in the room.",
   hero: {
-    url: "https://images.unsplash.com/photo-1560969184-10fe8719e047?auto=format&fit=crop&w=2000&q=80",
+    url: "https://resource.tapzm.com/media/cities/berlin/hero.jpg",
     alt: "Berlin TV tower and low-rise skyline",
     source: "Unsplash",
     author: "Unsplash",

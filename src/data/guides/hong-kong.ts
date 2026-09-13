@@ -9,7 +9,7 @@ export const hongKongGuide = assembleGuide({
   seoDescription:
     "A Hong Kong guide that treats the harbour hotel as a surcharge: Octopus on the Airport Express, ding ding as a bonus, one ridge, cha chaan teng as infrastructure.",
   hero: {
-    url: "https://images.unsplash.com/photo-1536599018102-9f803c140fc1?auto=format&fit=crop&w=2000&q=80",
+    url: "https://resource.tapzm.com/media/cities/hong-kong/hero.jpg",
     alt: "Hong Kong Island skyline across the harbour",
     source: "Unsplash",
     author: "Unsplash",

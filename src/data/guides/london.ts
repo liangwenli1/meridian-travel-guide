@@ -9,7 +9,7 @@ export const londonGuide = assembleGuide({
   seoDescription:
     "A London guide written like a weekday: one museum wing, a pub lunch, contactless capping. Not Paddington for the airport train. Not the Eye.",
   hero: {
-    url: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=2000&q=80",
+    url: "https://resource.tapzm.com/media/cities/london/hero.jpg",
     alt: "Houses of Parliament and the Thames at dusk",
     source: "Unsplash",
     author: "Benjamin Davies",

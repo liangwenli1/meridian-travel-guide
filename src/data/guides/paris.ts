@@ -9,7 +9,7 @@ export const parisGuide: CityGuide = {
   seoDescription:
     "Planning a trip to Paris? Discover the best things to do, food, transport, hotels, apps, visa information, travel costs and essential local tips.",
   hero: {
-    url: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=2000&q=80",
+    url: "https://resource.tapzm.com/media/cities/paris/hero.jpg",
     alt: "The Eiffel Tower seen from the Seine with a stone bridge in the foreground",
     source: "Unsplash",
     author: "Chris Karidis",

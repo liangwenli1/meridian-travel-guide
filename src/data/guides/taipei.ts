@@ -9,7 +9,7 @@ export const taipeiGuide = assembleGuide({
   seoDescription:
     "A Taipei guide for people who will ride the MRT, eat one night market as dinner, and treat 101 as optional. EasyCard, Beitou, rain.",
   hero: {
-    url: "https://images.pexels.com/photos/2506923/pexels-photo-2506923.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    url: "https://resource.tapzm.com/media/cities/taipei/hero.jpg",
     alt: "Taipei 101 above the basin at dusk, seen from a hillside trail",
     source: "Pexels",
     author: "Pexels",

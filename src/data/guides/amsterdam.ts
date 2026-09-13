@@ -9,7 +9,7 @@ export const amsterdamGuide = assembleGuide({
   seoDescription:
     "An Amsterdam guide that treats the canal ring as a place to sleep carefully: Museumplein as a booking problem, Jordaan as a walk, and the bike as transport.",
   hero: {
-    url: "https://images.pexels.com/photos/2031706/pexels-photo-2031706.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    url: "https://resource.tapzm.com/media/cities/amsterdam/hero.jpg",
     alt: "Amsterdam canal houses, a houseboat, and a bridge over still water",
     source: "Pexels",
     author: "Pexels",

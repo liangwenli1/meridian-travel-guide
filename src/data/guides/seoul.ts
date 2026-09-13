@@ -9,7 +9,7 @@ export const seoulGuide = assembleGuide({
   seoDescription:
     "A Seoul guide for subway people: one palace morning, a neighborhood grill, T-money math, and AREX from ICN. Not Myeongdong as a hotel.",
   hero: {
-    url: "https://images.unsplash.com/photo-1546874177-9e664107314e?auto=format&fit=crop&w=2000&q=80",
+    url: "https://resource.tapzm.com/media/cities/seoul/hero.jpg",
     alt: "N Seoul Tower and city lights at night",
     source: "Unsplash",
     author: "Unsplash",

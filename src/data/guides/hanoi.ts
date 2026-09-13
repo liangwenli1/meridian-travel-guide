@@ -9,7 +9,7 @@ export const hanoiGuide = assembleGuide({
   seoDescription:
     "A Hanoi guide for people who will cross the street like a scooter, eat pho in the morning, and treat Ha Long as a full day or an overnight — not a squeeze.",
   hero: {
-    url: "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&w=2000&q=80",
+    url: "https://resource.tapzm.com/media/cities/hanoi/hero.jpg",
     alt: "Hanoi Old Quarter street with scooters, trees, and low shophouses under a pale sky",
     source: "Unsplash",
     author: "Unsplash",

@@ -9,7 +9,7 @@ export const losAngelesGuide = assembleGuide({
   seoDescription:
     "An LA guide that treats the basin as many cities: Silver Lake, Santa Monica, or DTLA as a stay, TAP as transit, beaches in the morning, Hollywood Boulevard as skippable.",
   hero: {
-    url: "https://images.unsplash.com/photo-1464817739973-0128fe77aaa1?auto=format&fit=crop&w=2000&q=80",
+    url: "https://resource.tapzm.com/media/cities/los-angeles/hero.jpg",
     alt: "Palm trees and downtown Los Angeles towers in late light",
     source: "Unsplash",
     author: "Unsplash",

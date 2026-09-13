@@ -9,7 +9,7 @@ export const osakaGuide = assembleGuide({
   seoDescription:
     "An Osaka guide for people who will eat kushikatsu and okonomiyaki, tap ICOCA, and treat Kyoto or Nara as a full day, not a squeeze.",
   hero: {
-    url: "https://images.unsplash.com/photo-1590559899731-a382839e5549?auto=format&fit=crop&w=2000&q=80",
+    url: "https://resource.tapzm.com/media/cities/osaka/hero.jpg",
     alt: "Dotonbori canal at night with neon signs reflected in the water, seen from a bridge",
     source: "Unsplash",
     author: "Unsplash",

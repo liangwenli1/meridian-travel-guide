@@ -9,7 +9,7 @@ export const pragueGuide = assembleGuide({
   seoDescription:
     "A Prague guide that treats Old Town as a crush: stay in Vinohrady or Karlín, Lítačka/PID, Charles Bridge at 7:00, beer as a table, Kutná Hora as a day.",
   hero: {
-    url: "https://images.unsplash.com/photo-1541849546-216549ae216d?auto=format&fit=crop&w=2000&q=80",
+    url: "https://resource.tapzm.com/media/cities/prague/hero.jpg",
     alt: "Charles Bridge and the Vltava before the day's crowd",
     source: "Unsplash",
     author: "Unsplash",

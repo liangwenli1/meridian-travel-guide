@@ -9,7 +9,7 @@ export const istanbulGuide = assembleGuide({
   seoDescription:
     "An Istanbul guide that treats Sultanahmet as a queue: Kadıköy or Cihangir as a base, the ferry as transit, Istanbulkart as the city.",
   hero: {
-    url: "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=2000&q=80",
+    url: "https://resource.tapzm.com/media/cities/istanbul/hero.jpg",
     alt: "Istanbul mosque and waterfront from the Bosphorus",
     source: "Unsplash",
     author: "Unsplash",

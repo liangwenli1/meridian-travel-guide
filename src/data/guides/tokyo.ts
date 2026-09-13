@@ -9,7 +9,7 @@ export const tokyoGuide: CityGuide = {
   seoDescription:
     "Planning a trip to Tokyo? Discover the best things to do, food, transport, hotels, apps, visa information, travel costs and essential local tips.",
   hero: {
-    url: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=2000&q=80",
+    url: "https://resource.tapzm.com/media/cities/tokyo/hero.jpg",
     alt: "Shibuya Crossing in Tokyo at dusk, with traffic and pedestrian scramble under illuminated signs",
     source: "Unsplash",
     author: "Jezael Melgoza",

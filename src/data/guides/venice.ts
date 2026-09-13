@@ -9,7 +9,7 @@ export const veniceGuide = assembleGuide({
   seoDescription:
     "A Venice guide for people who will sleep in Cannaregio or Dorsoduro, ride the vaporetto as a bus, and leave San Marco to the day-trip crush.",
   hero: {
-    url: "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?auto=format&fit=crop&w=2000&q=80",
+    url: "https://resource.tapzm.com/media/cities/venice/hero.jpg",
     alt: "Venice canal with a vaporetto and weathered palazzi, not a gondola close-up",
     source: "Unsplash",
     author: "Unsplash",

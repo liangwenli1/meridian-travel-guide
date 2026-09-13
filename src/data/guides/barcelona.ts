@@ -9,7 +9,7 @@ export const barcelonaGuide = assembleGuide({
   seoDescription:
     "A Barcelona guide that treats the Rambla as a logistics error: stay in Eixample left, Gràcia or Poble-sec, book one Gaudí, tap T-casual, eat at 14:00 and 21:00.",
   hero: {
-    url: "https://images.unsplash.com/photo-1583422409516-2895a77efded?auto=format&fit=crop&w=2000&q=80",
+    url: "https://resource.tapzm.com/media/cities/barcelona/hero.jpg",
     alt: "Barcelona street with the Sagrada Família in the distance",
     source: "Unsplash",
     author: "Unsplash",

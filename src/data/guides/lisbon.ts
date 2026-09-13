@@ -9,7 +9,7 @@ export const lisbonGuide = assembleGuide({
   seoDescription:
     "A Lisbon guide that treats tram 28 as a commute: stay in Campo de Ourique, Príncipe Real or Graça, Belém as a half-day, Sintra as a full day, greet in Portuguese.",
   hero: {
-    url: "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?auto=format&fit=crop&w=2000&q=80",
+    url: "https://resource.tapzm.com/media/cities/lisbon/hero.jpg",
     alt: "Lisbon yellow tram on a steep street",
     source: "Unsplash",
     author: "Unsplash",

@@ -9,7 +9,7 @@ export const melbourneGuide = assembleGuide({
   seoDescription:
     "A Melbourne guide that treats the CBD hotel week as a miss: Carlton or Fitzroy as a stay, Myki on the tram, coffee as infrastructure, four seasons in a day.",
   hero: {
-    url: "https://images.unsplash.com/photo-1514395462725-fb4566210144?auto=format&fit=crop&w=2000&q=80",
+    url: "https://resource.tapzm.com/media/cities/melbourne/hero.jpg",
     alt: "Melbourne city towers and the Yarra in cool light",
     source: "Unsplash",
     author: "Unsplash",

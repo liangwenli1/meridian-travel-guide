@@ -9,7 +9,7 @@ export const athensGuide = assembleGuide({
   seoDescription:
     "An Athens guide for people who will book the Acropolis, sleep in Koukaki or Pangrati, ride the metro, and treat the islands as a separate trip.",
   hero: {
-    url: "https://images.unsplash.com/photo-1603565816030-6b389eeb23cb?auto=format&fit=crop&w=2000&q=80",
+    url: "https://resource.tapzm.com/media/cities/athens/hero.jpg",
     alt: "The Acropolis and Parthenon above Athens under a hard blue sky",
     source: "Unsplash",
     author: "Unsplash",

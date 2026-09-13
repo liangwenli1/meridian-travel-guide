@@ -9,7 +9,7 @@ export const kyotoGuide = assembleGuide({
   seoDescription:
     "A Kyoto guide for people who will sleep in Nishijin or near Karasuma, ride the bus, climb Fushimi until the crowd thins, and treat Nara as a full day — not a Gion camera line.",
   hero: {
-    url: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=2000&q=80",
+    url: "https://resource.tapzm.com/media/cities/kyoto/hero.jpg",
     alt: "Pagoda and wooden streets in Kyoto",
     source: "Unsplash",
     author: "Su San Lee",

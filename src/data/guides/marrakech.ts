@@ -9,7 +9,7 @@ export const marrakechGuide = assembleGuide({
   seoDescription:
     "A Marrakech guide for people who will greet first, take metered taxis, see the square at night, and treat Majorelle as a ticket.",
   hero: {
-    url: "https://images.unsplash.com/photo-1539020140153-e479b8c22e70?auto=format&fit=crop&w=2000&q=80",
+    url: "https://resource.tapzm.com/media/cities/marrakech/hero.jpg",
     alt: "Marrakech medina lane with clay walls and a motorbike, not a staged souk stall",
     source: "Unsplash",
     author: "Unsplash",

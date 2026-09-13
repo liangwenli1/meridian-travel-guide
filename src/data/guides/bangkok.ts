@@ -9,7 +9,7 @@ export const bangkokGuide: CityGuide = {
   seoDescription:
     "Planning a trip to Bangkok? Discover the best things to do, food, transport, hotels, apps, visa information, travel costs and essential local tips.",
   hero: {
-    url: "https://images.unsplash.com/photo-1508009603885-50cf7c579365?auto=format&fit=crop&w=2000&q=80",
+    url: "https://resource.tapzm.com/media/cities/bangkok/hero.jpg",
     alt: "Wat Arun beside the Chao Phraya at dusk with river boats in the foreground",
     source: "Unsplash",
     author: "Florian Wehde",

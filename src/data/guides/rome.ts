@@ -9,7 +9,7 @@ export const romeGuide = assembleGuide({
   seoDescription:
     "A Rome guide for people who will sleep in Testaccio or Monti, book one ruin morning, skip a Colosseum-view hotel, and treat Ostia or Tivoli as a full extra day.",
   hero: {
-    url: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=2000&q=80",
+    url: "https://resource.tapzm.com/media/cities/rome/hero.jpg",
     alt: "Colosseum in Rome under a clear sky",
     source: "Unsplash",
     author: "David Köhler",

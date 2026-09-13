@@ -9,7 +9,7 @@ export const singaporeGuide: CityGuide = {
   seoDescription:
     "Planning a trip to Singapore? Discover the best things to do, food, transport, hotels, apps, visa information, travel costs and essential local tips.",
   hero: {
-    url: "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?auto=format&fit=crop&w=2000&q=80",
+    url: "https://resource.tapzm.com/media/cities/singapore/hero.jpg",
     alt: "Marina Bay skyline in Singapore with water in the foreground at blue hour",
     source: "Unsplash",
     author: "Hu Chen",

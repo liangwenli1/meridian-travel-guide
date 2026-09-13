@@ -9,7 +9,7 @@ export const florenceGuide = assembleGuide({
   seoDescription:
     "A Florence guide for people who will book Uffizi and Accademia, sleep in Oltrarno, skip cars in the ZTL, and treat Siena or Chianti as a full day.",
   hero: {
-    url: "https://images.unsplash.com/photo-1543429257-3eb0b65d9c58?auto=format&fit=crop&w=2000&q=80",
+    url: "https://resource.tapzm.com/media/cities/florence/hero.jpg",
     alt: "Florence Duomo and terracotta roofs from a high terrace in late light",
     source: "Unsplash",
     author: "Unsplash",

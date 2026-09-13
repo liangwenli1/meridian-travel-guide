@@ -3,7 +3,7 @@ import type { MediaAsset } from "@/types/guide";
 export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   tokyo: [
     {
-      url: "https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/tokyo/g01.jpg",
       alt: "Senso-ji temple gate in Asakusa",
       source: "Unsplash",
       author: "Su San Lee",
@@ -12,7 +12,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Asakusa",
     },
     {
-      url: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/tokyo/g02.jpg",
       alt: "Ramen bowl on a counter",
       source: "Unsplash",
       author: "Warren Wong",
@@ -21,7 +21,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Tokyo",
     },
     {
-      url: "https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/tokyo/g03.jpg",
       alt: "Tokyo night streets with neon",
       source: "Unsplash",
       author: "Jezael Melgoza",
@@ -32,7 +32,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   ],
   paris: [
     {
-      url: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/paris/g01.jpg",
       alt: "Eiffel Tower from the Seine",
       source: "Unsplash",
       author: "Chris Karidis",
@@ -41,7 +41,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "7th arrondissement",
     },
     {
-      url: "https://images.unsplash.com/photo-1550340499-a6c60fc8287c?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/paris/g02.jpg",
       alt: "Paris cafe terrace",
       source: "Unsplash",
       author: "Anthony DELANOIX",
@@ -50,7 +50,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Left Bank",
     },
     {
-      url: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/paris/g03.jpg",
       alt: "Louvre pyramid at dusk",
       source: "Unsplash",
       author: "Dan Perez",
@@ -61,7 +61,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   ],
   bangkok: [
     {
-      url: "https://images.unsplash.com/photo-1508009603885-50cf7c579365?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/bangkok/g01.jpg",
       alt: "Wat Arun at dusk",
       source: "Unsplash",
       author: "Florian Wehde",
@@ -70,7 +70,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Chao Phraya",
     },
     {
-      url: "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/bangkok/g02.jpg",
       alt: "Grand Palace spires",
       source: "Unsplash",
       author: "Nitish Meena",
@@ -79,7 +79,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Rattanakosin",
     },
     {
-      url: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/bangkok/g03.jpg",
       alt: "Street food plates",
       source: "Unsplash",
       author: "Brooke Lark",
@@ -90,7 +90,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   ],
   singapore: [
     {
-      url: "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/singapore/g01.jpg",
       alt: "Marina Bay skyline",
       source: "Unsplash",
       author: "Hu Chen",
@@ -99,7 +99,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Marina Bay",
     },
     {
-      url: "https://images.unsplash.com/photo-1565967511849-76a60a516170?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/singapore/g02.jpg",
       alt: "Gardens by the Bay light trees",
       source: "Unsplash",
       author: "Suhyeon Choi",
@@ -108,7 +108,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Gardens by the Bay",
     },
     {
-      url: "https://images.unsplash.com/photo-1526318896980-cf78c088247c?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/singapore/g03.jpg",
       alt: "Hawker food on a tray",
       source: "Unsplash",
       author: "Lily Banse",
@@ -119,7 +119,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   ],
   "new-york": [
     {
-      url: "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/new-york/g01.jpg",
       alt: "New York street with yellow cabs",
       source: "Unsplash",
       author: "Luca Bravo",
@@ -128,7 +128,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Manhattan",
     },
     {
-      url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/new-york/g02.jpg",
       alt: "Brooklyn Bridge walkway",
       source: "Unsplash",
       author: "Andrés Nieto Porras",
@@ -137,7 +137,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Brooklyn Bridge",
     },
     {
-      url: "https://images.unsplash.com/photo-1518391846015-55a9cc003b25?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/new-york/g03.jpg",
       alt: "New York pizza slice",
       source: "Unsplash",
       author: "Chad Montano",
@@ -148,7 +148,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   ],
   london: [
     {
-      url: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/london/g01.jpg",
       alt: "Westminster and Big Ben",
       source: "Unsplash",
       author: "Benjamin Davies",
@@ -157,7 +157,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Westminster",
     },
     {
-      url: "https://images.unsplash.com/photo-1486299267070-83823f5448dd?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/london/g02.jpg",
       alt: "London red bus on a wet street",
       source: "Unsplash",
       author: "Luca Bravo",
@@ -166,7 +166,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "London",
     },
     {
-      url: "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/london/g03.jpg",
       alt: "Tower Bridge",
       source: "Unsplash",
       author: "Anthony DELANOIX",
@@ -177,7 +177,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   ],
   seoul: [
     {
-      url: "https://images.unsplash.com/photo-1538485399081-7191377e8241?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/seoul/g01.jpg",
       alt: "Seoul at night",
       source: "Unsplash",
       author: "Patrick Conroy",
@@ -186,7 +186,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Seoul",
     },
     {
-      url: "https://images.unsplash.com/photo-1534274867514-d5b47ef89ed7?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/seoul/g02.jpg",
       alt: "Gyeongbokgung palace grounds",
       source: "Unsplash",
       author: "Jeongin Cho",
@@ -195,7 +195,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Gyeongbokgung",
     },
     {
-      url: "https://images.unsplash.com/photo-1553163147-622ab57be1c7?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/seoul/g03.jpg",
       alt: "Korean barbecue table",
       source: "Unsplash",
       author: "Charles Deluvio",
@@ -206,7 +206,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   ],
   rome: [
     {
-      url: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/rome/g01.jpg",
       alt: "Colosseum",
       source: "Unsplash",
       author: "David Kohler",
@@ -215,7 +215,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Colosseum",
     },
     {
-      url: "https://images.unsplash.com/photo-1555993539-1732b0258235?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/rome/g02.jpg",
       alt: "Roman street with ochre buildings",
       source: "Unsplash",
       author: "Chris Czermak",
@@ -224,7 +224,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Rome",
     },
     {
-      url: "https://images.unsplash.com/photo-1537799943037-f5da89a65689?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/rome/g03.jpg",
       alt: "Pasta on a Roman table",
       source: "Unsplash",
       author: "Dan Gold",
@@ -235,7 +235,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   ],
   amsterdam: [
     {
-      url: "https://images.pexels.com/photos/2031706/pexels-photo-2031706.jpeg?auto=compress&cs=tinysrgb&w=1400",
+      url: "https://resource.tapzm.com/media/cities/amsterdam/g01.jpg",
       alt: "Amsterdam canal houses, a houseboat, and a bridge",
       source: "Pexels",
       author: "Pexels",
@@ -244,7 +244,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Canal ring",
     },
     {
-      url: "https://images.pexels.com/photos/1388030/pexels-photo-1388030.jpeg?auto=compress&cs=tinysrgb&w=1400",
+      url: "https://resource.tapzm.com/media/cities/amsterdam/g02.jpg",
       alt: "Amsterdam canal and gabled houses under a pale sky",
       source: "Pexels",
       author: "Pexels",
@@ -255,7 +255,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   ],
   istanbul: [
     {
-      url: "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/istanbul/g01.jpg",
       alt: "Hagia Sophia and the old city",
       source: "Unsplash",
       author: "Unsplash",
@@ -264,7 +264,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Sultanahmet",
     },
     {
-      url: "https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/istanbul/g02.jpg",
       alt: "Istanbul ferry on the Bosphorus",
       source: "Unsplash",
       author: "Unsplash",
@@ -275,7 +275,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   ],
   "hong-kong": [
     {
-      url: "https://images.unsplash.com/photo-1536599018102-9f803c140fc1?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/hong-kong/g01.jpg",
       alt: "Hong Kong harbour towers",
       source: "Unsplash",
       author: "Unsplash",
@@ -284,7 +284,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Victoria Harbour",
     },
     {
-      url: "https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/hong-kong/g02.jpg",
       alt: "Hong Kong harbour towers at night",
       source: "Unsplash",
       author: "Unsplash",
@@ -295,7 +295,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   ],
   sydney: [
     {
-      url: "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/sydney/g01.jpg",
       alt: "Sydney Opera House on the harbour",
       source: "Unsplash",
       author: "Unsplash",
@@ -304,7 +304,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Circular Quay",
     },
     {
-      url: "https://images.unsplash.com/photo-1549180030-48bf079fb38a?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/sydney/g02.jpg",
       alt: "Sydney beach in morning light",
       source: "Unsplash",
       author: "Unsplash",
@@ -315,7 +315,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   ],
   berlin: [
     {
-      url: "https://images.unsplash.com/photo-1560969184-10fe8719e047?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/berlin/g01.jpg",
       alt: "Berlin TV tower over the city",
       source: "Unsplash",
       author: "Unsplash",
@@ -324,7 +324,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Mitte",
     },
     {
-      url: "https://images.unsplash.com/photo-1599946347371-68eb71b16afc?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/berlin/g02.jpg",
       alt: "Berlin street and canal",
       source: "Unsplash",
       author: "Unsplash",
@@ -335,7 +335,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   ],
   taipei: [
     {
-      url: "https://images.pexels.com/photos/2506923/pexels-photo-2506923.jpeg?auto=compress&cs=tinysrgb&w=1400",
+      url: "https://resource.tapzm.com/media/cities/taipei/g01.jpg",
       alt: "Taipei 101 above the basin at dusk",
       source: "Pexels",
       author: "Pexels",
@@ -344,7 +344,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Taipei",
     },
     {
-      url: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/taipei/g02.jpg",
       alt: "Taipei night market stalls",
       source: "Unsplash",
       author: "Unsplash",
@@ -355,7 +355,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   ],
   venice: [
     {
-      url: "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/venice/g01.jpg",
       alt: "Venice canal and palazzi",
       source: "Unsplash",
       author: "Unsplash",
@@ -364,7 +364,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Venice",
     },
     {
-      url: "https://images.unsplash.com/photo-1514890547357-a9ee288728e0?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/venice/g02.jpg",
       alt: "Venetian side canal",
       source: "Unsplash",
       author: "Unsplash",
@@ -375,7 +375,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   ],
   marrakech: [
     {
-      url: "https://images.unsplash.com/photo-1539020140153-e479b8c22e70?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/marrakech/g01.jpg",
       alt: "Marrakech medina walls and alley",
       source: "Unsplash",
       author: "Unsplash",
@@ -384,7 +384,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Medina",
     },
     {
-      url: "https://images.pexels.com/photos/3889843/pexels-photo-3889843.jpeg?auto=compress&cs=tinysrgb&w=1400",
+      url: "https://resource.tapzm.com/media/cities/marrakech/g02.jpg",
       alt: "Marrakech medina lane with clay walls and a passing crowd",
       source: "Pexels",
       author: "Pexels",
@@ -395,7 +395,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   ],
   osaka: [
     {
-      url: "https://images.unsplash.com/photo-1590559899731-a382839e5549?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/osaka/g01.jpg",
       alt: "Dotonbori canal neon at night",
       source: "Unsplash",
       author: "Unsplash",
@@ -404,7 +404,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Dotonbori",
     },
     {
-      url: "https://images.unsplash.com/photo-1578271887552-5ac3a72752bc?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/osaka/g02.jpg",
       alt: "Osaka Castle keep and stone walls",
       source: "Unsplash",
       author: "Unsplash",
@@ -415,7 +415,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   ],
   "los-angeles": [
     {
-      url: "https://images.unsplash.com/photo-1464817739973-0128fe77aaa1?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/los-angeles/g01.jpg",
       alt: "Palm trees and downtown Los Angeles towers",
       source: "Unsplash",
       author: "Unsplash",
@@ -424,7 +424,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Downtown Los Angeles",
     },
     {
-      url: "https://images.unsplash.com/photo-1444723121867-7a241cacace9?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/los-angeles/g02.jpg",
       alt: "Los Angeles basin and downtown towers from a hillside",
       source: "Unsplash",
       author: "Unsplash",
@@ -435,7 +435,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   ],
   chicago: [
     {
-      url: "https://images.unsplash.com/photo-1494522358652-f30e61a60313?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/chicago/g01.jpg",
       alt: "Chicago Loop elevated tracks from the street",
       source: "Unsplash",
       author: "Unsplash",
@@ -444,7 +444,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Loop",
     },
     {
-      url: "https://images.pexels.com/photos/2190283/pexels-photo-2190283.jpeg?auto=compress&cs=tinysrgb&w=1400",
+      url: "https://resource.tapzm.com/media/cities/chicago/g02.jpg",
       alt: "Chicago River and Loop towers from a riverwalk",
       source: "Pexels",
       author: "Pexels",
@@ -455,7 +455,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   ],
   melbourne: [
     {
-      url: "https://images.unsplash.com/photo-1514395462725-fb4566210144?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/melbourne/g01.jpg",
       alt: "Melbourne tram and street",
       source: "Unsplash",
       author: "Unsplash",
@@ -464,7 +464,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "CBD",
     },
     {
-      url: "https://images.unsplash.com/photo-1545044846-351ba102b6d5?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/melbourne/g02.jpg",
       alt: "Melbourne laneway walls",
       source: "Unsplash",
       author: "Unsplash",
@@ -475,7 +475,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   ],
   dubai: [
     {
-      url: "https://images.unsplash.com/photo-1518684079-3c830dcef090?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/dubai/g01.jpg",
       alt: "Burj Al Arab on the water",
       source: "Unsplash",
       author: "Unsplash",
@@ -484,7 +484,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Jumeirah",
     },
     {
-      url: "https://images.pexels.com/photos/2044434/pexels-photo-2044434.jpeg?auto=compress&cs=tinysrgb&w=1400",
+      url: "https://resource.tapzm.com/media/cities/dubai/g02.jpg",
       alt: "Burj Khalifa and downtown towers at blue hour",
       source: "Pexels",
       author: "Pexels",
@@ -495,7 +495,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   ],
   prague: [
     {
-      url: "https://images.unsplash.com/photo-1541849546-216549ae216d?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/prague/g01.jpg",
       alt: "Prague rooftops and towers",
       source: "Unsplash",
       author: "Unsplash",
@@ -504,7 +504,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Old Town",
     },
     {
-      url: "https://images.unsplash.com/photo-1519677100203-a0e668c92439?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/prague/g02.jpg",
       alt: "Charles Bridge in morning light",
       source: "Unsplash",
       author: "Unsplash",
@@ -515,7 +515,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   ],
   "cape-town": [
     {
-      url: "https://images.unsplash.com/photo-1580060839134-75a5edca2e99?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/cape-town/g01.jpg",
       alt: "Table Mountain over Cape Town",
       source: "Unsplash",
       author: "Unsplash",
@@ -524,7 +524,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Table Mountain",
     },
     {
-      url: "https://images.pexels.com/photos/259447/pexels-photo-259447.jpeg?auto=compress&cs=tinysrgb&w=1400",
+      url: "https://resource.tapzm.com/media/cities/cape-town/g02.jpg",
       alt: "Table Mountain over Cape Town and the harbour",
       source: "Pexels",
       author: "Pexels",
@@ -535,7 +535,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   ],
   hanoi: [
     {
-      url: "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/hanoi/g01.jpg",
       alt: "Hanoi lake and Old Quarter light",
       source: "Unsplash",
       author: "Unsplash",
@@ -544,7 +544,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Hoan Kiem",
     },
     {
-      url: "https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/hanoi/g02.jpg",
       alt: "Hanoi street with scooters and stalls",
       source: "Unsplash",
       author: "Unsplash",
@@ -555,7 +555,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   ],
   athens: [
     {
-      url: "https://images.unsplash.com/photo-1603565816030-6b389eeb23cb?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/athens/g01.jpg",
       alt: "The Acropolis above Athens",
       source: "Unsplash",
       author: "Unsplash",
@@ -564,7 +564,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Acropolis",
     },
     {
-      url: "https://images.unsplash.com/photo-1555993539-1732b0258235?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/athens/g02.jpg",
       alt: "Athens hillside neighbourhood",
       source: "Unsplash",
       author: "Unsplash",
@@ -575,7 +575,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   ],
   florence: [
     {
-      url: "https://images.unsplash.com/photo-1543429257-3eb0b65d9c58?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/florence/g01.jpg",
       alt: "Florence rooftops and Duomo",
       source: "Unsplash",
       author: "Unsplash",
@@ -584,7 +584,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Duomo",
     },
     {
-      url: "https://images.unsplash.com/photo-1534445867742-43195f401b6c?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/florence/g02.jpg",
       alt: "Ponte Vecchio over the Arno",
       source: "Unsplash",
       author: "Unsplash",
@@ -595,7 +595,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   ],
   barcelona: [
     {
-      url: "https://images.unsplash.com/photo-1583422409516-2895a77efded?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/barcelona/g01.jpg",
       alt: "Barcelona street with the Sagrada Família in the distance",
       source: "Unsplash",
       author: "Unsplash",
@@ -604,7 +604,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Eixample",
     },
     {
-      url: "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/barcelona/g02.jpg",
       alt: "Park Güell mosaic benches over Barcelona",
       source: "Unsplash",
       author: "Unsplash",
@@ -615,7 +615,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   ],
   kyoto: [
     {
-      url: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/kyoto/g01.jpg",
       alt: "Pagoda and wooden streets in Kyoto",
       source: "Unsplash",
       author: "Su San Lee",
@@ -624,7 +624,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Kyoto",
     },
     {
-      url: "https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/kyoto/g02.jpg",
       alt: "Kyoto shrine path",
       source: "Unsplash",
       author: "Unsplash",
@@ -635,7 +635,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   ],
   lisbon: [
     {
-      url: "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/lisbon/g01.jpg",
       alt: "Lisbon hillside and tram streets",
       source: "Unsplash",
       author: "Unsplash",
@@ -644,7 +644,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Lisbon",
     },
     {
-      url: "https://images.unsplash.com/photo-1585208798174-6cedd86e019a?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/lisbon/g02.jpg",
       alt: "Lisbon yellow tram",
       source: "Unsplash",
       author: "Unsplash",
@@ -655,7 +655,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   ],
   "mexico-city": [
     {
-      url: "https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/mexico-city/g01.jpg",
       alt: "Mexico City street and a tree canopy",
       source: "Unsplash",
       author: "Unsplash",
@@ -664,7 +664,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
       location: "Roma",
     },
     {
-      url: "https://images.unsplash.com/photo-1518105779142-d975f22f1b0a?auto=format&fit=crop&w=1400&q=80",
+      url: "https://resource.tapzm.com/media/cities/mexico-city/g02.jpg",
       alt: "Zócalo and the Mexico City cathedral",
       source: "Unsplash",
       author: "Unsplash",

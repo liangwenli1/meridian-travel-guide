@@ -9,7 +9,7 @@ export const capeTownGuide = assembleGuide({
   seoDescription:
     "A Cape Town guide that treats the cable as a weather ticket: Gardens or Woodstock, Uber, wine as a full day, townships via a reputable operator or not at all.",
   hero: {
-    url: "https://images.unsplash.com/photo-1580060839134-75a5edca2e99?auto=format&fit=crop&w=2000&q=80",
+    url: "https://resource.tapzm.com/media/cities/cape-town/hero.jpg",
     alt: "Table Mountain above the city bowl under a hard Cape sky",
     source: "Unsplash",
     author: "Unsplash",

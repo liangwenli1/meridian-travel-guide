@@ -9,7 +9,7 @@ export const chicagoGuide = assembleGuide({
   seoDescription:
     "A Chicago guide that treats the Loop as a job: Logan Square, Pilsen, or Hyde Park as a stay, the L as the spine, the architecture cruise as the one tourist thing that earns it.",
   hero: {
-    url: "https://images.unsplash.com/photo-1494522358652-f30e61a60313?auto=format&fit=crop&w=2000&q=80",
+    url: "https://resource.tapzm.com/media/cities/chicago/hero.jpg",
     alt: "Chicago Loop elevated tracks and masonry seen from the street",
     source: "Unsplash",
     author: "Unsplash",
