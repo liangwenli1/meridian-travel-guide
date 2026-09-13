@@ -4,7 +4,7 @@ export const newYorkGuide: CityGuide = {
   citySlug: "new-york",
   countrySlug: "united-states",
   title: "New York Travel Guide",
-  subtitle: "Everything you need to know before visiting New York.",
+  subtitle: "Pick a pocket and a train. Five boroughs is a slogan.",
   seoTitle: "New York Travel Guide 2026: Things to Do, Food, Transport & Tips",
   seoDescription:
     "Planning a trip to New York? Discover the best things to do, food, transport, hotels, apps, visa information, travel costs and essential local tips.",

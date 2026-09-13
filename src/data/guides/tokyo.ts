@@ -4,7 +4,7 @@ export const tokyoGuide: CityGuide = {
   citySlug: "tokyo",
   countrySlug: "japan",
   title: "Tokyo Travel Guide",
-  subtitle: "Everything you need to know before visiting Tokyo.",
+  subtitle: "Walkable villages on a rail map — not one skyline.",
   seoTitle: "Tokyo Travel Guide 2026: Things to Do, Food, Transport & Tips",
   seoDescription:
     "Planning a trip to Tokyo? Discover the best things to do, food, transport, hotels, apps, visa information, travel costs and essential local tips.",

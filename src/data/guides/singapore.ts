@@ -4,7 +4,7 @@ export const singaporeGuide: CityGuide = {
   citySlug: "singapore",
   countrySlug: "singapore",
   title: "Singapore Travel Guide",
-  subtitle: "Everything you need to know before visiting Singapore.",
+  subtitle: "Hawker first. Rail always. Humidity is the weather.",
   seoTitle: "Singapore Travel Guide 2026: Things to Do, Food, Transport & Tips",
   seoDescription:
     "Planning a trip to Singapore? Discover the best things to do, food, transport, hotels, apps, visa information, travel costs and essential local tips.",

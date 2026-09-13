@@ -177,7 +177,7 @@ export function ChapterEditor() {
         >
           {GUIDE_NAV.map((item) => (
             <option key={item.id} value={item.id}>
-              {item.label}
+              {item.id}
             </option>
           ))}
         </select>

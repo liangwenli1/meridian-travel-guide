@@ -6,7 +6,9 @@ export type MediaAsset = {
   license: string;
   originalUrl: string;
   location?: string;
-  kind?: "sight" | "eat" | "night" | "street";
+  kind?: "sight" | "eat" | "night" | "street" | "nature";
+  caption?: string;
+  section?: string;
 };
 
 export type Snapshot = {

@@ -4,7 +4,7 @@ export const parisGuide: CityGuide = {
   citySlug: "paris",
   countrySlug: "france",
   title: "Paris Travel Guide",
-  subtitle: "Everything you need to know before visiting Paris.",
+  subtitle: "One arrondissement. Tuesday museums. The river as the spine.",
   seoTitle: "Paris Travel Guide 2026: Things to Do, Food, Transport & Tips",
   seoDescription:
     "Planning a trip to Paris? Discover the best things to do, food, transport, hotels, apps, visa information, travel costs and essential local tips.",

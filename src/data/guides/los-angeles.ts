@@ -9,12 +9,12 @@ export const losAngelesGuide = assembleGuide({
   seoDescription:
     "An LA guide that treats the basin as many cities: Silver Lake, Santa Monica, or DTLA as a stay, TAP as transit, beaches in the morning, Hollywood Boulevard as skippable.",
   hero: {
-    url: "https://resource.tapzm.com/media/cities/los-angeles/hero.jpg",
-    alt: "Palm trees and downtown Los Angeles towers in late light",
-    source: "Unsplash",
-    author: "Unsplash",
-    license: "Unsplash License",
-    originalUrl: "https://unsplash.com/photos/0128fe77aaa1",
+    url: "https://resource.tapzm.com/media/cities/los-angeles/hero-v2.jpg",
+    alt: "Downtown Los Angeles skyline with the US Bank and Wells Fargo towers",
+    source: "Wikimedia Commons",
+    author: "Wikimedia Commons",
+    license: "CC BY 4.0",
+    originalUrl: "https://commons.wikimedia.org/wiki/File:Skyline_of_Los_Angeles,_Downtown_Los_Angeles,_California_13.jpg",
     location: "Downtown Los Angeles",
   },
   snapshot: {

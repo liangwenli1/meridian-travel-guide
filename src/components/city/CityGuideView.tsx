@@ -1,4 +1,4 @@
-import { Link, useSearch } from "@tanstack/react-router";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { ArrowUpRight } from "lucide-react";
 import type { City } from "@/types/catalog";
 import type { CityGuide } from "@/types/guide";
@@ -16,6 +16,10 @@ import { Callout } from "./callouts";
 import { JsonLd } from "./JsonLd";
 import { PhotoStrip } from "./PhotoStrip";
 import { ATTRACTION_PHOTOS, DISH_PHOTOS } from "@/data/guides/place-photos";
+import { CITY_LAYERS, GUIDE_UPDATED } from "@/data/guides/city-layers";
+import { getTripSpec } from "@/data/pass/trip-briefs";
+import { loc } from "@/lib/trip-brief";
+import type { GuideSectionId } from "@/lib/guide-nav";
 import { Section } from "./Section";
 import { StickyNav } from "./StickyNav";
 import { LetterForm } from "@/components/letter/LetterForm";
@@ -58,6 +62,24 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
     image: item.image ?? DISH_PHOTOS[city.slug]?.[item.name],
   }));
   const section = useSearch({ from: "/$country/$city" }).s ?? "overview";
+  const navigate = useNavigate({ from: "/$country/$city" });
+  const jump = (id: GuideSectionId | "dates") => {
+    if (id === "dates") {
+      if (section !== "overview") {
+        void navigate({ search: { s: "overview" }, replace: true, resetScroll: false }).then(() => {
+          document.getElementById("trip-brief")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+        return;
+      }
+      document.getElementById("trip-brief")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    void navigate({ search: { s: id }, replace: true, resetScroll: false }).then(() => {
+      document.getElementById("guide-nav")?.scrollIntoView({ behavior: "instant", block: "start" });
+    });
+  };
+  const layer = CITY_LAYERS[city.slug];
+  const tripSpec = getTripSpec(city.slug);
   const { canReadFull, canUseTools } = usePassEntitlements();
   const [downloading, setDownloading] = useState(false);
   const [chapterNote, setChapterNote] = useState("");
@@ -135,6 +157,18 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
             {view.title}
           </h1>
           <p className="mt-4 max-w-xl text-base text-fg/80 md:text-lg">{view.subtitle}</p>
+          <p className="mt-3 max-w-xl text-sm text-fg/55">{strings.startPath}</p>
+          <div className="mt-6 flex flex-wrap gap-2">
+            <Button type="button" size="sm" variant="outline" onClick={() => jump("dates")}>
+              {strings.jumpDates}
+            </Button>
+            <Button type="button" size="sm" variant="ghost" onClick={() => jump("neighborhoods")}>
+              {strings.navAreas}
+            </Button>
+            <Button type="button" size="sm" variant="ghost" onClick={() => jump("stay")}>
+              {strings.navStay}
+            </Button>
+          </div>
         </div>
       </section>
 
@@ -149,9 +183,13 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
         </div>
       ) : null}
 
-      <section id="overview" className={`guide-panel scroll-mt-20 py-14 md:py-20 ${section === "overview" ? "" : "hidden"}`}>
+      {section === "overview" ? (
+      <section id="overview" className="guide-panel scroll-mt-20 py-14 md:py-20">
         <div className="guide-shell">
           <p className="kicker text-muted">City snapshot</p>
+          <p className="mt-1 text-xs text-muted">
+            {city.name} {strings.updatedDesk} · {GUIDE_UPDATED}
+          </p>
           <h2 className="mt-2 text-3xl font-medium tracking-tight text-fg md:text-4xl">Thirty seconds on {city.name}</h2>
           <StatGrid className="mt-8">
             {snapshotEntries.map(([label, value]) => (
@@ -160,6 +198,47 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           </StatGrid>
 
           <PhotoStrip citySlug={city.slug} />
+
+          {layer ? (
+            <div className="mt-12 grid gap-4 md:grid-cols-3">
+              <button type="button" className="text-left" onClick={() => jump("food")}>
+                <Card padding="sm">
+                  <CardMeta>{strings.layerEat}</CardMeta>
+                  <CardDescription className="mt-2">{layer.eat[locale]}</CardDescription>
+                </Card>
+              </button>
+              <button type="button" className="text-left" onClick={() => jump("things-to-do")}>
+                <Card padding="sm">
+                  <CardMeta>{strings.layerNight}</CardMeta>
+                  <CardDescription className="mt-2">{layer.night[locale]}</CardDescription>
+                </Card>
+              </button>
+              <button type="button" className="text-left" onClick={() => jump("things-to-do")}>
+                <Card padding="sm">
+                  <CardMeta>{strings.layerOutdoors}</CardMeta>
+                  <CardDescription className="mt-2">{layer.outdoors[locale]}</CardDescription>
+                </Card>
+              </button>
+            </div>
+          ) : null}
+
+          <Card padding="sm" className="mt-4">
+            <CardMeta>{strings.stayNoFree}</CardMeta>
+            <p className="mt-2 text-sm text-fg">
+              {layer
+                ? layer.stayNo[locale]
+                : tripSpec
+                  ? `${loc(tripSpec.stayNo.name, locale)} — ${loc(tripSpec.stayNo.why, locale)}`
+                  : view.stayNotes[0]}
+            </p>
+            <button
+              type="button"
+              className="mt-3 text-xs tracking-[0.14em] text-muted uppercase hover:text-fg"
+              onClick={() => jump("stay")}
+            >
+              {strings.navStay}
+            </button>
+          </Card>
 
           <TripBrief
             citySlug={city.slug}
@@ -223,6 +302,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           </div>
         </div>
       </section>
+      ) : null}
 
       <Section id="neighborhoods" show={section === "neighborhoods"} eyebrow="Urban grain" title="Neighborhoods at a glance">
         <Grid min="md">
@@ -278,7 +358,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
             </Card>
           ))}
         </Grid>
-        <LockedRest open={canReadFull} className="mt-8">
+        <LockedRest open={canReadFull} cityName={city.name} className="mt-8">
         <Table className="mt-8" caption="Best area for…">
           <THead>
             <tr>
@@ -355,7 +435,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
             </Card>
           ))}
         </div>
-        <LockedRest open={canReadFull} className="mt-8">
+        <LockedRest open={canReadFull} cityName={city.name} className="mt-8">
         <Grid min="md" className="mt-8">
           {view.thingsToDo.map((item) => (
             <Card key={item.title}>
@@ -433,7 +513,19 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
             </Card>
           ))}
         </Grid>
-        <LockedRest open={canReadFull} className="mt-8">
+        <Grid min="md" className="mt-8">
+          {view.venues.slice(0, 2).map((venue) => (
+            <Card key={venue.name} padding="sm">
+              <CardMeta>{venue.type} · {venue.neighborhood}</CardMeta>
+              <CardTitle className="mt-2 text-lg">{venue.name}</CardTitle>
+              <CardDescription className="mt-2">{venue.why}</CardDescription>
+              <p className="mt-3 text-xs text-muted">
+                {venue.reservation} · {venue.price}
+              </p>
+            </Card>
+          ))}
+        </Grid>
+        <LockedRest open={canReadFull} cityName={city.name} className="mt-8">
         <div className="mt-8 space-y-4">
           {view.foodThemes.map((theme) => (
             <Card key={theme.title} padding="sm">
@@ -512,7 +604,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
             </Card>
           ))}
         </Grid>
-        <LockedRest open={canReadFull} className="mt-6">
+        <LockedRest open={canReadFull} cityName={city.name} className="mt-6">
         <ul className="mt-6 list-disc space-y-2 pl-5 text-sm text-muted">
           {view.stayNotes.map((note) => (
             <li key={note}>{note}</li>
@@ -551,7 +643,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
             ))}
           </tbody>
         </Table>
-        <LockedRest open={canReadFull} className="mt-8">
+        <LockedRest open={canReadFull} cityName={city.name} className="mt-8">
         <Grid min="md" className="mt-8">
           {view.gettingAround.map((item) => (
             <Card key={item.title}>
@@ -587,7 +679,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
             </Card>
           ))}
         </Grid>
-        <LockedRest open={canReadFull} className="mt-6">
+        <LockedRest open={canReadFull} cityName={city.name} className="mt-6">
         <div className="mt-6">
           <BudgetChart budget={view.budget} />
         </div>

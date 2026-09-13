@@ -4,7 +4,7 @@ export const bangkokGuide: CityGuide = {
   citySlug: "bangkok",
   countrySlug: "thailand",
   title: "Bangkok Travel Guide",
-  subtitle: "Everything you need to know before visiting Bangkok.",
+  subtitle: "Heat, boats, and a kitchen that does not close at 21:00.",
   seoTitle: "Bangkok Travel Guide 2026: Things to Do, Food, Transport & Tips",
   seoDescription:
     "Planning a trip to Bangkok? Discover the best things to do, food, transport, hotels, apps, visa information, travel costs and essential local tips.",

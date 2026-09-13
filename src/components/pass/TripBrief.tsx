@@ -58,12 +58,25 @@ export function TripBrief({
 
   const teaserBooking = brief.bookings[0];
   const teaserClosed = brief.closures[0];
+  const moreCount = Math.max(
+    0,
+    brief.bookings.length +
+      brief.closures.length +
+      1 +
+      brief.waste.length +
+      brief.wallet.length +
+      brief.arrival.length -
+      2,
+  );
 
   return (
-    <section className="mt-12">
+    <section id="trip-brief" className="mt-12 scroll-mt-24">
       <p className="kicker text-accent">{strings.briefKicker}</p>
       <h2 className="mt-2 text-3xl font-medium tracking-tight">{strings.briefTitle}</h2>
       <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted">{strings.briefDek}</p>
+      <p className="mt-2 text-xs text-muted">
+        {strings.briefForStay}: {arrive} · {nights} {locale === "zh" ? "晚" : "nights"}
+      </p>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-3">
         <label className="block">
@@ -97,10 +110,12 @@ export function TripBrief({
               <SelectItem value="family">{strings.briefFamily}</SelectItem>
             </SelectContent>
           </Select>
+          <p className="mt-2 text-[11px] leading-relaxed text-muted">{strings.briefPartyHint}</p>
         </label>
       </div>
 
       {!canReadFull ? (
+      <>
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
         <Card padding="md">
           <CardMeta>{strings.briefBookNow}</CardMeta>
@@ -130,11 +145,14 @@ export function TripBrief({
           </CardDescription>
         </Card>
       </div>
+      <p className="mt-4 text-sm text-muted">{strings.briefMoreLines.replace("{n}", String(moreCount))}</p>
+      </>
       ) : null}
 
       <PassGate
         className="mt-4"
         active={canReadFull}
+        cityName={cityName}
         teaserTitle={strings.briefPaywall}
         teaserBody={strings.briefPaywallDek}
       >

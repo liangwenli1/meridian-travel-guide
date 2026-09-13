@@ -9,13 +9,13 @@ export const hanoiGuide = assembleGuide({
   seoDescription:
     "A Hanoi guide for people who will cross the street like a scooter, eat pho in the morning, and treat Ha Long as a full day or an overnight — not a squeeze.",
   hero: {
-    url: "https://resource.tapzm.com/media/cities/hanoi/hero.jpg",
-    alt: "Hanoi Old Quarter street with scooters, trees, and low shophouses under a pale sky",
-    source: "Unsplash",
-    author: "Unsplash",
-    license: "Unsplash License",
-    originalUrl: "https://unsplash.com/photos/1559592413-7cec4d0cae2b",
-    location: "Old Quarter, Hanoi",
+    url: "https://resource.tapzm.com/media/cities/hanoi/hero-v2.jpg",
+    alt: "Turtle Tower on Hoan Kiem Lake, Hanoi",
+    source: "Wikimedia Commons",
+    author: "Wikimedia Commons",
+    license: "CC BY-SA 3.0",
+    originalUrl: "https://commons.wikimedia.org/wiki/File:Thap_Rua.jpg",
+    location: "Hoan Kiem",
   },
   snapshot: {
     country: "Vietnam",

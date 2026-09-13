@@ -33,13 +33,14 @@ export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
   // Rendered route only — pending location.pathname is already "/" after a
   // globe click, and must not hide this chip while the city page is still up.
   const renderedPath = useRouterState({
-    select: (s) => s.matches.at(-1)?.pathname ?? s.resolvedLocation.pathname,
+    select: (s) => s.matches.at(-1)?.pathname ?? s.resolvedLocation?.pathname ?? "",
   });
   const { reduced } = usePrefersReducedMotion();
   const [open, setOpen] = useState(false);
   const [hover, setHover] = useState(false);
   const [autoOpen, setAutoOpen] = useState(false);
   const [cities, setCities] = useState<City[]>([]);
+  const [showUpcoming, setShowUpcoming] = useState(false);
   const pinned = hover || open;
 
   useEffect(() => {
@@ -120,9 +121,10 @@ export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
           </PopoverTrigger>
         </div>
         <PopoverContent align="end" className="w-[22rem] p-2">
-          <p className="px-2 py-1.5 text-[11px] tracking-[0.16em] text-muted uppercase">{strings.changeCity}</p>
-          <ul className="city-list grid grid-cols-3 gap-0.5">
-            {cities.map((city) => {
+          {(() => {
+            const published = cities.filter((city) => city.contentStatus === "published");
+            const upcoming = cities.filter((city) => city.contentStatus !== "published");
+            const renderCity = (city: City, dim = false) => {
               const href = `/${city.countrySlug}/${city.slug}`;
               const current = renderedPath === href || renderedPath.startsWith(`${href}/`);
               return (
@@ -139,14 +141,38 @@ export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
                     className={cn(
                       "block truncate rounded-lg px-2 py-1.5 text-sm transition-colors",
                       current ? "bg-accent font-medium text-void" : "text-fg hover:bg-void-elevated",
+                      dim && !current && "opacity-50",
                     )}
                   >
                     {city.name}
                   </Link>
                 </li>
               );
-            })}
-          </ul>
+            };
+            return (
+              <>
+                <p className="px-2 py-1.5 text-[11px] tracking-[0.16em] text-muted uppercase">{strings.publishedCities}</p>
+                <ul className="city-list grid grid-cols-3 gap-0.5">{published.map((city) => renderCity(city))}</ul>
+                {upcoming.length ? (
+                  <>
+                    <button
+                      type="button"
+                      className="mt-2 w-full rounded-lg px-2 py-1.5 text-left text-[11px] tracking-[0.14em] text-muted uppercase hover:text-fg"
+                      onClick={() => setShowUpcoming((value) => !value)}
+                    >
+                      {showUpcoming ? strings.hideUpcoming : strings.showUpcoming}
+                      {` · ${upcoming.length}`}
+                    </button>
+                    {showUpcoming ? (
+                      <ul className="city-list mt-1 grid grid-cols-3 gap-0.5">
+                        {upcoming.map((city) => renderCity(city, true))}
+                      </ul>
+                    ) : null}
+                  </>
+                ) : null}
+              </>
+            );
+          })()}
         </PopoverContent>
       </Popover>
     </div>

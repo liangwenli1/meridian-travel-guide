@@ -17,6 +17,7 @@ function shot(
   author: string,
   license: string,
   originalUrl: string,
+  extra: { caption?: string; section?: string } = {},
 ): MediaAsset {
   return {
     url: `https://resource.tapzm.com/media/cities/${slug}/${file}`,
@@ -27,6 +28,8 @@ function shot(
     originalUrl,
     location,
     kind,
+    caption: extra.caption,
+    section: extra.section,
   };
 }
 
@@ -100,7 +103,7 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   sydney: [
     shot("sydney", "g01.jpg", "Sydney Opera House on the harbour", "Circular Quay", "sight", U, U, UL, UO),
     shot("sydney", "eat.jpg", "Oysters and seafood on ice", "Sydney", "eat", P, P, PL, PO),
-    shot("sydney", "g02.jpg", "Sydney beach in morning light", "Harbour", "street", U, U, UL, UO),
+    shot("sydney", "g02.jpg", "Sydney beach in morning light", "Harbour", "nature", U, U, UL, UO),
   ],
   berlin: [
     shot("berlin", "sight.jpg", "Reichstag and the lawn in front of it", "Mitte", "sight", P, P, PL, PO),
@@ -109,9 +112,10 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
     shot("berlin", "g02.jpg", "Berlin street and canal", "Berlin", "street", U, U, UL, UO),
   ],
   taipei: [
-    shot("taipei", "g01.jpg", "Taipei 101 above the basin at dusk", "Taipei", "sight", P, P, PL, "https://www.pexels.com/photo/2506923/"),
-    shot("taipei", "eat.jpg", "Taipei night market stalls", "Night market", "eat", P, P, PL, "https://www.pexels.com/photo/1134166/"),
-    shot("taipei", "g02.jpg", "Taipei night market after dark", "Night market", "night", U, U, UL, UO),
+    shot("taipei", "hero-v2.jpg", "Taipei 101 above the Xinyi basin from Xiangshan", "Xiangshan", "sight", "Wikimedia Commons", "Wikimedia Commons", "CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:Taipei_Skyline_2022.06.29.jpg", { caption: "101 is optional. The basin is the city. Go up Xiangshan if the weather holds.", section: "things-to-do" }),
+    shot("taipei", "g01-v2.jpg", "Taipei 101 at sunset from the hills", "Xiangshan", "nature", "Wikimedia Commons", "Wikimedia Commons", "CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:Taipei_101_sunset_skyline_2015.jpg", { caption: "Outdoor here is a hillside hour, not a national park. Skip if the basin is in cloud.", section: "things-to-do" }),
+    shot("taipei", "eat.jpg", "Taipei night market stalls", "Night market", "eat", P, P, PL, "https://www.pexels.com/photo/1134166/", { caption: "One night market is dinner. Not a checklist of markets.", section: "food" }),
+    shot("taipei", "g02.jpg", "Taipei night market after dark", "Night market", "night", U, U, UL, UO, { caption: "This is the night: food, not bars. MRT last trains are real.", section: "overview" }),
   ],
   venice: [
     shot("venice", "g01.jpg", "Venice canal and palazzi", "Venice", "sight", U, U, UL, UO),
@@ -131,10 +135,10 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
     shot("osaka", "street.jpg", "Lanterns over a food street", "Namba", "street", P, P, PL, PO),
   ],
   "los-angeles": [
-    shot("los-angeles", "sight.jpg", "Hollywood Walk of Fame stars", "Hollywood", "sight", U, U, UL, UO),
-    shot("los-angeles", "eat.jpg", "Tacos on a tray", "Los Angeles", "eat", P, P, PL, PO),
-    shot("los-angeles", "g01.jpg", "Palm trees and downtown Los Angeles towers", "Downtown Los Angeles", "street", U, U, UL, UO),
-    shot("los-angeles", "g02.jpg", "Los Angeles basin from a hillside", "Los Angeles", "street", U, U, UL, UO),
+    shot("los-angeles", "hero-v2.jpg", "Downtown Los Angeles skyline", "Downtown", "sight", "Wikimedia Commons", "Wikimedia Commons", "CC BY 4.0", "https://commons.wikimedia.org/wiki/File:Skyline_of_Los_Angeles,_Downtown_Los_Angeles,_California_13.jpg", { caption: "This is one pocket. Do not treat the basin as a stroll.", section: "neighborhoods" }),
+    shot("los-angeles", "g01-v2.jpg", "Griffith Observatory over the basin", "Griffith Observatory", "nature", "Wikimedia Commons", "Wikimedia Commons", "Wikimedia Commons", "https://en.wikipedia.org/wiki/Griffith_Observatory", { caption: "Griffith in the morning. Midday heat cooks the hill.", section: "things-to-do" }),
+    shot("los-angeles", "eat.jpg", "Tacos on a tray", "Los Angeles", "eat", P, P, PL, PO, { caption: "Al pastor is infrastructure. The line is the review.", section: "food" }),
+    shot("los-angeles", "sight.jpg", "Hollywood Walk of Fame stars", "Hollywood", "street", U, U, UL, UO, { caption: "Hollywood Boulevard is optional. Skip it if the stay is a pocket.", section: "things-to-do" }),
   ],
   chicago: [
     shot("chicago", "g01.jpg", "Chicago Theatre on State Street", "Chicago Theatre", "sight", U, U, UL, UO),
@@ -161,13 +165,13 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
   "cape-town": [
     shot("cape-town", "sight.jpg", "Bo-Kaap houses against Signal Hill", "Bo-Kaap", "sight", P, P, PL, PO),
     shot("cape-town", "eat.jpg", "Oysters and seafood on ice", "Cape Town", "eat", P, P, PL, PO),
-    shot("cape-town", "g01.jpg", "Table Mountain over Cape Town", "Table Mountain", "street", U, U, UL, UO),
-    shot("cape-town", "g02.jpg", "Table Mountain over the harbour", "Waterfront", "street", P, P, PL, PO),
+    shot("cape-town", "g01.jpg", "Table Mountain over Cape Town", "Table Mountain", "nature", U, U, UL, UO),
+    shot("cape-town", "g02.jpg", "Table Mountain over the harbour", "Waterfront", "nature", P, P, PL, PO),
   ],
   hanoi: [
-    shot("hanoi", "g01.jpg", "Hanoi lake and Old Quarter light", "Hoan Kiem", "sight", U, U, UL, UO),
-    shot("hanoi", "eat.jpg", "Pho in a bowl", "Hanoi", "eat", U, U, UL, UO),
-    shot("hanoi", "g02.jpg", "Hanoi street with scooters and stalls", "Old Quarter", "street", U, U, UL, UO),
+    shot("hanoi", "hero-v2.jpg", "Turtle Tower on Hoan Kiem Lake", "Hoan Kiem", "sight", "Wikimedia Commons", "Wikimedia Commons", "CC BY-SA 3.0", "https://commons.wikimedia.org/wiki/File:Thap_Rua.jpg", { caption: "Walk the lake at 6:30. By 9:00 it is a souvenir ring.", section: "things-to-do" }),
+    shot("hanoi", "eat.jpg", "Pho in a bowl", "Hanoi", "eat", U, U, UL, UO, { caption: "Pho is breakfast. Do not wait until dinner.", section: "food" }),
+    shot("hanoi", "street-v2.jpg", "Scooters and a Hang Ma shop in the Old Quarter", "Old Quarter", "street", "Wikimedia Commons", "Wikimedia Commons", "CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:Scooters_in_the_Old_Town_of_Hanoi,_20240204_1453_5838.jpg", { caption: "Stay off the loudest Old Quarter block. Cross like a scooter.", section: "neighborhoods" }),
   ],
   athens: [
     shot("athens", "g01.jpg", "The Acropolis above Athens", "Acropolis", "sight", U, U, UL, UO),
@@ -193,13 +197,13 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
     shot("kyoto", "g01.jpg", "Pagoda and wooden streets in Kyoto", "Kyoto", "street", U, "Su San Lee", UL, UO),
   ],
   lisbon: [
-    shot("lisbon", "g02.jpg", "Lisbon yellow tram", "Lisbon", "sight", U, U, UL, UO),
-    shot("lisbon", "eat.jpg", "Pastéis de nata", "Lisbon", "eat", U, U, UL, UO),
-    shot("lisbon", "g01.jpg", "Lisbon hillside and tram streets", "Lisbon", "street", U, U, UL, UO),
+    shot("lisbon", "hero-v2.jpg", "Lisbon waterfront toward Santa Engrácia and the Tagus", "Baixa", "sight", "Wikimedia Commons", "Wikimedia Commons", "CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:Lisbon_alfalma.jpg", { caption: "Hills, then downhill to dinner. Tram 28 is a commute.", section: "neighborhoods" }),
+    shot("lisbon", "g02.jpg", "Lisbon yellow tram", "Lisbon", "street", U, U, UL, UO, { caption: "Ride a tram that is going somewhere you need. Skip the 28 as a tour.", section: "transport" }),
+    shot("lisbon", "eat.jpg", "Pastéis de nata", "Lisbon", "eat", U, U, UL, UO, { caption: "Eat them warm, standing. The famous queue is not the only oven.", section: "food" }),
   ],
   "mexico-city": [
-    shot("mexico-city", "g02.jpg", "Zócalo and the Mexico City cathedral", "Centro", "sight", U, U, UL, UO),
-    shot("mexico-city", "eat.jpg", "Tacos on a plate", "Mexico City", "eat", P, P, PL, PO),
-    shot("mexico-city", "g01.jpg", "Mexico City street and a tree canopy", "Roma", "street", U, U, UL, UO),
+    shot("mexico-city", "hero-v2.jpg", "Palacio de Bellas Artes", "Centro", "sight", "Wikimedia Commons", "Wikimedia Commons", "CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:Bellas_Artes_01.jpg", { caption: "One museum a day. Altitude is the first fact.", section: "things-to-do" }),
+    shot("mexico-city", "g02-v2.jpg", "The Zócalo, cathedral and National Palace", "Zócalo", "street", "Wikimedia Commons", "Wikimedia Commons", "CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:Zócalo,_Ciudad_de_México_(32846556446)_(cropped).jpg", { caption: "The square is civic, not a stay. Sleep in Roma or Condesa.", section: "neighborhoods" }),
+    shot("mexico-city", "eat.jpg", "Tacos on a plate", "Mexico City", "eat", P, P, PL, PO, { caption: "Al pastor on the spit. Stand. The line is the review.", section: "food" }),
   ],
 };

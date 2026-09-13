@@ -9,13 +9,13 @@ export const mexicoCityGuide = assembleGuide({
   seoDescription:
     "A CDMX guide for altitude people: one museum, a market lunch, Tacos al pastor, Metro by day. Roma not the Zócalo. MEX vs Toluca.",
   hero: {
-    url: "https://resource.tapzm.com/media/cities/mexico-city/hero.jpg",
-    alt: "Palacio de Bellas Artes in Mexico City at dusk",
-    source: "Unsplash",
-    author: "Unsplash",
-    license: "Unsplash License",
-    originalUrl: "https://unsplash.com",
-    location: "Centro, Mexico City",
+    url: "https://resource.tapzm.com/media/cities/mexico-city/hero-v2.jpg",
+    alt: "Palacio de Bellas Artes in Mexico City, orange dome against a blue sky",
+    source: "Wikimedia Commons",
+    author: "Wikimedia Commons",
+    license: "CC BY-SA 4.0",
+    originalUrl: "https://commons.wikimedia.org/wiki/File:Bellas_Artes_01.jpg",
+    location: "Centro",
   },
   snapshot: {
     country: "Mexico",
