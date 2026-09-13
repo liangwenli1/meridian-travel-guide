@@ -137,10 +137,10 @@ export const CITY_GALLERY: Record<string, MediaAsset[]> = {
     shot("los-angeles", "g02.jpg", "Los Angeles basin from a hillside", "Los Angeles", "street", U, U, UL, UO),
   ],
   chicago: [
-    shot("chicago", "g01.jpg", "Chicago Loop elevated tracks from the street", "Loop", "sight", U, U, UL, UO),
+    shot("chicago", "g01.jpg", "Chicago Theatre on State Street", "Chicago Theatre", "sight", U, U, UL, UO),
     shot("chicago", "eat.jpg", "Pizza on a peel", "Chicago", "eat", U, U, UL, UO),
-    shot("chicago", "night.jpg", "Chicago river and towers at night", "Chicago River", "night", P, P, PL, PO),
-    shot("chicago", "g02.jpg", "Chicago River and Loop towers from a riverwalk", "Chicago River", "street", P, P, PL, PO),
+    shot("chicago", "willis.jpg", "Willis Tower over the Loop", "Willis Tower", "sight", "Wikimedia Commons", "Wikimedia Commons", "Wikimedia Commons", "https://en.wikipedia.org/wiki/Architecture_of_Chicago"),
+    shot("chicago", "river.jpg", "Chicago River from the riverwalk", "Chicago River", "street", "Wikimedia Commons", "Wikimedia Commons", "Wikimedia Commons", "https://en.wikipedia.org/wiki/Chicago"),
   ],
   melbourne: [
     shot("melbourne", "g01.jpg", "Melbourne tram and street", "CBD", "sight", U, U, UL, UO),

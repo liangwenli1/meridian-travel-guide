@@ -213,21 +213,26 @@
     min-width: 0;
   }
 
-  .photo-bento {
+  .photo-strip {
     display: grid;
-    gap: 0.75rem;
-    grid-template-columns: 1fr;
+    gap: 1.25rem 0.75rem;
+    grid-template-columns: 1fr 1fr;
   }
 
   @media (min-width: 768px) {
-    .photo-bento {
-      grid-template-columns: 1.35fr 1fr 1fr;
-      grid-template-rows: minmax(9rem, 20vh) minmax(9rem, 20vh);
+    .photo-strip {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
-    .photo-bento > figure:first-child {
-      grid-row: 1 / span 2;
+    .photo-strip[data-count="3"] {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
+  }
+
+  .photo-strip-frame {
+    aspect-ratio: 3 / 2;
+    overflow: hidden;
+    border-radius: var(--radius-xl);
   }
 
   .content-img {
