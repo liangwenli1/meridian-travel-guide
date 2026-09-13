@@ -90,7 +90,7 @@ function Home() {
           }`}
         >
           <div id="hero-fx" className="pointer-events-none absolute inset-0 z-10" aria-hidden="true" />
-          <SiteHeader />
+          <SiteHeader hideCitySwitcher />
 
           <div className="relative min-h-0 flex-1">
             <div className="globe-stage absolute inset-0 z-0 cursor-pointer overflow-hidden">

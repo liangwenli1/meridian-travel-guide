@@ -9,9 +9,11 @@ import { cn } from "@/lib/utils";
 export function SiteHeader({
   className,
   overlay = false,
+  hideCitySwitcher = false,
 }: {
   className?: string;
   overlay?: boolean;
+  hideCitySwitcher?: boolean;
 }) {
   const locale = useI18n((s) => s.locale);
   const strings = t(locale);
@@ -29,7 +31,7 @@ export function SiteHeader({
         {strings.globe}
       </Link>
       <div className="flex items-center gap-2 md:gap-3">
-        <CitySwitcher ghost={overlay} />
+        {hideCitySwitcher ? null : <CitySwitcher ghost={overlay} />}
         {isPending ? (
           <div className="header-chip size-9 animate-pulse rounded-full bg-void-elevated" />
         ) : (

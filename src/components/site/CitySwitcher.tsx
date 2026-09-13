@@ -84,7 +84,11 @@ export function CitySwitcher({ ghost = false }: { ghost?: boolean }) {
   return (
     <div
       onMouseLeave={() => setHover(false)}
-      className={cn("city-orb relative flex h-9 items-center", expanded && "city-orb-open")}
+      className={cn(
+        "city-orb relative flex h-9 items-center",
+        expanded && "city-orb-open",
+        onHome && "hidden",
+      )}
     >
       <Link
         to="/"
