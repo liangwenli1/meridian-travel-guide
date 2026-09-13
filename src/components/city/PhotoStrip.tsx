@@ -62,7 +62,9 @@ export function PhotoStrip({ citySlug }: { citySlug: string }) {
     const i = Math.max(0, Math.min(photos.length - 1, next));
     const slide = root.children[i] as HTMLElement | undefined;
     if (!slide) return;
-    root.scrollTo({ left: slide.offsetLeft, behavior: "smooth" });
+    const max = Math.max(0, root.scrollWidth - root.clientWidth);
+    const left = i === photos.length - 1 ? max : slide.offsetLeft;
+    root.scrollTo({ left, behavior: "smooth" });
     setIndex(i);
   };
 
@@ -74,17 +76,44 @@ export function PhotoStrip({ citySlug }: { citySlug: string }) {
 
   return (
     <div className="mt-10">
-      <div className="flex items-baseline justify-between gap-4">
+      <div className="flex items-center justify-between gap-4">
         <p className="kicker text-muted">{strings.photosKicker}</p>
         {multiple ? (
-          <p className="kicker text-muted" aria-live="polite">
-            {String(index + 1).padStart(2, "0")} / {String(photos.length).padStart(2, "0")}
-          </p>
+          <div className="flex items-center gap-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className={cn("size-9 p-0", index === 0 && "pointer-events-none opacity-30")}
+              aria-label={strings.photoPrev}
+              disabled={index === 0}
+              onClick={() => go(index - 1)}
+            >
+              <ChevronLeft className="size-4" />
+            </Button>
+            <p className="kicker min-w-16 text-center text-muted" aria-live="polite">
+              {String(index + 1).padStart(2, "0")} / {String(photos.length).padStart(2, "0")}
+            </p>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className={cn(
+                "size-9 p-0",
+                index === photos.length - 1 && "pointer-events-none opacity-30",
+              )}
+              aria-label={strings.photoNext}
+              disabled={index === photos.length - 1}
+              onClick={() => go(index + 1)}
+            >
+              <ChevronRight className="size-4" />
+            </Button>
+          </div>
         ) : null}
       </div>
 
       <div
-        className="relative mt-4"
+        className="mt-4"
         onKeyDown={(event) => {
           if (!multiple) return;
           if (event.key === "ArrowLeft") {
@@ -100,6 +129,7 @@ export function PhotoStrip({ citySlug }: { citySlug: string }) {
         <div
           ref={scrollerRef}
           className="photo-reel"
+          data-single={multiple ? undefined : ""}
           tabIndex={multiple ? 0 : undefined}
           role="region"
           aria-roledescription="carousel"
@@ -122,39 +152,6 @@ export function PhotoStrip({ citySlug }: { citySlug: string }) {
             </figure>
           ))}
         </div>
-
-        {multiple ? (
-          <>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className={cn(
-                "absolute top-1/2 left-3 size-11 -translate-y-1/2 p-0",
-                index === 0 && "pointer-events-none opacity-30",
-              )}
-              aria-label={strings.photoPrev}
-              disabled={index === 0}
-              onClick={() => go(index - 1)}
-            >
-              <ChevronLeft className="size-4" />
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className={cn(
-                "absolute top-1/2 right-3 size-11 -translate-y-1/2 p-0",
-                index === photos.length - 1 && "pointer-events-none opacity-30",
-              )}
-              aria-label={strings.photoNext}
-              disabled={index === photos.length - 1}
-              onClick={() => go(index + 1)}
-            >
-              <ChevronRight className="size-4" />
-            </Button>
-          </>
-        ) : null}
       </div>
 
       {caption ? (

@@ -169,56 +169,58 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
             canUseTools={canUseTools}
           />
 
-          <div className="mt-12 grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardTitle>Why go</CardTitle>
-              <CardDescription>{view.whyGo}</CardDescription>
-            </Card>
-            <div className="grid gap-4">
-              <Card>
-                <CardMeta>Who will love it</CardMeta>
-                <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted">
+          <div className="mt-12">
+            <p className="kicker text-muted">{strings.whyGo}</p>
+            <p className="brief-essay mt-3">{view.whyGo}</p>
+
+            <div className="brief-split mt-12">
+              <div>
+                <p className="kicker text-muted">{strings.whoLove}</p>
+                <ul className="brief-list list-disc">
                   {view.whoWillLoveIt.map((item) => (
                     <li key={item}>{item}</li>
                   ))}
                 </ul>
-              </Card>
-              <Card>
-                <CardMeta>Who may struggle</CardMeta>
-                <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted">
+              </div>
+              <div>
+                <p className="kicker text-muted">{strings.whoStruggle}</p>
+                <ul className="brief-list list-disc">
                   {view.whoMayStruggle.map((item) => (
                     <li key={item}>{item}</li>
                   ))}
                 </ul>
-              </Card>
+              </div>
+            </div>
+
+            <div className="brief-split mt-12">
+              <div className="brief-rule">
+                <p className="kicker text-fg">{strings.shortVersion}</p>
+                <ol className="brief-list list-decimal">
+                  {view.shortVersion.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ol>
+              </div>
+              <div className="brief-rule brief-rule-warn">
+                <p className="kicker text-fg">{strings.realityCheck}</p>
+                <ul className="brief-list list-disc">
+                  {view.realityCheck.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <p className="kicker mt-12 text-muted">{strings.beforeYouGo}</p>
+            <div className="index-list mt-4">
+              {view.beforeYouGo.map((item) => (
+                <div key={item.title} className="index-row">
+                  <h3>{item.title}</h3>
+                  <p>{item.body}</p>
+                </div>
+              ))}
             </div>
           </div>
-
-          <Grid min="md" className="mt-10">
-            <Callout kind="good-to-know" title="The short version">
-              <ol className="list-decimal space-y-1 pl-4">
-                {view.shortVersion.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ol>
-            </Callout>
-            <Callout kind="watch-out" title="Reality check">
-              <ul className="list-disc space-y-1 pl-4">
-                {view.realityCheck.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </Callout>
-          </Grid>
-
-          <Grid min="md" className="mt-12">
-            {view.beforeYouGo.map((item) => (
-              <Card key={item.title}>
-                <CardTitle className="text-base">{item.title}</CardTitle>
-                <CardDescription>{item.body}</CardDescription>
-              </Card>
-            ))}
-          </Grid>
         </div>
       </section>
 
