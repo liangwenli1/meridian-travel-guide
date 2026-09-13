@@ -5,7 +5,7 @@ import type { City, Country } from "@/types/catalog";
 import { latLngToVector3 } from "./latlng";
 
 /** Bump this when the engine visual contract changes so <Globe> remounts on HMR. */
-export const GLOBE_ENGINE_REV = 34;
+export const GLOBE_ENGINE_REV = 35;
 
 export type GlobeLabel = {
   id: string;
@@ -168,6 +168,7 @@ export class GlobeEngine {
   private globe = new THREE.Group();
   private raf = 0;
   private disposed = false;
+  private paused = false;
   private reducedMotion: boolean;
   private cities: City[];
   private countries: Country[];
@@ -308,6 +309,7 @@ export class GlobeEngine {
     this.fly = null;
     onDone?.();
     cancelAnimationFrame(this.raf);
+    this.raf = 0;
     this.resizeObs.disconnect();
     this.controls.removeEventListener("start", this.handleUserStart);
     this.controls.removeEventListener("end", this.handleUserEnd);
@@ -318,6 +320,21 @@ export class GlobeEngine {
     this.materials.forEach((m) => m.dispose());
     this.textures.forEach((t) => t.dispose());
     this.renderer.dispose();
+  }
+
+  setPaused(value: boolean) {
+    if (this.paused === value) return;
+    this.paused = value;
+    if (value) {
+      if (!this.fly) {
+        cancelAnimationFrame(this.raf);
+        this.raf = 0;
+      }
+      return;
+    }
+    if (this.disposed) return;
+    this.lastTs = 0;
+    if (!this.raf) this.raf = requestAnimationFrame(this.loop);
   }
 
   private handleUserStart = () => {
@@ -756,6 +773,10 @@ export class GlobeEngine {
 
   private loop = (ts: number) => {
     if (this.disposed) return;
+    if (this.paused && !this.fly) {
+      this.raf = 0;
+      return;
+    }
     this.raf = requestAnimationFrame(this.loop);
     const dt = Math.min(0.05, this.lastTs ? (ts - this.lastTs) / 1000 : 0.016);
     this.lastTs = ts;

@@ -22,6 +22,7 @@ import { PassGate, LockedRest } from "@/components/pass/PassGate";
 import { TripBrief } from "@/components/pass/TripBrief";
 import { listOffseasonTables } from "@/data/pass";
 import { localizeGuide } from "@/lib/guide-locale";
+import { mediaAttrs } from "@/lib/media";
 import { usePassEntitlements } from "@/lib/pass/use-entitlements";
 import { downloadPassItinerary } from "@/lib/server/pass-locker";
 import { getChapterNotes } from "@/lib/server/editorial";
@@ -112,9 +113,11 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
 
       <section className="relative isolate min-h-[72vh] overflow-hidden">
         <img
-          src={view.hero.url}
+          {...mediaAttrs(view.hero.url, "hero")}
           alt={view.hero.alt}
           referrerPolicy="no-referrer"
+          decoding="async"
+          fetchPriority="high"
           className="content-img absolute inset-0 size-full object-cover"
         />
         <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.82),rgba(0,0,0,0.2)_55%,rgba(0,0,0,0.4))]" />
