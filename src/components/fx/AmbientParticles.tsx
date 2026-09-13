@@ -19,10 +19,6 @@ export function AmbientParticles() {
     }));
 
     const draw = () => {
-      if (document.hidden) {
-        raf = 0;
-        return;
-      }
       const parent = canvas.parentElement ?? canvas;
       const w = parent.clientWidth || window.innerWidth;
       const h = parent.clientHeight || window.innerHeight;
@@ -43,20 +39,8 @@ export function AmbientParticles() {
       }
       raf = requestAnimationFrame(draw);
     };
-    const onVisibility = () => {
-      if (document.hidden) {
-        cancelAnimationFrame(raf);
-        raf = 0;
-        return;
-      }
-      if (!raf) raf = requestAnimationFrame(draw);
-    };
-    document.addEventListener("visibilitychange", onVisibility);
     raf = requestAnimationFrame(draw);
-    return () => {
-      cancelAnimationFrame(raf);
-      document.removeEventListener("visibilitychange", onVisibility);
-    };
+    return () => cancelAnimationFrame(raf);
   }, []);
 
   return (

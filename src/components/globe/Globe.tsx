@@ -5,7 +5,7 @@ import { GlobeLabels } from "./GlobeLabels";
 import { GlobeFallback } from "./GlobeFallback";
 
 /** Bump with the engine so HMR remounts WebGL. */
-const GLOBE_ENGINE_REV = 35;
+const GLOBE_ENGINE_REV = 34;
 
 export type GlobeHandle = {
   flyToCity: (city: City) => Promise<void>;
@@ -34,9 +34,7 @@ export function Globe({
     flyToCity: (city: City) => Promise<void>;
     dispose: () => void;
     setReducedMotion: (value: boolean) => void;
-    setPaused: (value: boolean) => void;
   } | null>(null);
-  const pausedRef = useRef(false);
   const [labels, setLabels] = useState<GlobeLabel[]>([]);
   const [failed, setFailed] = useState(false);
   const [ready, setReady] = useState(false);
@@ -78,7 +76,6 @@ export function Globe({
         heroBand,
         container,
       });
-      engine.setPaused(pausedRef.current);
       engineRef.current = engine;
     })().catch(() => {
       if (!cancelled) setFailed(true);
@@ -96,35 +93,6 @@ export function Globe({
   useEffect(() => {
     engineRef.current?.setReducedMotion(reducedMotion);
   }, [reducedMotion]);
-
-  useEffect(() => {
-    const el = frameRef.current;
-    if (!el) return;
-
-    const apply = (paused: boolean) => {
-      pausedRef.current = paused;
-      engineRef.current?.setPaused(paused);
-    };
-
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        apply(!entry.isIntersecting || document.hidden);
-      },
-      { threshold: 0.08 },
-    );
-    io.observe(el);
-
-    const onVisibility = () => {
-      const visible = el.getBoundingClientRect().height > 0 && el.getBoundingClientRect().bottom > 0;
-      apply(!visible || document.hidden);
-    };
-    document.addEventListener("visibilitychange", onVisibility);
-
-    return () => {
-      io.disconnect();
-      document.removeEventListener("visibilitychange", onVisibility);
-    };
-  }, []);
 
   if (failed) {
     return <GlobeFallback cities={cities.filter((c) => c.contentStatus === "published")} onCitySelect={onCitySelect} />;

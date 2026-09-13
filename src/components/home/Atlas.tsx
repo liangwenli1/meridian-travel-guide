@@ -7,7 +7,6 @@ import { cityHours } from "@/data/hours";
 import { dispatches } from "@/data/dispatches";
 import { getGuide } from "@/data/guides";
 import { t, useI18n } from "@/lib/i18n";
-import { mediaAttrs } from "@/lib/media";
 import type { City } from "@/types/catalog";
 
 export function Atlas({ published }: { published: City[] }) {
@@ -31,17 +30,14 @@ export function Atlas({ published }: { published: City[] }) {
                 to="/$country/$city"
                 params={{ country: city.countrySlug, city: city.slug }}
                 search={{ s: "overview" }}
-                className="atlas-card group relative block min-h-[28vh] overflow-hidden rounded-2xl bg-void-elevated shadow-border transition-transform duration-200 ease-out hover:-translate-y-0.5"
+                className="group relative block min-h-[28vh] overflow-hidden rounded-2xl bg-void-elevated shadow-border transition-transform duration-200 ease-out hover:-translate-y-0.5"
               >
                 <div className="relative h-full min-h-[28vh] overflow-hidden sm:min-h-[32vh]">
                   {guide ? (
                     <img
-                      {...mediaAttrs(guide.hero.url, "card")}
+                      src={guide.hero.url}
                       alt={guide.hero.alt}
                       referrerPolicy="no-referrer"
-                      decoding="async"
-                      loading="lazy"
-                      fetchPriority="low"
                       className="content-img absolute inset-0 size-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]"
                       onError={(event) => {
                         event.currentTarget.style.opacity = "0";
