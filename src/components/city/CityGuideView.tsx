@@ -63,17 +63,7 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
   }));
   const section = useSearch({ from: "/$country/$city" }).s ?? "overview";
   const navigate = useNavigate({ from: "/$country/$city" });
-  const jump = (id: GuideSectionId | "dates") => {
-    if (id === "dates") {
-      if (section !== "overview") {
-        void navigate({ search: { s: "overview" }, replace: true, resetScroll: false }).then(() => {
-          document.getElementById("trip-brief")?.scrollIntoView({ behavior: "smooth", block: "start" });
-        });
-        return;
-      }
-      document.getElementById("trip-brief")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      return;
-    }
+  const jump = (id: GuideSectionId) => {
     void navigate({ search: { s: id }, replace: true, resetScroll: false }).then(() => {
       document.getElementById("guide-nav")?.scrollIntoView({ behavior: "instant", block: "start" });
     });
@@ -158,17 +148,6 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
           </h1>
           <p className="mt-4 max-w-xl text-base text-fg/80 md:text-lg">{view.subtitle}</p>
           <p className="mt-3 max-w-xl text-sm text-fg/55">{strings.startPath}</p>
-          <div className="mt-6 flex flex-wrap gap-2">
-            <Button type="button" size="sm" variant="outline" onClick={() => jump("dates")}>
-              {strings.jumpDates}
-            </Button>
-            <Button type="button" size="sm" variant="ghost" onClick={() => jump("neighborhoods")}>
-              {strings.navAreas}
-            </Button>
-            <Button type="button" size="sm" variant="ghost" onClick={() => jump("stay")}>
-              {strings.navStay}
-            </Button>
-          </div>
         </div>
       </section>
 
@@ -181,6 +160,20 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
             <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-muted">{chapterNote}</p>
           </Card>
         </div>
+      ) : null}
+
+      {section === "dates" ? (
+      <section id="dates" className="guide-panel scroll-mt-20 py-14 md:py-20">
+        <div className="guide-shell">
+          <TripBrief
+            citySlug={city.slug}
+            cityName={city.name}
+            countrySlug={city.countrySlug}
+            canReadFull={canReadFull}
+            canUseTools={canUseTools}
+          />
+        </div>
+      </section>
       ) : null}
 
       {section === "overview" ? (
@@ -239,14 +232,6 @@ export function CityGuideView({ city, guide }: { city: City; guide: CityGuide })
               {strings.navStay}
             </button>
           </Card>
-
-          <TripBrief
-            citySlug={city.slug}
-            cityName={city.name}
-            countrySlug={city.countrySlug}
-            canReadFull={canReadFull}
-            canUseTools={canUseTools}
-          />
 
           <div className="mt-12">
             <p className="kicker text-muted">{strings.whyGo}</p>

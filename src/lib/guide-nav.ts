@@ -1,4 +1,5 @@
 export const GUIDE_NAV_PRIMARY = [
+  { id: "dates", labelKey: "navDates" },
   { id: "overview", labelKey: "navOverview" },
   { id: "neighborhoods", labelKey: "navAreas" },
   { id: "food", labelKey: "navEat" },

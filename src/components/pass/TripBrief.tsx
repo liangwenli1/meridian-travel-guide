@@ -41,7 +41,15 @@ export function TripBrief({
     [citySlug, arrive, nights, party],
   );
 
-  if (!spec || !brief) return null;
+  if (!spec || !brief) {
+    return (
+      <div id="trip-brief">
+        <p className="kicker text-accent">{strings.briefKicker}</p>
+        <h2 className="mt-2 text-3xl font-medium tracking-tight">{strings.briefTitle}</h2>
+        <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted">{strings.briefDek}</p>
+      </div>
+    );
+  }
 
   const download = () => {
     const markdown = briefToMarkdown(brief, locale, cityName);
@@ -70,7 +78,7 @@ export function TripBrief({
   );
 
   return (
-    <section id="trip-brief" className="mt-12 scroll-mt-24">
+    <div id="trip-brief">
       <p className="kicker text-accent">{strings.briefKicker}</p>
       <h2 className="mt-2 text-3xl font-medium tracking-tight">{strings.briefTitle}</h2>
       <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted">{strings.briefDek}</p>
@@ -257,6 +265,6 @@ export function TripBrief({
           </div>
         </div>
       </PassGate>
-    </section>
+    </div>
   );
 }
